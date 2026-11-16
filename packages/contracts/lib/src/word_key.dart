@@ -7,9 +7,9 @@ import 'package:meta/meta.dart';
 final class WordKey implements Comparable<WordKey> {
   /// Creates a key for [word] in [ayah] of [surah].
   const WordKey(this.surah, this.ayah, this.word)
-    : assert(surah >= 1 && surah <= 114, 'surah must be in 1..114'),
-      assert(ayah >= 1, 'ayah must be positive'),
-      assert(word >= 1, 'word must be positive');
+      : assert(surah >= 1 && surah <= 114, 'surah must be in 1..114'),
+        assert(ayah >= 1, 'ayah must be positive'),
+        assert(word >= 1, 'word must be positive');
 
   /// Parses a key written as `surah:ayah:word`, for example `2:255:3`.
   ///

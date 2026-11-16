@@ -7,14 +7,14 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
-  contracts:
-    path: ../../packages/contracts
-  quran_text:
-    path: ../../packages/quran_text
-  follow:
-    path: ../../packages/follow
   check:
     path: ../../packages/check
+  contracts:
+    path: ../../packages/contracts
+  follow:
+    path: ../../packages/follow
+  quran_text:
+    path: ../../packages/quran_text
 
 dev_dependencies:
   test: any

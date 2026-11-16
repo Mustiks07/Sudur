@@ -33,8 +33,9 @@
 | `surah` | `number`, `name_ar`, `name_ru`, `name_kk`, `name_uz`, `ayah_count`, `revelation` (makkah/madinah) |
 | `ayah` | `surah`, `ayah`, `first_word_index`, `word_count`, `page`, `juz`, `hizb`, `sajda` (bool) |
 | `word` | `word_index`, `surah`, `ayah`, `position`, `text_uthmani` (канон), `page`, `line`, `line_position`, `glyph_code` |
+| Знак конца аята | Место (страница, строка, позиция в строке) и код знака шрифта для каждого аята — без них страницу не нарисовать (ADR 0002) |
 | `page` | `number`, `layout_id`, `first_word_index`, `last_word_index` |
-| `line` | `page`, `line`, `kind` (ayah/surahName/basmala), `first_word_index`, `last_word_index`, `centered` |
+| `line` | `page`, `line`, `kind` (ayah/surahName/basmala), `first_word_index`, `last_word_index`, `centered`, номер суры для строк заголовка (ADR 0002) |
 | `passage_default` | `id`, `from_word_index`, `to_word_index` |
 | `similar_pair` | `id`, `a_from`, `a_to`, `b_from`, `b_to`, `verified` |
 | `tajweed_mark` | `word_index`, `char_offset`, `rule` |
@@ -128,6 +129,8 @@ JSON с параметрами из 12.4, кроме порогов модели
 | `ambiguityMargin` | 0,15 |
 | `ngramSize` | 3 |
 | `stableConfirmations` | 2 |
+| `openDelayWords` | 2 — сколько устойчивых слов ждать перед открытием, если пути гипотез расходятся (10.4; ADR 0002) |
+| `lostWindowWords` | 4 — по скольким последним словам считать среднюю стоимость для потери позиции (10.4; ADR 0002) |
 
 ### Проверка (в `thresholds.json`)
 
