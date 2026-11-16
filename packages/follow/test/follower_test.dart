@@ -104,6 +104,23 @@ void main() {
     expect(r.jumps, isEmpty);
   });
 
+  test('position never found: PositionLost with no last word, once', () {
+    // Reading surah 79 while the passage is surah 78.
+    final r = run(RecognitionScript()..segment(heard(ayahs(79, 1, 5))));
+    final lost = r.events.whereType<PositionLost>().toList();
+    expect(lost, hasLength(1));
+    expect(lost.single.lastConfidentWord, isNull);
+    expect(r.revealed, isEmpty);
+  });
+
+  test('start in the middle: PositionLost with no last word, then found', () {
+    final r = run(RecognitionScript()..segment(heard(ayahs(78, 20, 22))));
+    expect(r.events.first, isA<PositionLost>());
+    expect((r.events.first as PositionLost).lastConfidentWord, isNull);
+    expect(r.events.whereType<PositionLost>(), hasLength(1));
+    expect(r.revealed, [for (final w in ayahs(78, 20, 22)) w.key]);
+  });
+
   test('repeat of the previous 3 words: position goes back, no new reveals',
       () {
     final words = ayahs(78, 6, 9);
@@ -187,7 +204,7 @@ void main() {
       ..segment(heard(words.take(6)))
       ..pause(20000)
       ..segment(heard(words.skip(6)));
-    final r = run(script);
+    final r = run(script, using: follower(from: words.first.key));
     expect(r.revealed, [for (final w in words) w.key]);
     expect(r.events.whereType<PositionLost>(), isEmpty);
   });
@@ -216,7 +233,10 @@ void main() {
     final words = ayahs(78, 6, 7);
     final read = heard(words);
     final stutter = [...read.take(3), read[2], read[2], ...read.skip(3)];
-    final r = run(RecognitionScript()..segment(stutter));
+    final r = run(
+      RecognitionScript()..segment(stutter),
+      using: follower(from: words.first.key),
+    );
     expect(r.revealed, [for (final w in words) w.key]);
     expect(r.events.whereType<PositionLost>(), isEmpty);
   });

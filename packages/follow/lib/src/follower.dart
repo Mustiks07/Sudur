@@ -109,15 +109,15 @@ final class Follower {
       _beam = const [];
       _reportedPos = null;
       _reportedCandidates = const [];
-      if (_lastConfident != null) {
-        out.events.add(
-          PositionLost(
-            sessionId: out.sessionId,
-            atMs: out.atMs,
-            lastConfidentWord: _lastConfident,
-          ),
-        );
-      }
+      // Once per loss; `lastConfidentWord` is null when the position was
+      // never found, for example when reading starts elsewhere.
+      out.events.add(
+        PositionLost(
+          sessionId: out.sessionId,
+          atMs: out.atMs,
+          lastConfidentWord: _lastConfident,
+        ),
+      );
       _search(out);
       return;
     }
