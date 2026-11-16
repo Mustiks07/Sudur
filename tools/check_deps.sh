@@ -2,6 +2,25 @@
 
 set -euo pipefail
 
+readonly required_commands=(
+  awk
+  dirname
+  find
+  grep
+)
+
+missing_command=0
+for command_name in "${required_commands[@]}"; do
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    printf 'Required program is not available: %s\n' "$command_name" >&2
+    missing_command=1
+  fi
+done
+
+if ((missing_command != 0)); then
+  exit 127
+fi
+
 readonly project_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$project_root"
 
@@ -99,10 +118,10 @@ dependency_is_allowed() {
 
 for package in "${pure_dart_packages[@]}"; do
   pubspec="packages/$package/pubspec.yaml"
-  if rg -q '^  flutter:$' "$pubspec"; then
+  if grep -q '^  flutter:$' "$pubspec"; then
     report_error "$package is a pure-Dart package but depends on Flutter"
   fi
-  if rg -q --glob '*.dart' "package:flutter/" "packages/$package"; then
+  if grep -R -q --include='*.dart' 'package:flutter/' "packages/$package"; then
     report_error "$package is a pure-Dart package but imports Flutter"
   fi
 done
@@ -117,9 +136,15 @@ for package in "${project_packages[@]}"; do
 done
 
 for service in "${service_packages[@]}"; do
-  if rg -n --glob 'pubspec.yaml' --glob '!app/pubspec.yaml' --glob "!packages/$service/pubspec.yaml" "^  $service:" packages tools >/dev/null; then
-    report_error "only app may depend on service package $service"
-  fi
+  while IFS= read -r pubspec; do
+    if grep -q "^  $service:" "$pubspec"; then
+      report_error "only app may depend on service package $service"
+      break
+    fi
+  done < <(
+    find packages tools -type f -name pubspec.yaml \
+      ! -path "packages/$service/pubspec.yaml"
+  )
 done
 
 while IFS=: read -r file line import_line; do
@@ -146,7 +171,10 @@ while IFS=: read -r file line import_line; do
   if [[ "$imported_package" != "$owning_package" ]]; then
     report_error "$file:$line imports another package's src/ directory ($imported_package)"
   fi
-done < <(rg -n --glob '*.dart' "package:[a-zA-Z0-9_]+/src/" app packages tools || true)
+done < <(
+  grep -R -n -E --include='*.dart' \
+    'package:[a-zA-Z0-9_]+/src/' app packages tools || true
+)
 
 if ((failed != 0)); then
   exit 1
