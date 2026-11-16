@@ -10,7 +10,7 @@ The owner speaks Russian. Write code, identifiers and code comments in English; 
 - Your task file is in `docs/tasks/`. It lists your branch, the paths you may change, the spec sections, and what "done" means. Read it first.
 - Branch per task: `<agent>/<task-id>-<short>`, e.g. `opus/p06-follow`. Never push to `main`.
 - Before opening a PR: `git fetch origin && git rebase origin/main`, then format, analyze and tests must pass.
-- PR to `main`, title `[P06] follow v0`. Astra reviews and squash-merges.
+- PR to `main`, title `[P06] follow v0`. Astra reviews and gives a verdict; the owner merges with "Create a merge commit" (not squash).
 - Full process: `docs/WORKFLOW.md`.
 - **No GitHub write access in your environment?** (`could not read Username`, API `401`) — do not retry. Bundle your branches (`git bundle create /tmp/sudur-<agent>.bundle <branches> ^origin/main`), verify it, and report commit hashes, SHA-256 and size; the owner delivers it. See `docs/WORKFLOW.md`.
 

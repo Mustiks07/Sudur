@@ -6,12 +6,12 @@
 
 | Задача | Агент | Ветка | Зависит от | Статус |
 |---|---|---|---|---|
-| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation` | — | Открыта |
-| [P03 — данные суры 78](P03-content-build.md) | Opus | `opus/p03-content-build` | — | Открыта |
-| [P02 — текст, ключи, сходство](P02-quran-text.md) | Opus | `opus/p02-quran-text` | P03 | Открыта |
-| [P06 — следование v0](P06-follow.md) | Opus | `opus/p06-follow` | P02 | Открыта |
-| [P04 — распознаватель на sherpa-onnx](P04-asr-sherpa.md) | GPT-B | `gpt-b/p04-asr-sherpa` | P01 | Открыта |
-| [P05 — микрофон и отрезки речи](P05-audio-capture.md) | GPT-B | `gpt-b/p05-audio-capture` | P01 | Открыта |
+| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation` | — | В работе |
+| [P03 — данные суры 78](P03-content-build.md) | Opus | `opus/p03-content-build` | — | PR №1, ждёт вердикта Астры |
+| [P02 — текст, ключи, сходство](P02-quran-text.md) | Opus | `opus/p02-quran-text` | P03 | PR №2, ждёт вердикта Астры |
+| [P06 — следование v0](P06-follow.md) | Opus | `opus/p06-follow` | P02 | PR №3, ждёт вердикта Астры |
+| [P04 — распознаватель на sherpa-onnx](P04-asr-sherpa.md) | GPT-B | `gpt-b/p04-asr-sherpa` | — | Ветка готова, PR открывает владелец |
+| [P05 — микрофон и отрезки речи](P05-audio-capture.md) | GPT-B | `gpt-b/p05-audio-capture` | — | Ветка готова, PR открывает владелец |
 | [P07 — отрисовка мусхафа v0](P07-mushaf-view.md) | GPT-A | `gpt-a/p07-mushaf-view` | P01, P03 | Открыта |
 | [P08 — сборка прототипа и замеры](P08-prototype.md) | Астра | `astra/p08-prototype` | все выше | Открыта |
 | Проверка и слияние всех запросов | Астра | — | — | Постоянно |
@@ -24,8 +24,8 @@
 
 | Задача | Агент | Ветка | Статус |
 |---|---|---|---|
-| [S04 — проверка ошибок v0](S04-check.md) | Opus | `opus/s04-check` | Открыта, начинать после слияния №3 |
-| [M01 — оценка качества на записях](M01-eval.md) | Opus | `opus/m01-eval` | Открыта |
+| [S04 — проверка ошибок v0](S04-check.md) | Opus | `opus/s04-check` | PR №5 (после №3), ждёт вердикта Астры |
+| [M01 — оценка качества на записях](M01-eval.md) | Opus | `opus/m01-eval` | PR №4 (после №3), ждёт вердикта Астры |
 
 Ещё без задач:
 
