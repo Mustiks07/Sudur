@@ -74,9 +74,11 @@ Future<void> main(List<String> arguments) async {
         ? Normalizer.builtIn
         : _unwrap(Normalizer.fromJson(_read(normalizerPath)));
     final thresholdsPath = args.option('thresholds');
-    final params = thresholdsPath == null
-        ? FollowParams.defaults
-        : FollowParams.fromJson(_jsonObject(_read(thresholdsPath)));
+    final thresholds = thresholdsPath == null
+        ? const <String, Object?>{}
+        : _jsonObject(_read(thresholdsPath));
+    final params = FollowParams.fromJson(thresholds);
+    final window = CorrectionWindow.fromThresholds(thresholds);
     final words = _unwrap(
       ContentJsonSource(_read(args.option('content'))).loadWords(),
     );
@@ -105,6 +107,7 @@ Future<void> main(List<String> arguments) async {
       model: model,
       recordings: evaluated,
       config: config,
+      window: window,
       baseline: baselinePath == null
           ? null
           : baselineValuesFromJson(_jsonObject(_read(baselinePath))),

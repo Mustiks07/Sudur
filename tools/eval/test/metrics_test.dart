@@ -8,6 +8,7 @@ WordKey k(int word) => WordKey(78, 1, word);
 
 Annotation annotation(
   Map<int, WordStatus> words, {
+  Map<int, (int, int)> corrections = const {},
   String noise = 'quiet',
   List<AnnotatedSpan> insertions = const [],
   List<AnnotatedSpan> jumps = const [],
@@ -21,7 +22,12 @@ Annotation annotation(
       to: k(words.length),
       words: [
         for (final e in words.entries)
-          AnnotatedWord(key: k(e.key), status: e.value),
+          AnnotatedWord(
+            key: k(e.key),
+            status: e.value,
+            correctionAfterWords: corrections[e.key]?.$1,
+            correctionAfterMs: corrections[e.key]?.$2,
+          ),
       ],
       insertions: insertions,
       jumps: jumps,
@@ -155,6 +161,35 @@ void main() {
       expect(Metric.substitutionRecall.ratioIn(n), (2, 3));
     });
 
+    test('КЧ-04: the kind must match; the other kind finds nothing', () {
+      final a = annotation({1: om, 2: sub, 3: c});
+      final n = count(
+        a,
+        events: [
+          event(CheckKind.substitution, CheckState.confirmed, [1]),
+          event(CheckKind.omission, CheckState.confirmed, [2]),
+        ],
+      );
+      expect(Metric.omissionRecall.ratioIn(n), (0, 1));
+      expect(Metric.substitutionRecall.ratioIn(n), (0, 1));
+      // Both still mark a real mistake, so precision is not hurt.
+      expect(Metric.precision.ratioIn(n), (2, 2));
+    });
+
+    test('events on unclear words are left out of the error metrics', () {
+      final a = annotation({1: unc, 2: c, 3: c});
+      final n = count(
+        a,
+        events: [
+          event(CheckKind.substitution, CheckState.confirmed, [1]),
+          event(CheckKind.omission, CheckState.unverified, [1]),
+        ],
+      );
+      expect(Metric.precision.valueIn(n), isNull); // nothing judged
+      expect(Metric.falseAlarmsPer1000.valueIn(n), 0);
+      expect(Metric.refusalRate.ratioIn(n), (0, 2));
+    });
+
     test('no mistakes at all: precision and recall have no data', () {
       final n = count(annotation({1: c, 2: c}), events: const []);
       expect(Metric.precision.valueIn(n), isNull);
@@ -176,6 +211,41 @@ void main() {
       expect(Metric.refusalRate.ratioIn(quiet), (1, 2));
       expect(Metric.refusalRate.ratioIn(noisy), (0, 0));
       expect(Metric.refusalRate.valueIn(quiet + noisy), 0.5);
+    });
+
+    test('self-correction after the window: the confirmed mistake stands', () {
+      // Word 1 corrected at once (in the window), word 2 three words later
+      // (outside the default window of 2 words): a new attempt.
+      final a = annotation(
+        {1: sc, 2: sc, 3: c},
+        corrections: {1: (1, 400), 2: (3, 1200)},
+      );
+      final n = count(
+        a,
+        events: [
+          event(CheckKind.substitution, CheckState.confirmed, [1]),
+          event(CheckKind.substitution, CheckState.confirmed, [2]),
+        ],
+      );
+      // Word 1: should have been `corrected` → false alarm. Word 2: true.
+      expect(Metric.precision.ratioIn(n), (1, 2));
+      // Only the in-window correction can be caught as a correction.
+      expect(Metric.selfCorrectionRecall.ratioIn(n), (0, 1));
+      // A wider window from thresholds.json makes both in-window.
+      final wide = Counts.of(
+        a,
+        RecordingOutcome(
+          revealed: const {},
+          checkEvents: [
+            event(CheckKind.substitution, CheckState.confirmed, [2]),
+          ],
+        ),
+        normalNoise: const {'quiet'},
+        timeToleranceMs: 0,
+        window:
+            CorrectionWindow.fromThresholds(const {'selfCorrectionWords': 3}),
+      );
+      expect(Metric.precision.ratioIn(wide), (0, 1));
     });
 
     test('КЧ-07: self-corrections found as corrected', () {

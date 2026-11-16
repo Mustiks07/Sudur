@@ -2,6 +2,50 @@ import 'package:contracts/contracts.dart';
 import 'package:eval/src/annotation.dart';
 import 'package:meta/meta.dart';
 
+/// The self-correction window of check (docs/tz 12.4: `selfCorrectionMs`,
+/// `selfCorrectionWords`), read from the model's `thresholds.json`.
+/// A correction inside it should have made the event `corrected`; a later
+/// one is a new attempt (docs/tz 10.5).
+@immutable
+final class CorrectionWindow {
+  /// Creates a window.
+  const CorrectionWindow({required this.words, required this.ms});
+
+  /// Reads `selfCorrectionWords` and `selfCorrectionMs`; missing keys keep
+  /// [defaults].
+  factory CorrectionWindow.fromThresholds(Map<String, Object?> json) =>
+      CorrectionWindow(
+        words: switch (json['selfCorrectionWords']) {
+          null => defaults.words,
+          final int v => v,
+          final v => throw FormatException('Bad selfCorrectionWords', v),
+        },
+        ms: switch (json['selfCorrectionMs']) {
+          null => defaults.ms,
+          final int v => v,
+          final v => throw FormatException('Bad selfCorrectionMs', v),
+        },
+      );
+
+  /// Built-in values of docs/tz 12.4, the same as check's defaults.
+  static const CorrectionWindow defaults = CorrectionWindow(
+    words: 2,
+    ms: 2500,
+  );
+
+  /// Words after the mistake within which a correction counts.
+  final int words;
+
+  /// Milliseconds after the mistake within which a correction counts.
+  final int ms;
+
+  /// Whether the self-correction of [word] came inside the window. A word
+  /// without correction timing is taken as corrected at once.
+  bool contains(AnnotatedWord word) =>
+      (word.correctionAfterWords ?? 0) <= words &&
+      (word.correctionAfterMs ?? 0) <= ms;
+}
+
 /// What following and checking produced for one recording.
 @immutable
 final class RecordingOutcome {
@@ -54,8 +98,11 @@ final class Counts {
 
   /// Counts one recording.
   ///
-  /// Words marked `unclear` are left out everywhere. [normalNoise] are the
-  /// noise conditions of "recordings of normal quality" (docs/tz КЧ-06).
+  /// Words marked `unclear` are left out everywhere, and so are check events
+  /// that touch them: nothing about such a word can be judged. [window]
+  /// decides whether a self-correction should have been caught.
+  /// [normalNoise] are the noise conditions of "recordings of normal
+  /// quality" (docs/tz КЧ-06).
   /// Insertions and jumps are matched to annotated spans by time, with
   /// [timeToleranceMs] slack.
   factory Counts.of(
@@ -63,6 +110,7 @@ final class Counts {
     RecordingOutcome outcome, {
     required Set<String> normalNoise,
     required int timeToleranceMs,
+    CorrectionWindow window = CorrectionWindow.defaults,
   }) {
     final words = {
       for (final w in annotation.words)
@@ -92,7 +140,11 @@ final class Counts {
     for (final e in events) {
       finals[e.eventId] = e;
     }
-    final confirmed = finals.values
+    final judged = [
+      for (final e in finals.values)
+        if (!e.words.any(unclear.contains)) e,
+    ];
+    final confirmed = judged
         .where(
           (e) =>
               mistakeKinds.contains(e.kind) &&
@@ -109,20 +161,29 @@ final class Counts {
 
     bool isTrue(CheckEvent e) => switch (e.kind) {
           CheckKind.omission || CheckKind.substitution => e.words.any(
-              (k) => words[k]?.isMistake ?? false,
+              (k) => switch (words[k]) {
+                null => false,
+                // Corrected outside the window: a new attempt, so the
+                // confirmed mistake stands (docs/tz 10.5).
+                final w when w.status == WordStatus.selfCorrected =>
+                  !window.contains(w),
+                final w => w.isMistake,
+              },
             ),
           CheckKind.insertion => overlaps(e, annotation.insertions),
           CheckKind.jump => overlaps(e, annotation.jumps),
           CheckKind.repetition || CheckKind.hesitation => false,
         };
 
-    final flagged = {
-      for (final e in confirmed)
-        if (e.kind == CheckKind.omission || e.kind == CheckKind.substitution)
-          ...e.words,
-    };
+    // КЧ-04 counts a mistake as found only by an event of the same kind.
+    Set<WordKey> flaggedAs(CheckKind kind) => {
+          for (final e in confirmed)
+            if (e.kind == kind) ...e.words,
+        };
+    final flaggedOmission = flaggedAs(CheckKind.omission);
+    final flaggedSubstitution = flaggedAs(CheckKind.substitution);
     Set<WordKey> inState(CheckState state) => {
-          for (final e in finals.values)
+          for (final e in judged)
             if (e.state == state) ...e.words,
         };
     final unverified = inState(CheckState.unverified);
@@ -133,7 +194,10 @@ final class Counts {
         words.values.where((w) => w.status == s).toList();
     final omitted = withStatus(WordStatus.omitted);
     final substituted = withStatus(WordStatus.substituted);
-    final selfCorrected = withStatus(WordStatus.selfCorrected);
+    // КЧ-07: only corrections inside the window can be caught as such.
+    final selfCorrected = withStatus(
+      WordStatus.selfCorrected,
+    ).where(window.contains).toList();
 
     return Counts(
       readCleanly: counts.readCleanly,
@@ -144,10 +208,11 @@ final class Counts {
       confirmed: confirmed.length,
       confirmedTrue: confirmed.where(isTrue).length,
       omitted: omitted.length,
-      omittedFound: omitted.where((w) => flagged.contains(w.key)).length,
+      omittedFound:
+          omitted.where((w) => flaggedOmission.contains(w.key)).length,
       substituted: substituted.length,
       substitutedFound:
-          substituted.where((w) => flagged.contains(w.key)).length,
+          substituted.where((w) => flaggedSubstitution.contains(w.key)).length,
       normalWords: normal ? words.length : 0,
       normalUnverified:
           normal ? words.keys.where(unverified.contains).length : 0,
@@ -182,14 +247,13 @@ final class Counts {
   /// Omitted words.
   final int omitted;
 
-  /// Of [omitted], those flagged by a confirmed omission or substitution.
+  /// Of [omitted], those flagged by a confirmed omission.
   final int omittedFound;
 
   /// Substituted words.
   final int substituted;
 
-  /// Of [substituted], those flagged by a confirmed omission or
-  /// substitution.
+  /// Of [substituted], those flagged by a confirmed substitution.
   final int substitutedFound;
 
   /// Words of recordings of normal quality.
@@ -198,7 +262,7 @@ final class Counts {
   /// Of [normalWords], those in an `unverified` event (docs/tz КЧ-06).
   final int normalUnverified;
 
-  /// Self-corrected words.
+  /// Self-corrected words whose correction came inside the window.
   final int selfCorrected;
 
   /// Of [selfCorrected], those in a `corrected` event (docs/tz КЧ-07).

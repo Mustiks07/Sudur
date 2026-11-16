@@ -64,13 +64,20 @@ final class SyntheticRecording {
     return _segmentStartMs + (_segment.length - 1) * msPerWord;
   }
 
-  void _word(String key, String status, int? startMs, {String? heard}) {
+  void _word(
+    String key,
+    String status,
+    int? startMs, {
+    String? heard,
+    Map<String, int>? correction,
+  }) {
     _words.add({
       'wordKey': key,
       'status': status,
       if (heard != null) 'heard': heard,
       if (startMs != null) 'startMs': startMs,
       if (startMs != null) 'endMs': startMs + msPerWord,
+      if (correction != null) 'correction': correction,
     });
   }
 
@@ -84,11 +91,27 @@ final class SyntheticRecording {
   void substituted(String key, String heard) =>
       _word(key, 'substituted', _say(heard), heard: heard);
 
-  /// [wrong] was read for [key], then corrected to [right].
-  void selfCorrected(String key, String wrong, String right) {
+  /// [wrong] was read for [key], then [between] other words, then the
+  /// correction [right]. The annotation records when the correction came
+  /// (`correction.afterWords`, `correction.afterMs`).
+  void selfCorrected(
+    String key,
+    String wrong,
+    String right, {
+    List<String> between = const [],
+  }) {
     final start = _say(wrong);
-    _say(right);
-    _word(key, 'selfCorrected', start);
+    between.forEach(_say);
+    final corrected = _say(right);
+    _word(
+      key,
+      'selfCorrected',
+      start,
+      correction: {
+        'afterWords': between.length + 1,
+        'afterMs': corrected - start,
+      },
+    );
   }
 
   /// The word [key] was read [times] times, correctly.

@@ -34,6 +34,8 @@ final class AnnotatedWord {
     this.heard,
     this.startMs,
     this.endMs,
+    this.correctionAfterWords,
+    this.correctionAfterMs,
   });
 
   /// The expected word.
@@ -50,6 +52,14 @@ final class AnnotatedWord {
 
   /// End of the word in the recording, ms.
   final int? endMs;
+
+  /// For `selfCorrected`: after how many words the correction came (1 = the
+  /// next word read was the corrected one).
+  final int? correctionAfterWords;
+
+  /// For `selfCorrected`: ms from the start of the wrong reading to the
+  /// start of the correction.
+  final int? correctionAfterMs;
 
   /// Whether the reader read this word in the end (correct, repeated or
   /// self-corrected).
@@ -158,12 +168,23 @@ final class Annotation {
           words: List.unmodifiable(
             _list(root['words'], 'words').map((w) {
               final word = _object(w, 'word');
+              final correction = word['correction'] == null
+                  ? null
+                  : _object(word['correction'], 'correction');
               return AnnotatedWord(
                 key: _key(word['wordKey'], 'wordKey'),
                 status: _status(word['status']),
                 heard: _optionalString(word['heard'], 'heard'),
                 startMs: _optionalInt(word['startMs'], 'startMs'),
                 endMs: _optionalInt(word['endMs'], 'endMs'),
+                correctionAfterWords: _optionalInt(
+                  correction?['afterWords'],
+                  'correction.afterWords',
+                ),
+                correctionAfterMs: _optionalInt(
+                  correction?['afterMs'],
+                  'correction.afterMs',
+                ),
               );
             }),
           ),
