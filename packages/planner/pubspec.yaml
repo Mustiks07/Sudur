@@ -1,0 +1,14 @@
+name: planner
+description: "Plan, FSRS scheduling and today's session."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  contracts:
+    path: ../contracts
+
+dev_dependencies:
+  test: any

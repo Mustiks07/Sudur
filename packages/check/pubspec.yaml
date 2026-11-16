@@ -1,0 +1,16 @@
+name: check
+description: "Mistake detection and event states."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  contracts:
+    path: ../contracts
+  quran_text:
+    path: ../quran_text
+
+dev_dependencies:
+  test: any

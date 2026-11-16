@@ -1,0 +1,13 @@
+name: contracts
+description: "Shared immutable models, events and interfaces between Sudur modules."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  meta: any
+
+dev_dependencies:
+  test: any

@@ -1,0 +1,58 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+.vscode/
+coverage/
+.fvm/flutter_sdk
+.fvm/versions
+
+# Platform build output
+**/android/.gradle/
+**/android/local.properties
+**/android/app/release/
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Runner/GeneratedPluginRegistrant.*
+DerivedData/
+
+# Secrets — never commit
+*.jks
+*.keystore
+key.properties
+*.p8
+*.p12
+*.mobileprovision
+.env
+.env.*
+**/google-services.json
+**/GoogleService-Info.plist
+**/manifest_private_key*
+
+# Third-party content and models are downloaded by scripts, never committed
+# (licenses: docs/tz/06-soderzhanie-pravo-dengi.md)
+/third_party_cache/
+**/*.onnx
+**/tokens.txt
+**/*.ttf
+**/*.woff
+**/*.woff2
+!packages/**/test/fixtures/**
+
+# Recordings — never commit
+**/*.wav
+**/*.opus
+**/*.m4a
+/eval_data/
+
+# OS
+.DS_Store
+Thumbs.db

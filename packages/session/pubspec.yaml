@@ -1,0 +1,20 @@
+name: session
+description: "Reading session orchestration: audio, recognition, following, checking."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  contracts:
+    path: ../contracts
+  quran_text:
+    path: ../quran_text
+  follow:
+    path: ../follow
+  check:
+    path: ../check
+
+dev_dependencies:
+  test: any

@@ -1,0 +1,14 @@
+name: quran_text
+description: "Canonical Quran text access, search keys and sequence index."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  contracts:
+    path: ../contracts
+
+dev_dependencies:
+  test: any

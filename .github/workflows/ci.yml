@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Task P01 switches this to the version pinned in .fvmrc.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Format
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Dependency rules
+        run: |
+          if [ -f tools/check_deps.sh ]; then bash tools/check_deps.sh; fi
+
+      - name: Tests
+        run: |
+          set -e
+          for dir in packages/*/ tools/*/ app/; do
+            [ -d "${dir}test" ] || continue
+            if grep -q "sdk: flutter" "${dir}pubspec.yaml"; then
+              (cd "$dir" && flutter test)
+            else
+              (cd "$dir" && dart test)
+            fi
+          done

@@ -1,0 +1,16 @@
+name: follow
+description: "Reading-position following: where the reader is now."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  contracts:
+    path: ../contracts
+  quran_text:
+    path: ../quran_text
+
+dev_dependencies:
+  test: any

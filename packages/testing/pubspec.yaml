@@ -1,0 +1,14 @@
+name: testing
+description: "Shared fakes for tests across packages."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  contracts:
+    path: ../contracts
+
+dev_dependencies:
+  test: any

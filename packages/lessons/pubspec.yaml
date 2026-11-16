@@ -1,0 +1,14 @@
+name: lessons
+description: "Lesson engine and lesson package format."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  contracts:
+    path: ../contracts
+
+dev_dependencies:
+  test: any

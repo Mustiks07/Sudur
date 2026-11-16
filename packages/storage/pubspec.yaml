@@ -1,0 +1,17 @@
+name: storage
+description: "User database (drift) and repositories' storage services."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  contracts:
+    path: ../contracts
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

@@ -1,0 +1,30 @@
+name: sudur_workspace
+description: Sudur monorepo root (pub workspace).
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+# Task P01 adds `app` here after running `flutter create`.
+workspace:
+  - packages/contracts
+  - packages/quran_text
+  - packages/follow
+  - packages/check
+  - packages/session
+  - packages/planner
+  - packages/lessons
+  - packages/testing
+  - packages/audio_capture
+  - packages/asr_sherpa
+  - packages/storage
+  - packages/content
+  - packages/mushaf_view
+  - packages/entitlements
+  - packages/sync
+  - tools/eval
+  - tools/content_build
+
+dev_dependencies:
+  # Task P01 pins the exact version.
+  very_good_analysis: any
