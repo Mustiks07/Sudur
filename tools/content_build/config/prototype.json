@@ -1,0 +1,36 @@
+{
+  "id": "prototype-p582-583",
+  "version": "0.1.0",
+  "pages": [582, 583],
+  "layoutId": "kfgqpc-v2-1421h-15lines",
+  "linesPerPage": 15,
+  "expected": {
+    "surahs": 114,
+    "ayahs": 6236,
+    "canonSha256": "c8c67016f3c5291368c4eaf25ccbc48ab0a856c80919d9179c9e708a6827f304"
+  },
+  "text": {
+    "name": "Tanzil Quran Text (Uthmani, Version 1.1)",
+    "url": "https://tanzil.net/pub/download/index.php?marks=true&sajdah=true&alef=true&tatweel=true&quranType=uthmani&outType=xml&agree=true",
+    "license": "CC-BY-3.0",
+    "attribution": "Tanzil Project, https://tanzil.net. Verbatim copy, changing it is not allowed."
+  },
+  "layout": {
+    "name": "KFGQPC V2 (1421H) 15-line layout and QPC V2 glyph codes via Quran.com API v4",
+    "url": "https://api.quran.com/api/v4/verses/by_page/{page}?mushaf=1&per_page=50&words=true&word_fields=code_v2,location,v2_page,line_v2&fields=juz_number,hizb_number,sajdah_number",
+    "license": "LicenseRef-KFGQPC-QUL-unverified",
+    "attribution": "King Fahd Glorious Quran Printing Complex (KFGQPC); data by Quran.com / Quranic Universal Library (QUL), https://qul.tarteel.ai. Terms not yet confirmed in writing (docs/tz 6.1)."
+  },
+  "chapters": {
+    "name": "Quran.com API v4 chapters",
+    "url": "https://api.quran.com/api/v4/chapters/{surah}",
+    "license": "LicenseRef-QuranCom-API-unverified",
+    "attribution": "Quran.com, https://quran.com. Only the revelation place and ayah count are used."
+  },
+  "fonts": {
+    "name": "KFGQPC QPC V2 page fonts via QUL CDN",
+    "url": "https://static-cdn.tarteel.ai/qul/fonts/quran_fonts/v2/ttf/p{page}.ttf?v=3.2",
+    "license": "LicenseRef-KFGQPC-fonts-unverified",
+    "attribution": "King Fahd Glorious Quran Printing Complex (KFGQPC), distributed by QUL, https://qul.tarteel.ai. Terms not yet confirmed in writing (docs/tz 6.1)."
+  }
+}
