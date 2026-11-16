@@ -166,6 +166,31 @@ void main() {
       }
     });
 
+    test('fails the build when the layout source drops an ayah', () async {
+      // Page 10 without ayah 1:2.
+      final page10 = pageJson([
+        verseJson(1, 1, [('w', 10, 1), ('w', 10, 2), ('e', 10, 2)]),
+      ]);
+      final fetcher = _FakeFetcher({
+        'https://text.test/quran.xml': syntheticTanzilXml(),
+        'https://layout.test/10': page10,
+        'https://layout.test/11': syntheticPage11(),
+        'https://layout.test/c/1': chapterJson(syntheticChapters()[1]!),
+        'https://layout.test/c/2': chapterJson(syntheticChapters()[2]!),
+      });
+      final result = await ContentBuilder(
+        config: syntheticConfig(),
+        fetcher: fetcher,
+        logger: Logger('test'),
+      ).build();
+      switch (result) {
+        case Ok():
+          fail('a build with a missing ayah must fail');
+        case Error(:final error):
+          expect('$error', contains('skips from 1:1 to 2:1'));
+      }
+    });
+
     test('returns an error when a check fails', () async {
       final fetcher = _FakeFetcher({
         'https://text.test/quran.xml': syntheticTanzilXml(),

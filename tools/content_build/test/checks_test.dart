@@ -55,13 +55,33 @@ void main() {
       expect(check(syntheticLayout()), isEmpty);
     });
 
+    test('reports an ayah missing from the layout source', () {
+      // Ayah 1:2 removed from page 10.
+      final verses = syntheticLayout()
+          .where((v) => !(v.surah == 1 && v.ayah == 2))
+          .toList();
+      final failures = check(verses);
+      expect(failures, contains(contains('skips from 1:1 to 2:1')));
+    });
+
+    test('reports a scope that does not start or end at a page edge', () {
+      // First and last ayahs removed: the scope has holes at both ends.
+      final verses = syntheticLayout()
+          .where((v) => !(v.surah == 1 && v.ayah == 1))
+          .where((v) => !(v.surah == 2 && v.ayah == 2))
+          .toList();
+      final failures = check(verses);
+      expect(failures, contains(contains('Scope starts at 1:2')));
+      expect(failures, contains(contains('Scope ends at 2:1')));
+    });
+
     test('reports a word count that differs from the text', () {
       final verses = parseLayoutPage(
         pageJson([
           verseJson(1, 1, [('w', 10, 1), ('e', 10, 1)]),
         ]),
       );
-      expect(check(verses).single, contains('text source has 2 words'));
+      expect(check(verses), contains(contains('text source has 2 words')));
     });
 
     test('reports glyphs outside the scope pages or lines', () {
@@ -81,7 +101,7 @@ void main() {
           verseJson(1, 1, [('w', 10, 1), ('w', 10, 1)]),
         ]),
       );
-      expect(check(verses).single, contains('ayah-end marker'));
+      expect(check(verses), contains(contains('ayah-end marker')));
     });
 
     test('reports an ayah count that differs from the chapter source', () {
