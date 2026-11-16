@@ -17,4 +17,4 @@ dependencies:
     path: ../../packages/quran_text
 
 dev_dependencies:
-  test: any
+  test: 1.32.0

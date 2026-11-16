@@ -7,6 +7,7 @@ environment:
 
 # Task P01 adds `app` here after running `flutter create`.
 workspace:
+  - app
   - packages/contracts
   - packages/quran_text
   - packages/follow
@@ -26,5 +27,4 @@ workspace:
   - tools/content_build
 
 dev_dependencies:
-  # Task P01 pins the exact version.
-  very_good_analysis: any
+  very_good_analysis: 11.0.0
