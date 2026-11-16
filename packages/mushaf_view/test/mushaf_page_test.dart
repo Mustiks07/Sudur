@@ -18,6 +18,7 @@ void main() {
           MushafPage(
             data: data,
             fontFamily: 'sans-serif',
+            semanticsLabelBuilder: _testSemanticsLabel,
             controller: controller,
             onWordTap: (wordKey) => tappedWord = wordKey,
           ),
@@ -44,6 +45,7 @@ void main() {
           MushafPage(
             data: data,
             fontFamily: 'sans-serif',
+            semanticsLabelBuilder: _testSemanticsLabel,
             controller: controller,
           ),
         ),
@@ -57,6 +59,7 @@ void main() {
           MushafPage(
             data: data,
             fontFamily: 'sans-serif',
+            semanticsLabelBuilder: _testSemanticsLabel,
             controller: controller,
             wordStates: <WordKey, MushafWordState>{
               for (var index = 0; index < words.length; index += 2)
@@ -72,30 +75,33 @@ void main() {
       expect(find.byType(Opacity), findsNothing);
     });
 
-    testWidgets('exposes only supplied canonical text to semantics', (
+    testWidgets('uses the supplied builder for the semantics label', (
       tester,
     ) async {
       final semantics = tester.ensureSemantics();
       final data = _fakePage();
+      MushafAyahSemantics? builderInput;
 
       await tester.pumpWidget(
         _testHost(
           MushafPage(
             data: data,
             fontFamily: 'sans-serif',
-            semanticsLabelBuilder: (ayah) =>
-                'Sura ${ayah.surah}, ayah ${ayah.ayah}. '
-                '${ayah.canonicalText}',
+            semanticsLabelBuilder: (ayah) {
+              builderInput = ayah;
+              return 'TEST_LOCALIZED_LABEL';
+            },
           ),
         ),
       );
 
       expect(
         find.bySemanticsLabel(
-          'Sura 2, ayah 1. TODO_CONTENT canonical ayah placeholder',
+          'TEST_LOCALIZED_LABEL',
         ),
         findsOneWidget,
       );
+      expect(builderInput, same(data.ayahSemantics.single));
       semantics.dispose();
     });
 
@@ -104,7 +110,11 @@ void main() {
     ) async {
       await tester.pumpWidget(
         _testHost(
-          MushafPage(data: _fakePage(), fontFamily: 'sans-serif'),
+          MushafPage(
+            data: _fakePage(),
+            fontFamily: 'sans-serif',
+            semanticsLabelBuilder: _testSemanticsLabel,
+          ),
         ),
       );
 
@@ -186,4 +196,8 @@ List<WordKey> _wordsIn(MushafPageData page) {
       for (final fragment in line.fragments)
         if (fragment.wordKey case final wordKey?) wordKey,
   ];
+}
+
+String _testSemanticsLabel(MushafAyahSemantics ayah) {
+  return '${ayah.surah}:${ayah.ayah}. ${ayah.canonicalText}';
 }

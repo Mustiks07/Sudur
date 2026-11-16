@@ -28,6 +28,11 @@ await loader.ensureWindow(page.pageNumber);
 MushafPage(
   data: page,
   fontFamily: loader.familyForPage(page.pageNumber),
+  semanticsLabelBuilder: (ayah) => l10n.mushafAyahSemantics(
+    ayah.surah,
+    ayah.ayah,
+    ayah.canonicalText,
+  ),
   wordStates: states,
   onWordTap: openWordMenu,
 );

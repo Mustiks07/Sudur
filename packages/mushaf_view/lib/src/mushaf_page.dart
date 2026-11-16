@@ -77,13 +77,13 @@ class MushafPage extends StatefulWidget {
   const MushafPage({
     required this.data,
     required this.fontFamily,
+    required this.semanticsLabelBuilder,
     this.wordStates = const <WordKey, MushafWordState>{},
     this.onWordTap,
     this.controller,
     this.theme = const MushafPageTheme(),
     this.showHiddenGuides = false,
     this.maximumFontSize = 52,
-    this.semanticsLabelBuilder = _defaultSemanticsLabel,
     super.key,
   }) : assert(maximumFontSize > 0, 'maximumFontSize must be positive');
 
@@ -113,11 +113,6 @@ class MushafPage extends StatefulWidget {
 
   /// Localizes the canonical label announced for each ayah.
   final MushafSemanticsLabelBuilder semanticsLabelBuilder;
-
-  static String _defaultSemanticsLabel(MushafAyahSemantics ayah) {
-    return 'Surah ${ayah.surah}, ayah ${ayah.ayah}. '
-        '${ayah.canonicalText}';
-  }
 
   @override
   State<MushafPage> createState() => _MushafPageState();

@@ -40,7 +40,7 @@ final class _ExamplePagesState extends State<_ExamplePages> {
         builder: (context, snapshot) {
           final pages = snapshot.data;
           if (pages == null) {
-            return const Center(child: Text('Loading fake data'));
+            return const SizedBox.shrink();
           }
           return PageView.builder(
             itemCount: pages.length,
@@ -58,6 +58,8 @@ final class _ExamplePagesState extends State<_ExamplePages> {
                   // The real app registers and passes the downloaded page
                   // font family. This fake example intentionally has no font.
                   fontFamily: 'sans-serif',
+                  semanticsLabelBuilder: (ayah) =>
+                      '${ayah.surah}:${ayah.ayah}. ${ayah.canonicalText}',
                   wordStates: <WordKey, MushafWordState>{
                     for (var word = 0; word < words.length; word += 2)
                       words[word]: MushafWordState.hidden,
