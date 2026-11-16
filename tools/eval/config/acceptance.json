@@ -1,0 +1,23 @@
+{
+  "thresholds": {
+    "followRevealedInPlace": { "min": 0.98 },
+    "followRevealedNotRead": { "max": 0.01 },
+    "precision": { "min": 0.95 },
+    "omissionRecall": { "min": 0.85 },
+    "substitutionRecall": { "min": 0.85 },
+    "falseAlarmsPer1000": { "max": 1 },
+    "refusalRate": { "max": 0.10 },
+    "selfCorrectionRecall": { "min": 0.90 },
+    "groupPrecision": { "min": 0.90 }
+  },
+  "groups": ["nativeLanguage", "gender", "device", "noise"],
+  "normalNoise": ["quiet"],
+  "timeToleranceMs": 500,
+  "bootstrap": { "samples": 1000, "confidence": 0.95, "seed": 20261116 },
+  "ciMaxDropPp": {
+    "precision": 1,
+    "omissionRecall": 2,
+    "substitutionRecall": 2,
+    "followRevealedInPlace": 1
+  }
+}
