@@ -76,7 +76,7 @@
 |---|---|
 | `model.json` | `modelId`, `version`, `output` (uthmaniLettersNoDiacritics/phonemes), `isStreaming`, `hasTokenTimes`, `sampleRate` (16000), `minRamMb`, `license`, `normalizerId` |
 | `model.int8.onnx`, `tokens.txt` | Модель для sherpa-onnx |
-| `normalizer.json` | `id`, `removeRanges` (диапазоны Unicode), `replace` (таблица замен), `wordSeparator` |
+| `normalizer.json` | `id`, `removeRanges` (диапазоны Unicode), `replace` — таблица замен: **список** объектов `{"from": "…", "to": "…"}`, применяется строго по порядку (не объект: в объекте порядок замен не задан), `wordSeparator` |
 | `thresholds.json` | Пороги следования и проверки, откалиброванные для этой модели (12.4, группы «Следование» и «Проверка») |
 | `eval.json` | Результаты модели на наборе записей: показатели раздела 5.3 по группам |
 
