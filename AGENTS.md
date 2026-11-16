@@ -12,6 +12,7 @@ The owner speaks Russian. Write code, identifiers and code comments in English; 
 - Before opening a PR: `git fetch origin && git rebase origin/main`, then format, analyze and tests must pass.
 - PR to `main`, title `[P06] follow v0`. Astra reviews and squash-merges.
 - Full process: `docs/WORKFLOW.md`.
+- **No GitHub write access in your environment?** (`could not read Username`, API `401`) — do not retry. Bundle your branches (`git bundle create /tmp/sudur-<agent>.bundle <branches> ^origin/main`), verify it, and report commit hashes, SHA-256 and size; the owner delivers it. See `docs/WORKFLOW.md`.
 
 ## Non-negotiable rules
 
