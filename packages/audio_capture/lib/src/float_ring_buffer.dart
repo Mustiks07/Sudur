@@ -12,13 +12,13 @@ final class FloatRingBuffer {
   final Float32List _samples;
   var _writeIndex = 0;
   var _totalSamples = 0;
+  var _retainedStart = 0;
 
   /// Total samples accepted since the last clear.
   int get totalSamples => _totalSamples;
 
   /// Oldest absolute sample that is still available.
-  int get availableStart =>
-      _totalSamples > _samples.length ? _totalSamples - _samples.length : 0;
+  int get availableStart => _retainedStart;
 
   /// Adds samples, overwriting only the oldest data when full.
   void push(Float32List values) {
@@ -26,6 +26,9 @@ final class FloatRingBuffer {
       _samples[_writeIndex] = value;
       _writeIndex = (_writeIndex + 1) % _samples.length;
       _totalSamples++;
+      if (_totalSamples - _retainedStart > _samples.length) {
+        _retainedStart = _totalSamples - _samples.length;
+      }
     }
   }
 
@@ -47,10 +50,16 @@ final class FloatRingBuffer {
     return result;
   }
 
-  /// Zeros all retained audio and resets the absolute clock.
-  void clear() {
+  /// Zeros retained audio, optionally preserving the absolute session clock.
+  void clear({bool preservePosition = false}) {
     _samples.fillRange(0, _samples.length, 0);
-    _writeIndex = 0;
-    _totalSamples = 0;
+    if (preservePosition) {
+      _writeIndex = _totalSamples % _samples.length;
+      _retainedStart = _totalSamples;
+    } else {
+      _writeIndex = 0;
+      _totalSamples = 0;
+      _retainedStart = 0;
+    }
   }
 }

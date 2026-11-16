@@ -42,6 +42,58 @@ sealed class AudioCaptureEvent {
   final int atMs;
 }
 
+/// VAD opened a segment that can now be streamed to the recognizer.
+final class SpeechSegmentOpened extends AudioCaptureEvent {
+  /// Creates an open-segment event.
+  const SpeechSegmentOpened({
+    required super.atMs,
+    required this.segmentId,
+  });
+
+  /// Monotonically increasing segment number.
+  final int segmentId;
+}
+
+/// One in-memory Float32 frame belonging to an open speech segment.
+final class SpeechSegmentAudioFrame extends AudioCaptureEvent {
+  /// Creates an open-segment audio frame.
+  const SpeechSegmentAudioFrame({
+    required super.atMs,
+    required this.segmentId,
+    required this.samples,
+    required this.sampleRate,
+    required this.startMs,
+    required this.endMs,
+  });
+
+  /// Segment that receives this frame.
+  final int segmentId;
+
+  /// Mono Float32 samples, transferred from the worker isolate.
+  final Float32List samples;
+
+  /// Samples per second.
+  final int sampleRate;
+
+  /// Absolute first sample time on the session timeline.
+  final int startMs;
+
+  /// Absolute exclusive end time on the session timeline.
+  final int endMs;
+}
+
+/// No more audio frames will arrive for this segment.
+final class SpeechSegmentClosed extends AudioCaptureEvent {
+  /// Creates a close-segment event.
+  const SpeechSegmentClosed({
+    required super.atMs,
+    required this.segmentId,
+  });
+
+  /// Segment to pass to `SpeechRecognizer.closeSegment`.
+  final int segmentId;
+}
+
 /// A complete in-memory speech segment with padding and pause duration.
 final class SpeechSegmentReady extends AudioCaptureEvent {
   /// Creates a segment event.

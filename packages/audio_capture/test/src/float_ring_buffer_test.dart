@@ -17,4 +17,17 @@ void main() {
     ring.clear();
     expect(ring.totalSamples, 0);
   });
+
+  test('can clear audio without resetting the session clock', () {
+    final ring = FloatRingBuffer(5)
+      ..push(Float32List.fromList(<double>[1, 2, 3]))
+      ..clear(preservePosition: true);
+
+    expect(ring.totalSamples, 3);
+    expect(ring.availableStart, 3);
+    expect(() => ring.read(0, 1), throwsA(isA<AudioCaptureException>()));
+
+    ring.push(Float32List.fromList(<double>[4, 5]));
+    expect(ring.read(3, 5), <double>[4, 5]);
+  });
 }

@@ -24,6 +24,12 @@ final class AudioPipelineOutput {
   const AudioPipelineOutput({
     required this.segments,
     required this.qualityReadings,
+    required this.frameStart,
+    required this.frameEnd,
+    required this.wasSegmentOpen,
+    required this.isSegmentOpen,
+    required this.openedAtSample,
+    required this.reopenedSamples,
   });
 
   /// Newly closed segments.
@@ -31,6 +37,24 @@ final class AudioPipelineOutput {
 
   /// Newly completed signal windows.
   final List<SignalQualityReading> qualityReadings;
+
+  /// Absolute first sample in the input frame.
+  final int frameStart;
+
+  /// Absolute exclusive end sample in the input frame.
+  final int frameEnd;
+
+  /// Whether a speech segment was open before this frame.
+  final bool wasSegmentOpen;
+
+  /// Whether a speech segment remains open after this frame.
+  final bool isSegmentOpen;
+
+  /// Start of a segment opened by this frame, including a forced split.
+  final int? openedAtSample;
+
+  /// Audio replayed into the new segment after a forced split.
+  final Float32List? reopenedSamples;
 }
 
 /// Pure in-memory audio processing after VAD classification.
@@ -56,15 +80,30 @@ final class AudioPipeline {
     required bool isSpeech,
   }) {
     final frameStart = _ring.totalSamples;
+    final wasSegmentOpen = _segmenter.isOpen;
     _ring.push(samples);
     final boundaries = _segmenter.addFrame(
       samples: samples,
       frameStart: frameStart,
       isSpeech: isSpeech,
     );
+    final isSegmentOpen = _segmenter.isOpen;
+    final openedAtSample = !wasSegmentOpen && isSegmentOpen ||
+            boundaries.isNotEmpty && isSegmentOpen
+        ? _segmenter.speechStart
+        : null;
+    final reopenedSamples = boundaries.isNotEmpty && isSegmentOpen
+        ? _ring.read(openedAtSample ?? frameStart, _ring.totalSamples)
+        : null;
     return AudioPipelineOutput(
       segments: boundaries.map(_copySegment).toList(growable: false),
       qualityReadings: _quality.add(samples, isSpeech: isSpeech),
+      frameStart: frameStart,
+      frameEnd: _ring.totalSamples,
+      wasSegmentOpen: wasSegmentOpen,
+      isSegmentOpen: isSegmentOpen,
+      openedAtSample: openedAtSample,
+      reopenedSamples: reopenedSamples,
     );
   }
 
@@ -91,9 +130,9 @@ final class AudioPipeline {
     );
   }
 
-  /// Zeros retained audio and resets segment state.
-  void clear() {
-    _ring.clear();
+  /// Zeros retained audio and resets state, optionally keeping session time.
+  void clear({bool preserveTimeline = false}) {
+    _ring.clear(preservePosition: preserveTimeline);
     _segmenter.reset();
     _quality.reset();
   }

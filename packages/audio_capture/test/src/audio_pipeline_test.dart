@@ -5,6 +5,33 @@ import 'package:audio_capture/src/audio_pipeline.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('reports frames while a segment is open and its transitions', () {
+    const config = AudioCaptureConfig(
+      sampleRate: 1000,
+      segmentEndPauseMs: 200,
+    );
+    final pipeline = AudioPipeline(config);
+    final silence = Float32List(100);
+    final speech = Float32List.fromList(List<double>.filled(100, 0.2));
+
+    pipeline.processFrame(silence, isSpeech: false);
+    final opened = pipeline.processFrame(speech, isSpeech: true);
+    final continuing = pipeline.processFrame(speech, isSpeech: true);
+    pipeline.processFrame(silence, isSpeech: false);
+    final closed = pipeline.processFrame(silence, isSpeech: false);
+
+    expect(opened.wasSegmentOpen, isFalse);
+    expect(opened.isSegmentOpen, isTrue);
+    expect(opened.openedAtSample, 100);
+    expect(opened.frameStart, 100);
+    expect(opened.frameEnd, 200);
+    expect(continuing.wasSegmentOpen, isTrue);
+    expect(continuing.isSegmentOpen, isTrue);
+    expect(closed.wasSegmentOpen, isTrue);
+    expect(closed.isSegmentOpen, isFalse);
+    expect(closed.segments, hasLength(1));
+  });
+
   test('adds pre/post roll and preserves pause duration', () {
     const config = AudioCaptureConfig(
       sampleRate: 1000,
@@ -63,6 +90,9 @@ void main() {
 
     expect(output?.segments, hasLength(1));
     expect(output?.segments.single.boundary.speechEnd, 650);
+    expect(output?.isSegmentOpen, isTrue);
+    expect(output?.openedAtSample, 650);
+    expect(output?.reopenedSamples, hasLength(350));
   });
 
   test('review snippets exist only inside the retained ring', () {
@@ -81,5 +111,21 @@ void main() {
       () => pipeline.snippet(1000, 2000),
       throwsA(isA<AudioCaptureException>()),
     );
+  });
+
+  test('preserves absolute time when audio memory is cleared on pause', () {
+    const config = AudioCaptureConfig(sampleRate: 1000);
+    final pipeline = AudioPipeline(config)
+      ..processFrame(Float32List(500), isSpeech: false)
+      ..clear(preserveTimeline: true);
+
+    final opened = pipeline.processFrame(
+      Float32List.fromList(List<double>.filled(100, 0.2)),
+      isSpeech: true,
+    );
+
+    expect(pipeline.currentSample, 600);
+    expect(opened.frameStart, 500);
+    expect(opened.openedAtSample, 500);
   });
 }

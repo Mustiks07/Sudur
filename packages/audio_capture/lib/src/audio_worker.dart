@@ -10,6 +10,7 @@ import 'package:audio_capture/src/audio_capture_exception.dart';
 import 'package:audio_capture/src/audio_pipeline.dart';
 import 'package:audio_capture/src/frame_accumulator.dart';
 import 'package:audio_capture/src/pcm16_converter.dart';
+import 'package:audio_capture/src/vad_queue.dart';
 import 'package:crypto/crypto.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
 
@@ -35,6 +36,7 @@ final class _AudioWorker {
   sherpa.VoiceActivityDetector? _vad;
   SignalQualityLevel? _lastQuality;
   var _nextSegmentId = 1;
+  int? _openSegmentId;
   var _fileCancelled = false;
   var _playbackActive = false;
 
@@ -192,9 +194,8 @@ final class _AudioWorker {
     }
     vad.acceptWaveform(frame);
     final output = pipeline.processFrame(frame, isSpeech: vad.isDetected());
-    for (final segment in output.segments) {
-      _emitSegment(segment, config);
-    }
+    _emitSegmentStream(output, frame, config);
+    discardCompletedVadSegments(vad);
     for (final reading in output.qualityReadings) {
       if (reading.level != _lastQuality) {
         _lastQuality = reading.level;
@@ -312,7 +313,7 @@ final class _AudioWorker {
       'reason': reason.name,
       'bluetoothInput': bluetooth,
     });
-    _clearAudioMemory();
+    _clearAudioMemory(preserveTimeline: true);
     _success(requestId, null);
   }
 
@@ -356,17 +357,112 @@ final class _AudioWorker {
     }
     final segment = pipeline.flush();
     if (segment != null) {
-      _emitSegment(segment, config);
+      final segmentId = _openSegmentId ?? _nextSegmentId++;
+      _emitSegment(segment, config, segmentId);
+      _emitSegmentClosed(
+        segmentId,
+        pipeline.currentSample,
+        config.sampleRate,
+      );
+      _openSegmentId = null;
     }
   }
 
-  void _emitSegment(ProcessedSegment segment, AudioCaptureConfig config) {
+  void _emitSegmentStream(
+    AudioPipelineOutput output,
+    Float32List frame,
+    AudioCaptureConfig config,
+  ) {
+    final openedAt = output.openedAtSample;
+    if (!output.wasSegmentOpen && openedAt != null) {
+      _openStreamSegment(openedAt, config.sampleRate);
+    }
+    final activeSegmentId = _openSegmentId;
+    if (activeSegmentId != null &&
+        (output.wasSegmentOpen || output.isSegmentOpen)) {
+      _emitSegmentAudio(
+        activeSegmentId,
+        frame,
+        output.frameStart,
+        output.frameEnd,
+        config.sampleRate,
+      );
+    }
+    for (final segment in output.segments) {
+      final segmentId = _openSegmentId ?? _nextSegmentId++;
+      _emitSegment(segment, config, segmentId);
+      _emitSegmentClosed(segmentId, output.frameEnd, config.sampleRate);
+      _openSegmentId = null;
+    }
+    final replay = output.reopenedSamples;
+    if (output.wasSegmentOpen &&
+        output.isSegmentOpen &&
+        openedAt != null &&
+        replay != null) {
+      final segmentId = _openStreamSegment(openedAt, config.sampleRate);
+      _emitSegmentAudio(
+        segmentId,
+        replay,
+        openedAt,
+        output.frameEnd,
+        config.sampleRate,
+      );
+    }
+  }
+
+  int _openStreamSegment(int openedAt, int sampleRate) {
+    final segmentId = _nextSegmentId++;
+    _openSegmentId = segmentId;
+    _event(<String, Object?>{
+      'kind': 'segmentOpened',
+      'atMs': _samplesToMs(openedAt, sampleRate),
+      'segmentId': segmentId,
+    });
+    return segmentId;
+  }
+
+  void _emitSegmentAudio(
+    int segmentId,
+    Float32List samples,
+    int startSample,
+    int endSample,
+    int sampleRate,
+  ) {
+    _event(<String, Object?>{
+      'kind': 'segmentAudio',
+      'atMs': _samplesToMs(endSample, sampleRate),
+      'segmentId': segmentId,
+      'samples': TransferableTypedData.fromList(<TypedData>[
+        samples.buffer.asUint8List(
+          samples.offsetInBytes,
+          samples.lengthInBytes,
+        ),
+      ]),
+      'sampleRate': sampleRate,
+      'startMs': _samplesToMs(startSample, sampleRate),
+      'endMs': _samplesToMs(endSample, sampleRate),
+    });
+  }
+
+  void _emitSegmentClosed(int segmentId, int atSample, int sampleRate) {
+    _event(<String, Object?>{
+      'kind': 'segmentClosed',
+      'atMs': _samplesToMs(atSample, sampleRate),
+      'segmentId': segmentId,
+    });
+  }
+
+  void _emitSegment(
+    ProcessedSegment segment,
+    AudioCaptureConfig config,
+    int segmentId,
+  ) {
     final boundary = segment.boundary;
     final samples = segment.samples;
     _event(<String, Object?>{
       'kind': 'segment',
       'atMs': _samplesToMs(boundary.audioEnd, config.sampleRate),
-      'segmentId': _nextSegmentId++,
+      'segmentId': segmentId,
       'samples': TransferableTypedData.fromList(<TypedData>[
         samples.buffer.asUint8List(
           samples.offsetInBytes,
@@ -382,11 +478,12 @@ final class _AudioWorker {
     });
   }
 
-  void _clearAudioMemory() {
-    _pipeline?.clear();
+  void _clearAudioMemory({bool preserveTimeline = false}) {
+    _pipeline?.clear(preserveTimeline: preserveTimeline);
     _frames?.clear();
     _vad?.clear();
     _lastQuality = null;
+    _openSegmentId = null;
   }
 
   void _dispose(int requestId) {

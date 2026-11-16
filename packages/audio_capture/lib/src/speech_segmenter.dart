@@ -42,6 +42,12 @@ final class SpeechSegmenter {
   int? _previousSegmentSpeechEnd;
   var _pauseBefore = 0;
 
+  /// Whether speech is currently being accumulated.
+  bool get isOpen => _speechStart != null;
+
+  /// Absolute first speech sample of the open segment.
+  int? get speechStart => _speechStart;
+
   int get _preRollSamples => _msToSamples(_config.preRollMs);
   int get _postRollSamples => _msToSamples(_config.postRollMs);
   int get _endPauseSamples => _msToSamples(_config.segmentEndPauseMs);

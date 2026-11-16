@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:audio_capture/src/audio_capture_config.dart';
 import 'package:audio_capture/src/audio_capture_event.dart';
 import 'package:audio_capture/src/audio_capture_exception.dart';
+import 'package:audio_capture/src/audio_event_codec.dart';
 import 'package:audio_capture/src/audio_snippet.dart';
 import 'package:audio_capture/src/audio_worker.dart';
 import 'package:contracts/contracts.dart';
@@ -482,7 +483,7 @@ final class AudioCaptureService {
     }
     if (message['type'] == 'event') {
       try {
-        _events.add(Result.ok(_eventFromMessage(message)));
+        _events.add(Result.ok(audioEventFromMessage(message)));
       } on FormatException {
         _events.add(
           const Result.error(
@@ -507,52 +508,6 @@ final class AudioCaptureService {
     final error = _responseError(message);
     if (error != null) {
       _events.add(Result.error(error));
-    }
-  }
-
-  AudioCaptureEvent _eventFromMessage(Map<String, Object?> value) {
-    final kind = _required<String>(value, 'kind');
-    final atMs = _required<int>(value, 'atMs');
-    switch (kind) {
-      case 'segment':
-        final transfer = _required<TransferableTypedData>(value, 'samples');
-        final bytes = transfer.materialize().asUint8List();
-        return SpeechSegmentReady(
-          atMs: atMs,
-          segmentId: _required<int>(value, 'segmentId'),
-          samples: Float32List.view(
-            bytes.buffer,
-            bytes.offsetInBytes,
-            bytes.lengthInBytes ~/ 4,
-          ),
-          sampleRate: _required<int>(value, 'sampleRate'),
-          audioStartMs: _required<int>(value, 'audioStartMs'),
-          audioEndMs: _required<int>(value, 'audioEndMs'),
-          speechStartMs: _required<int>(value, 'speechStartMs'),
-          speechEndMs: _required<int>(value, 'speechEndMs'),
-          pauseBeforeMs: _required<int>(value, 'pauseBeforeMs'),
-        );
-      case 'quality':
-        return SignalQualityChanged(
-          atMs: atMs,
-          level: SignalQualityLevel.values.byName(
-            _required<String>(value, 'level'),
-          ),
-          dbfs: _required<num>(value, 'dbfs').toDouble(),
-          clippedRatio: _required<num>(value, 'clippedRatio').toDouble(),
-        );
-      case 'paused':
-        return CapturePaused(
-          atMs: atMs,
-          reason: CapturePauseReason.values.byName(
-            _required<String>(value, 'reason'),
-          ),
-          bluetoothInput: _required<bool>(value, 'bluetoothInput'),
-        );
-      case 'fileFinished':
-        return FileInputFinished(atMs: atMs);
-      default:
-        throw FormatException('Unknown worker event $kind.');
     }
   }
 
