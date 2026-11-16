@@ -7,6 +7,8 @@
   "expected": {
     "surahs": 114,
     "ayahs": 6236,
+    "firstAyah": "78:1",
+    "lastAyah": "79:15",
     "canonSha256": "c8c67016f3c5291368c4eaf25ccbc48ab0a856c80919d9179c9e708a6827f304"
   },
   "text": {

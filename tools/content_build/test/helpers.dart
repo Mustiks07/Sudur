@@ -51,6 +51,8 @@ BuildConfig syntheticConfig({
         'surahs': surahs,
         'ayahs': ayahs,
         'canonSha256': canonSha256 ?? canonChecksum(syntheticQuran()),
+        'firstAyah': '1:1',
+        'lastAyah': '2:2',
       },
       'text': source('text', 'https://text.test/quran.xml', textLicense),
       'layout': source('layout', 'https://layout.test/{page}', 'X-1'),

@@ -115,10 +115,12 @@ List<String> checkLayout({
   return failures;
 }
 
-/// The build scope must be whole: from the first to the last ayah of the
-/// layout, every ayah of the text source is there, in order; the scope
-/// starts at the top of its first page (or at a surah start, after its
-/// header) and ends on the last line of its last page. A layout source that
+/// The build scope must be whole: it starts and ends at the ayahs pinned in
+/// the config; from the first to the last ayah every ayah of the text
+/// source is there, in order; the scope starts at the top of its first page
+/// (or at a surah start, after its header) and ends on the last line of its
+/// last page. The pins matter: a dropped last ayah may leave the previous
+/// one ending on the last line too. A layout source that
 /// drops an ayah fails here instead of producing a page with a hole.
 List<String> _checkCompleteness(
   TanzilQuran quran,
@@ -144,6 +146,24 @@ List<String> _checkCompleteness(
         'expected ${expected.$1}:${expected.$2} next.',
       );
     }
+  }
+
+  String key((int, int) a) => '${a.$1}:${a.$2}';
+  final (firstFound, lastFound) = (
+    (sorted.first.surah, sorted.first.ayah),
+    (sorted.last.surah, sorted.last.ayah),
+  );
+  if (firstFound != config.expectedFirstAyah) {
+    failures.add(
+      'Scope starts at ${key(firstFound)}, expected '
+      '${key(config.expectedFirstAyah)}.',
+    );
+  }
+  if (lastFound != config.expectedLastAyah) {
+    failures.add(
+      'Scope ends at ${key(lastFound)}, expected '
+      '${key(config.expectedLastAyah)}.',
+    );
   }
 
   final first = sorted.first;

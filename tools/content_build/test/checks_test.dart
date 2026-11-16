@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:content_build/content_build.dart';
 import 'package:test/test.dart';
 
@@ -73,6 +75,45 @@ void main() {
       final failures = check(verses);
       expect(failures, contains(contains('Scope starts at 1:2')));
       expect(failures, contains(contains('Scope ends at 2:1')));
+    });
+
+    test('reports a dropped last ayah that shared a line with the previous',
+        () {
+      // Page 11: ayah 2:1 ends on line 4, where ayah 2:2 is too. Without
+      // 2:2 the scope still ends on the last line, so only the pinned last
+      // ayah catches the loss.
+      final shared = [
+        ...parseLayoutPage(syntheticPage10()),
+        ...parseLayoutPage(
+          pageJson([
+            verseJson(2, 1, [
+              ('w', 11, 3),
+              ('w', 11, 3),
+              ('w', 11, 3),
+              ('e', 11, 4),
+            ]),
+            verseJson(2, 2, [('w', 11, 4), ('w', 11, 4), ('e', 11, 4)]),
+          ]),
+        ),
+      ];
+      expect(check(shared), isEmpty);
+      final dropped = shared.where((v) => !(v.surah == 2 && v.ayah == 2));
+      expect(
+        check(dropped.toList()),
+        contains(contains('Scope ends at 2:1, expected 2:2')),
+      );
+    });
+
+    test('config needs the pinned first and last ayah', () {
+      expect(
+        () => BuildConfig.fromJson(
+          File('config/prototype.json').readAsStringSync().replaceFirst(
+                '"lastAyah": "79:15"',
+                '"lastAyah": "79"',
+              ),
+        ),
+        throwsA(isA<ContentBuildException>()),
+      );
     });
 
     test('reports a word count that differs from the text', () {

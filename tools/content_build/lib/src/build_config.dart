@@ -45,6 +45,8 @@ final class BuildConfig {
     required this.expectedSurahCount,
     required this.expectedAyahCount,
     required this.expectedCanonSha256,
+    required this.expectedFirstAyah,
+    required this.expectedLastAyah,
     required this.text,
     required this.layout,
     required this.chapters,
@@ -77,6 +79,8 @@ final class BuildConfig {
       linesPerPage: _int(root['linesPerPage'], 'linesPerPage'),
       expectedSurahCount: _int(expected['surahs'], 'expected.surahs'),
       expectedAyahCount: _int(expected['ayahs'], 'expected.ayahs'),
+      expectedFirstAyah: _ayah(expected['firstAyah'], 'expected.firstAyah'),
+      expectedLastAyah: _ayah(expected['lastAyah'], 'expected.lastAyah'),
       expectedCanonSha256: _string(
         expected['canonSha256'],
         'expected.canonSha256',
@@ -112,6 +116,13 @@ final class BuildConfig {
   /// Pinned checksum of the canonical text (ПР-04).
   final String expectedCanonSha256;
 
+  /// First ayah of the scope, `(surah, ayah)`: the top of the first page in
+  /// the printed mushaf. Pinned so a layout source that drops it fails.
+  final (int, int) expectedFirstAyah;
+
+  /// Last ayah of the scope, `(surah, ayah)`: the end of the last page.
+  final (int, int) expectedLastAyah;
+
   /// Canonical text source.
   final SourceConfig text;
 
@@ -123,6 +134,16 @@ final class BuildConfig {
 
   /// Page fonts source.
   final SourceConfig fonts;
+}
+
+(int, int) _ayah(Object? value, String what) {
+  final parts = value is String ? value.split(':') : const <String>[];
+  final surah = parts.length == 2 ? int.tryParse(parts[0]) : null;
+  final ayah = parts.length == 2 ? int.tryParse(parts[1]) : null;
+  if (surah == null || ayah == null) {
+    throw ContentBuildException('Config: $what must look like "78:1".');
+  }
+  return (surah, ayah);
 }
 
 SourceConfig _source(Object? value, String what) {
