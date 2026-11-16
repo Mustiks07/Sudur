@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:asr_sherpa/src/benchmark_audio.dart';
 import 'package:asr_sherpa/src/device_benchmark.dart';
 import 'package:asr_sherpa/src/isolate_protocol.dart';
 import 'package:asr_sherpa/src/model_package.dart';
@@ -256,8 +257,9 @@ final class _RecognizerWorker {
       return;
     }
     try {
-      final samples = Float32List(
-        package.sampleRate * _config.deviceTestAudioMs ~/ 1000,
+      final samples = generateBenchmarkNoise(
+        sampleRate: package.sampleRate,
+        durationMs: _config.deviceTestAudioMs,
       );
       final stopwatch = Stopwatch()..start();
       _decodeNative(samples, package.sampleRate);

@@ -20,7 +20,13 @@ packages/asr_sherpa/tool/download_models.sh all
 `Abdou/quran-asr-tiny` в игнорируемый `third_party_cache/asr_sherpa/`,
 проверяемый пакет содержит `model.json`, `model.int8.onnx`, `tokens.txt`,
 `normalizer.json`, `thresholds.json` и лицензию MIT. Модели в git не
-добавляются.
+добавляются. Таблица `replace` записывается упорядоченным списком объектов и
+проверена реализацией `Normalizer` из P02.
+
+Тест скорости декодирует 10 секунд детерминированного ненулевого шума с
+фиксированным seed. Падение worker-isolate переводит распознаватель в
+терминальное состояние `workerStopped`: ожидающие и новые запросы завершаются
+явной ошибкой.
 
 ## WAV → JSONL
 

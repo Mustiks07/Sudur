@@ -153,9 +153,28 @@ Future<Map<String, Object?>> _readJsonObject(File file) async {
 void _validateNormalizer(Map<String, Object?> value) {
   _requiredString(value, 'id');
   _requiredString(value, 'wordSeparator');
-  if (value['removeRanges'] is! List<Object?> ||
-      value['replace'] is! Map<String, Object?>) {
+  if (value['removeRanges'] is! List<Object?>) {
     throw const FormatException('normalizer.json has an invalid schema.');
+  }
+  final replacements = value['replace'];
+  if (replacements is! List<Object?>) {
+    throw const FormatException(
+      'normalizer.json replace must be an ordered list.',
+    );
+  }
+  for (final replacement in replacements) {
+    if (replacement is! Map<String, Object?>) {
+      throw const FormatException(
+        'Every normalizer replacement must be an object.',
+      );
+    }
+    final from = replacement['from'];
+    final to = replacement['to'];
+    if (from is! String || from.isEmpty || to is! String) {
+      throw const FormatException(
+        'Every normalizer replacement needs non-empty from and string to.',
+      );
+    }
   }
 }
 

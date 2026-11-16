@@ -29,6 +29,25 @@ void main() {
 
     expect(result, isA<Error<AsrModelPackage>>());
   });
+
+  test('rejects an unordered normalizer replacement object', () async {
+    final directory = await _createPackage();
+    addTearDown(() => directory.delete(recursive: true));
+    await _writeJson(
+      directory,
+      'normalizer.json',
+      <String, Object?>{
+        'id': 'test',
+        'removeRanges': <Object?>[],
+        'replace': <String, Object?>{'a': 'b'},
+        'wordSeparator': ' ',
+      },
+    );
+
+    final result = await AsrModelPackage.load(directory.path);
+
+    expect(result, isA<Error<AsrModelPackage>>());
+  });
 }
 
 Future<Directory> _createPackage() async {
@@ -64,8 +83,12 @@ Future<Directory> _createPackage() async {
     'normalizer.json',
     <String, Object?>{
       'id': 'test',
+      'nfc': true,
       'removeRanges': <Object?>[],
-      'replace': <String, Object?>{},
+      'replace': <Object?>[
+        <String, Object?>{'from': 'a', 'to': 'b'},
+        <String, Object?>{'from': 'b', 'to': 'c'},
+      ],
       'wordSeparator': ' ',
     },
   );

@@ -16,17 +16,21 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
   SherpaCtcRecognizer({
     required String sessionId,
     SherpaRecognizerConfig config = const SherpaRecognizerConfig(),
+    void Function(SendPort) workerEntrypoint = runRecognizerWorker,
   })  : _sessionId = sessionId,
-        _config = config;
+        _config = config,
+        _workerEntrypoint = workerEntrypoint;
 
   final String _sessionId;
   final SherpaRecognizerConfig _config;
+  final void Function(SendPort) _workerEntrypoint;
   final StreamController<RecognitionResult> _results =
       StreamController<RecognitionResult>.broadcast();
   final StreamController<RecognizerRequestOutcome> _outcomes =
       StreamController<RecognizerRequestOutcome>.broadcast();
   final Map<int, Completer<Map<String, Object?>>> _pending =
       <int, Completer<Map<String, Object?>>>{};
+  final Set<int> _outstandingOutcomes = <int>{};
   final Completer<SendPort> _workerReady = Completer<SendPort>();
 
   ReceivePort? _responses;
@@ -40,6 +44,7 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
   RecognizerInfo? _info;
   var _nextRequestId = 1;
   var _disposed = false;
+  SherpaRecognizerException? _workerFailure;
 
   @override
   RecognizerInfo get info {
@@ -62,6 +67,10 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
       return const Result.error(
         SherpaRecognizerException('disposed', 'The recognizer is disposed.'),
       );
+    }
+    final workerFailure = _workerFailure;
+    if (workerFailure != null) {
+      return Result.error(workerFailure);
     }
     if (_info != null) {
       return const Result.error(
@@ -114,6 +123,16 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
   @override
   void acceptAudio(Float32List samples, int sampleRateHz, int startMs) {
     final requestId = _nextRequestId++;
+    final workerFailure = _workerFailure;
+    if (workerFailure != null) {
+      _outcomes.add(
+        RecognizerRequestOutcome(
+          requestId: requestId,
+          result: Result.error(workerFailure),
+        ),
+      );
+      return;
+    }
     final worker = _workerPort;
     if (_disposed || worker == null || _info == null) {
       _publishLocalError(
@@ -127,6 +146,7 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
       samples.offsetInBytes,
       samples.lengthInBytes,
     );
+    _outstandingOutcomes.add(requestId);
     worker.send(<String, Object?>{
       'requestId': requestId,
       'operation': 'acceptAudio',
@@ -139,6 +159,16 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
   @override
   void closeSegment(int segmentId) {
     final requestId = _nextRequestId++;
+    final workerFailure = _workerFailure;
+    if (workerFailure != null) {
+      _outcomes.add(
+        RecognizerRequestOutcome(
+          requestId: requestId,
+          result: Result.error(workerFailure),
+        ),
+      );
+      return;
+    }
     final worker = _workerPort;
     if (_disposed || worker == null || _info == null) {
       _publishLocalError(
@@ -148,6 +178,7 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
       );
       return;
     }
+    _outstandingOutcomes.add(requestId);
     worker.send(<String, Object?>{
       'requestId': requestId,
       'operation': 'closeSegment',
@@ -157,6 +188,10 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
 
   /// Runs the generated in-memory phone speed test on the loaded model.
   Future<Result<AsrDeviceBenchmark>> benchmarkDevice() async {
+    final workerFailure = _workerFailure;
+    if (workerFailure != null) {
+      return Result.error(workerFailure);
+    }
     if (_disposed || _workerPort == null || _info == null) {
       return const Result.error(
         SherpaRecognizerException(
@@ -215,6 +250,7 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
       }
     }
     _pending.clear();
+    _outstandingOutcomes.clear();
   }
 
   Future<void> _ensureWorker() async {
@@ -231,7 +267,7 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
     _errorSubscription = errors.listen(_handleIsolateFailure);
     _exitSubscription = exit.listen(_handleIsolateExit);
     _isolate = await Isolate.spawn<SendPort>(
-      runRecognizerWorker,
+      _workerEntrypoint,
       responses.sendPort,
       onError: errors.sendPort,
       onExit: exit.sendPort,
@@ -245,6 +281,12 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
     Map<String, Object?> fields,
   ) {
     final requestId = _nextRequestId++;
+    final workerFailure = _workerFailure;
+    if (workerFailure != null) {
+      return Future<Map<String, Object?>>.value(
+        _failureResponse(workerFailure.code, workerFailure.message),
+      );
+    }
     final worker = _workerPort;
     if (worker == null) {
       return Future<Map<String, Object?>>.value(
@@ -283,6 +325,7 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
       pending.complete(message);
       return;
     }
+    _outstandingOutcomes.remove(requestId);
     final error = _errorFromResponse(message);
     if (error != null) {
       _outcomes.add(
@@ -340,16 +383,33 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
   }
 
   void _completePendingAfterWorkerFailure() {
-    final response = _failureResponse(
+    if (_workerFailure != null) {
+      return;
+    }
+    const failure = SherpaRecognizerException(
       'workerStopped',
       'The recognizer isolate stopped unexpectedly.',
     );
+    _workerFailure = failure;
+    _workerPort = null;
+    _isolate = null;
+    _info = null;
+    final response = _failureResponse(failure.code, failure.message);
     for (final completer in _pending.values) {
       if (!completer.isCompleted) {
         completer.complete(response);
       }
     }
     _pending.clear();
+    for (final requestId in _outstandingOutcomes) {
+      _outcomes.add(
+        RecognizerRequestOutcome(
+          requestId: requestId,
+          result: const Result.error(failure),
+        ),
+      );
+    }
+    _outstandingOutcomes.clear();
   }
 
   SherpaRecognizerException? _errorFromResponse(
@@ -358,9 +418,13 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
     if (response['ok'] == true) {
       return null;
     }
+    final errorCode = response['errorCode'];
+    final errorMessage = response['errorMessage'];
     return SherpaRecognizerException(
-      response['errorCode'] as String? ?? 'workerError',
-      response['errorMessage'] as String? ?? 'The recognizer operation failed.',
+      errorCode is String ? errorCode : 'workerError',
+      errorMessage is String
+          ? errorMessage
+          : 'The recognizer operation failed.',
     );
   }
 

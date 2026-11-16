@@ -66,8 +66,12 @@ model = {
 }
 normalizer = {
     "id": model["normalizerId"],
+    "nfc": True,
     "removeRanges": [],
-    "replace": spelling,
+    "replace": [
+        {"from": source, "to": replacement}
+        for source, replacement in spelling.items()
+    ],
     "wordSeparator": " ",
 }
 thresholds = {
