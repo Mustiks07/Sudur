@@ -294,8 +294,13 @@ final class Checker {
       jumpTo: jump.to,
       out: out,
     ); // Key checked by containsKey.
-    // Confirmed at once: jumpMinWords words matched there in a row.
-    _move(c, CheckState.confirmed, out);
+    // Decided at once: jumpMinWords words matched there in a row. On
+    // unreliable audio (bad signal, deviceTooSlow) it is not confirmed.
+    _move(
+      c,
+      _isUnreliable(c) ? CheckState.unverified : CheckState.confirmed,
+      out,
+    );
   }
 
   void _flushInsert(_Output out, {PathStep? next}) {
@@ -458,14 +463,20 @@ final class Checker {
     for (final c in List.of(_open)) {
       if (c.context < _params.confirmContextWords) continue;
       if (_windowOpen(c, _lastHeardIndex, now)) continue;
-      final unreliable = _unreliable.any((s) => s.overlaps(c.startMs, c.endMs));
       _move(
         c,
-        c.medium || unreliable ? CheckState.unverified : CheckState.confirmed,
+        c.medium || _isUnreliable(c)
+            ? CheckState.unverified
+            : CheckState.confirmed,
         out,
       );
     }
   }
+
+  /// Whether [c]'s audio overlaps a stretch that cannot be trusted
+  /// (docs/tz 10.5 «Плохой сигнал»): no candidate there is confirmed.
+  bool _isUnreliable(_Candidate c) =>
+      _unreliable.any((s) => s.overlaps(c.startMs, c.endMs));
 
   /// The self-correction window is open while neither
   /// `selfCorrectionWords` heard words nor `selfCorrectionMs` have passed.

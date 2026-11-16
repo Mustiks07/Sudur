@@ -175,6 +175,30 @@ void main() {
       expect(jump.single.words, [ayah(78, 3).last.key]);
     });
 
+    test('a jump on bad audio → unverified, not confirmed', () {
+      for (final reason in UnreliableReason.values) {
+        final script = RecognitionScript()
+          ..segment([for (final w in ayahs(78, 1, 3)) heard(w)])
+          ..segment([for (final w in ayahs(79, 1, 3)) heard(w)]);
+        final r = runCheck(
+          script,
+          afterEach: (checker, result) {
+            if (identical(result, script.results.first)) {
+              checker.markUnreliable(
+                UnreliableSpan(startMs: 0, endMs: 1 << 30, reason: reason),
+              );
+            }
+          },
+        );
+        final jumps = [
+          for (final e in finals(r.events).values)
+            if (e.kind == CheckKind.jump) e,
+        ];
+        expect(jumps.single.state, CheckState.unverified, reason: '$reason');
+        expect(confirmedMistakes(r.events), isEmpty, reason: '$reason');
+      }
+    });
+
     test('going back 2 words is a repetition, not a mistake', () {
       final words = ayahs(78, 6, 8);
       final reading = clean(words)..insertAll(5, clean(words.sublist(3, 5)));
