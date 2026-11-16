@@ -12,7 +12,7 @@ import 'package:testing/testing.dart';
 
 const String fixturePath = '../testing/fixtures/content_p582_583.json';
 const Normalizer normalizer = Normalizer.builtIn;
-const CheckVersions versions = CheckVersions(
+const ReadingVersions versions = ReadingVersions(
   modelId: 'fake/scripted',
   modelVersion: '0',
   rulesVersion: 'test',
@@ -124,11 +124,11 @@ Run runCheck(
   final events = <CheckEvent>[];
   final signals = <StrictSignal>[];
   CheckUpdate feed(FollowUpdate u) => checker.accept(
-        path: [for (final s in u.path) toPathStep(s)],
-        jumps: [for (final j in u.jumps) toJumpInput(j)],
+        path: u.path,
+        jumps: u.jumps,
       );
   void take(CheckUpdate u) {
-    events.addAll(u.events.map((o) => o.event));
+    events.addAll(u.events);
     signals.addAll(u.strict);
   }
 
@@ -207,24 +207,3 @@ bool cleanSkip(List<Word> words, int i) {
     for (var j = from; j <= i; j++) words[j],
   ].every((w) => similarity(next, heard(w)) < p.simFloor);
 }
-
-/// What the session does: copy follow's output into check's input types.
-PathWord toPathWord(HeardWord h) =>
-    PathWord(index: h.index, text: h.text, key: h.key, atMs: h.atMs);
-
-/// See [toPathWord].
-PathStep toPathStep(AlignmentStep s) => PathStep(
-      kind: PathStepKind.values.byName(s.kind.name),
-      heard: toPathWord(s.heard),
-      expected: s.expected,
-      similarity: s.similarity,
-      skipped: s.skipped,
-    );
-
-/// See [toPathWord].
-JumpInput toJumpInput(JumpCandidate j) => JumpInput(
-      from: j.from,
-      to: j.to,
-      heard: [for (final h in j.heard) toPathWord(h)],
-      matchedNgrams: j.matchedNgrams,
-    );

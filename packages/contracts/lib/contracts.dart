@@ -4,7 +4,10 @@
 /// (docs/tz section 7.4). Spec: docs/tz sections 4.4, 4.5.
 library;
 
+export 'src/alignment.dart';
 export 'src/recognition.dart';
 export 'src/result.dart';
+export 'src/search_key.dart';
 export 'src/session_events.dart';
+export 'src/versions.dart';
 export 'src/word_key.dart';

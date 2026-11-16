@@ -163,6 +163,75 @@ void main() {
       );
     });
 
+    test('SignalQuality not ok over the word → unverified (contract event)',
+        () {
+      final words = ayahs(78, 12, 14);
+      final reading = [
+        for (final (i, w) in words.indexed)
+          (w, i == 4 ? unrelatedTo(w) : heard(w)),
+      ];
+      final script = byAyah(reading);
+      final r = runCheck(
+        script,
+        to: words.last.key,
+        afterEach: (checker, result) {
+          if (identical(result, script.results.first)) {
+            checker.onSignalQuality(
+              const SignalQuality(
+                sessionId: 's',
+                atMs: 3000,
+                sinceMs: 0,
+                level: SignalQualityLevel.noisy,
+              ),
+            );
+          }
+        },
+      );
+      expect(confirmedMistakes(r.events), isEmpty);
+      expect(
+        finalOf(r.events, CheckKind.substitution, CheckState.unverified),
+        hasLength(1),
+      );
+    });
+
+    test('SignalQuality back to ok: later mistakes are confirmed again', () {
+      final words = ayahs(78, 12, 14);
+      final reading = [
+        for (final (i, w) in words.indexed)
+          (w, i == 4 ? unrelatedTo(w) : heard(w)),
+      ];
+      final script = byAyah(reading);
+      final r = runCheck(
+        script,
+        to: words.last.key,
+        afterEach: (checker, result) {
+          if (identical(result, script.results.first)) {
+            checker
+              ..onSignalQuality(
+                const SignalQuality(
+                  sessionId: 's',
+                  atMs: 100,
+                  level: SignalQualityLevel.tooQuiet,
+                ),
+              )
+              ..onSignalQuality(
+                const SignalQuality(
+                  sessionId: 's',
+                  atMs: 300,
+                  level: SignalQualityLevel.ok,
+                ),
+              );
+          }
+        },
+      );
+      expect(
+        finalOf(r.events, CheckKind.substitution, CheckState.confirmed)
+            .single
+            .words,
+        [words[4].key],
+      );
+    });
+
     test('3 words of another surah in a row → jump confirmed', () {
       final r = runCheck(
         RecognitionScript()
@@ -197,6 +266,31 @@ void main() {
         expect(jumps.single.state, CheckState.unverified, reason: '$reason');
         expect(confirmedMistakes(r.events), isEmpty, reason: '$reason');
       }
+    });
+
+    test('a jump while SignalQuality is not ok → unverified', () {
+      final script = RecognitionScript()
+        ..segment([for (final w in ayahs(78, 1, 3)) heard(w)])
+        ..segment([for (final w in ayahs(79, 1, 3)) heard(w)]);
+      final r = runCheck(
+        script,
+        afterEach: (checker, result) {
+          if (identical(result, script.results.first)) {
+            checker.onSignalQuality(
+              const SignalQuality(
+                sessionId: 's',
+                atMs: 500,
+                sinceMs: 0,
+                level: SignalQualityLevel.clipping,
+              ),
+            );
+          }
+        },
+      );
+      final jump = finals(r.events).values.singleWhere(
+            (e) => e.kind == CheckKind.jump,
+          );
+      expect(jump.state, CheckState.unverified);
     });
 
     test('going back 2 words is a repetition, not a mistake', () {
@@ -270,7 +364,7 @@ void main() {
         CheckState.confirmed,
       ).single;
       final disputed = switch (r.checker.dispute(omission.eventId, 99)) {
-        Ok(:final value) => value.events.single.event,
+        Ok(:final value) => value.events.single,
         Error(:final error) => throw error,
       };
       expect(disputed.state, CheckState.disputed);
@@ -365,10 +459,10 @@ void main() {
       final long = checker.onPause(
         const SpeechPause(startMs: 10000, endMs: 13000),
       );
-      final e = long.events.single.event;
+      final e = long.events.single;
       expect(e.kind, CheckKind.hesitation);
       expect(e.words, [words[4].key]);
-      expect(long.events.single.versions.rulesVersion, 'test'); // ПО-11
+      expect(e.versions.rulesVersion, 'test'); // ПО-11
     });
   });
 
