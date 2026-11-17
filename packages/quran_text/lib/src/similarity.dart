@@ -34,3 +34,33 @@ double similarity(String a, String b) {
   if (longest == 0) return 1;
   return 1 - levenshtein(a, b) / longest;
 }
+
+/// Levenshtein distance between code point lists [a] and [b] if it is at
+/// most [maxDistance], else `null`. Stops as soon as every cell of a row
+/// exceeds the bound, so dissimilar words cost little.
+int? boundedLevenshtein(List<int> a, List<int> b, int maxDistance) {
+  if ((a.length - b.length).abs() > maxDistance) return null;
+  if (a.isEmpty) return b.length;
+  if (b.isEmpty) return a.length;
+  var previous = List<int>.generate(b.length + 1, (j) => j);
+  var current = List<int>.filled(b.length + 1, 0);
+  for (var i = 1; i <= a.length; i++) {
+    current[0] = i;
+    var rowMin = current[0];
+    for (var j = 1; j <= b.length; j++) {
+      final substitution = previous[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1);
+      final deletion = previous[j] + 1;
+      final insertion = current[j - 1] + 1;
+      var best = substitution < deletion ? substitution : deletion;
+      if (insertion < best) best = insertion;
+      current[j] = best;
+      if (best < rowMin) rowMin = best;
+    }
+    if (rowMin > maxDistance) return null;
+    final swap = previous;
+    previous = current;
+    current = swap;
+  }
+  final d = previous[b.length];
+  return d <= maxDistance ? d : null;
+}

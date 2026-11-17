@@ -1,10 +1,12 @@
 import 'package:contracts/contracts.dart';
 import 'package:meta/meta.dart';
 
-/// One word of the canonical text with its place in the mushaf.
+/// One word of the canonical text and its place in the Quran.
 ///
 /// [text] is the canon: show it, never change it. Comparison uses
-/// search keys from a normalizer instead.
+/// search keys from a normalizer instead. The page layout (page, line,
+/// glyph) is not part of the text: it lives in the layout package
+/// (ADR 0004) and only for pages that have one.
 @immutable
 final class Word {
   /// Creates a word.
@@ -12,8 +14,6 @@ final class Word {
     required this.key,
     required this.index,
     required this.text,
-    required this.page,
-    required this.line,
   });
 
   /// Location `surah:ayah:word`.
@@ -25,24 +25,16 @@ final class Word {
   /// Canonical Uthmani text, exactly as in the content database.
   final String text;
 
-  /// Mushaf page.
-  final int page;
-
-  /// Line on the page.
-  final int line;
-
   @override
   bool operator ==(Object other) =>
       other is Word &&
       other.key == key &&
       other.index == index &&
-      other.text == text &&
-      other.page == page &&
-      other.line == line;
+      other.text == text;
 
   @override
-  int get hashCode => Object.hash(key, index, text, page, line);
+  int get hashCode => Object.hash(key, index, text);
 
   @override
-  String toString() => 'Word($key, #$index, p$page:$line)';
+  String toString() => 'Word($key, #$index)';
 }

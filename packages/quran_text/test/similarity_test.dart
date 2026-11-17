@@ -40,4 +40,29 @@ void main() {
       expect(similarity('abc', 'abcde'), similarity('abcde', 'abc'));
     });
   });
+
+  group('boundedLevenshtein', () {
+    List<int> r(String s) => s.runes.toList();
+
+    test('equals levenshtein within the bound, null beyond it', () {
+      const pairs = [
+        ('kitten', 'sitting'),
+        ('', 'abc'),
+        ('abc', ''),
+        ('abc', 'abc'),
+        ('abcdef', 'azcdxf'),
+        ('flaw', 'lawn'),
+      ];
+      for (final (a, b) in pairs) {
+        final d = levenshtein(a, b);
+        for (var bound = 0; bound <= 7; bound++) {
+          expect(
+            boundedLevenshtein(r(a), r(b), bound),
+            d <= bound ? d : null,
+            reason: '$a/$b within $bound',
+          );
+        }
+      }
+    });
+  });
 }
