@@ -6,13 +6,13 @@
 
 | Задача | Агент | Ветка | Зависит от | Статус |
 |---|---|---|---|---|
-| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation` | — | Правки после проверки Астры (check_deps исправлен в ca55799, ещё не доставлен); сливается последней |
-| [P03 — данные суры 78](P03-content-build.md) | Opus | `opus/p03-content-build` | — | PR №1, правки после проверки Астры (граница охвата) |
-| [P02 — текст, ключи, сходство](P02-quran-text.md) | Opus | `opus/p02-quran-text` | P03 | PR №2, можно сливать после №1 |
-| [P06 — следование v0](P06-follow.md) | Opus | `opus/p06-follow` | P02 | PR №3, можно сливать после №2 |
-| [P04 — распознаватель на sherpa-onnx](P04-asr-sherpa.md) | GPT-B | `gpt-b/p04-asr-sherpa` | — | Правки после проверки Астры |
-| [P05 — микрофон и отрезки речи](P05-audio-capture.md) | GPT-B | `gpt-b/p05-audio-capture` | — | Правки после проверки Астры |
-| [P07 — отрисовка мусхафа v0](P07-mushaf-view.md) | GPT-A | `gpt-a/p07-mushaf-view` | — | Правки после проверки Астры (подпись для озвучивания) |
+| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation-r2` | — | PR №10, нужно `git merge origin/main` и разрешить конфликты; сливается последней |
+| [P03 — данные суры 78](P03-content-build.md) | Opus | `opus/p03-content-build` | — | Слита (PR №1) |
+| [P02 — текст, ключи, сходство](P02-quran-text.md) | Opus | `opus/p02-quran-text` | P03 | Слита (PR №2) |
+| [P06 — следование v0](P06-follow.md) | Opus | `opus/p06-follow` | P02 | Слита (PR №3) |
+| [P04 — распознаватель на sherpa-onnx](P04-asr-sherpa.md) | GPT-B | `gpt-b/p04-asr-sherpa-r2` | — | Слита (PR №7) |
+| [P05 — микрофон и отрезки речи](P05-audio-capture.md) | GPT-B | `gpt-b/p05-audio-capture-r2` | — | PR №8, правки после проверки Астры (пауза, pre-roll) |
+| [P07 — отрисовка мусхафа v0](P07-mushaf-view.md) | GPT-A | `gpt-a/p07-mushaf-view-r2` | — | Слита (PR №9) |
 | [P08 — сборка прототипа и замеры](P08-prototype.md) | Астра | `astra/p08-prototype` | все выше | Открыта |
 | Проверка и слияние всех запросов | Астра | — | — | Постоянно |
 
@@ -24,9 +24,9 @@
 
 | Задача | Агент | Ветка | Статус |
 |---|---|---|---|
-| [S04 — проверка ошибок v0](S04-check.md) | Opus | `opus/s04-check` | PR №5 (после №3), правки после проверки Астры |
-| [M01 — оценка качества на записях](M01-eval.md) | Opus | `opus/m01-eval` | PR №4 (после №3), правки после проверки Астры |
-| [ADR 0003 — путь, версии, качество сигнала в `contracts`](../adr/0003-kontrakty-put-versii-signal.md) | Opus | `opus/adr-0003-contracts` | PR №6 (после №5), правки после проверки Астры |
+| [S04 — проверка ошибок v0](S04-check.md) | Opus | `opus/s04-check` | Слита (PR №5) |
+| [M01 — оценка качества на записях](M01-eval.md) | Opus | `opus/m01-eval` | Слита (PR №4) |
+| [ADR 0003 — путь, версии, качество сигнала в `contracts`](../adr/0003-kontrakty-put-versii-signal.md) | Opus | `opus/adr-0003-contracts` | PR №6, нужна правка тестов M01 под `versions` |
 
 Ещё без задач:
 

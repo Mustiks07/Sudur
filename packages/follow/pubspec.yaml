@@ -9,8 +9,11 @@ environment:
 dependencies:
   contracts:
     path: ../contracts
+  meta: ^1.15.0
   quran_text:
     path: ../quran_text
 
 dev_dependencies:
   test: any
+  testing:
+    path: ../testing
