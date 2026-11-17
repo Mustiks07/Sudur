@@ -378,8 +378,7 @@ final class _AudioWorker {
       _openStreamSegment(openedAt, config.sampleRate);
     }
     final activeSegmentId = _openSegmentId;
-    if (activeSegmentId != null &&
-        (output.wasSegmentOpen || output.isSegmentOpen)) {
+    if (activeSegmentId != null && output.wasSegmentOpen) {
       _emitSegmentAudio(
         activeSegmentId,
         frame,
@@ -394,16 +393,18 @@ final class _AudioWorker {
       _emitSegmentClosed(segmentId, output.frameEnd, config.sampleRate);
       _openSegmentId = null;
     }
-    final replay = output.reopenedSamples;
-    if (output.wasSegmentOpen &&
-        output.isSegmentOpen &&
+    final openedSamples = output.openedSamples;
+    final openedAudioStart = output.openedAudioStartSample;
+    if (output.isSegmentOpen &&
         openedAt != null &&
-        replay != null) {
-      final segmentId = _openStreamSegment(openedAt, config.sampleRate);
+        openedSamples != null &&
+        openedAudioStart != null) {
+      final segmentId =
+          _openSegmentId ?? _openStreamSegment(openedAt, config.sampleRate);
       _emitSegmentAudio(
         segmentId,
-        replay,
-        openedAt,
+        openedSamples,
+        openedAudioStart,
         output.frameEnd,
         config.sampleRate,
       );

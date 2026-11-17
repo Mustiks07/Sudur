@@ -80,8 +80,8 @@ final class SignalQualityEstimator {
     return readings;
   }
 
-  /// Clears accumulated signal statistics and hold timers.
-  void reset() {
+  /// Clears statistics while continuing at absolute [startSample].
+  void reset({int startSample = 0}) {
     _windowSamples = 0;
     _windowSquareSum = 0;
     _clippedSamples = 0;
@@ -89,7 +89,7 @@ final class SignalQualityEstimator {
     _speechSquareSum = 0;
     _silenceSamples = 0;
     _silenceSquareSum = 0;
-    _processedSamples = 0;
+    _processedSamples = startSample;
     _quietHoldMs = 0;
     _noisyHoldMs = 0;
   }

@@ -14,7 +14,7 @@ void main() {
     final silence = Float32List(100);
     final speech = Float32List.fromList(List<double>.filled(100, 0.2));
 
-    pipeline.processFrame(silence, isSpeech: false);
+    pipeline.processFrame(Float32List(300), isSpeech: false);
     final opened = pipeline.processFrame(speech, isSpeech: true);
     final continuing = pipeline.processFrame(speech, isSpeech: true);
     pipeline.processFrame(silence, isSpeech: false);
@@ -22,9 +22,11 @@ void main() {
 
     expect(opened.wasSegmentOpen, isFalse);
     expect(opened.isSegmentOpen, isTrue);
-    expect(opened.openedAtSample, 100);
-    expect(opened.frameStart, 100);
-    expect(opened.frameEnd, 200);
+    expect(opened.openedAtSample, 300);
+    expect(opened.openedAudioStartSample, 0);
+    expect(opened.openedSamples, hasLength(400));
+    expect(opened.frameStart, 300);
+    expect(opened.frameEnd, 400);
     expect(continuing.wasSegmentOpen, isTrue);
     expect(continuing.isSegmentOpen, isTrue);
     expect(closed.wasSegmentOpen, isTrue);
@@ -92,7 +94,8 @@ void main() {
     expect(output?.segments.single.boundary.speechEnd, 650);
     expect(output?.isSegmentOpen, isTrue);
     expect(output?.openedAtSample, 650);
-    expect(output?.reopenedSamples, hasLength(350));
+    expect(output?.openedAudioStartSample, 550);
+    expect(output?.openedSamples, hasLength(450));
   });
 
   test('review snippets exist only inside the retained ring', () {
@@ -113,7 +116,7 @@ void main() {
     );
   });
 
-  test('preserves absolute time when audio memory is cleared on pause', () {
+  test('clamps pre-roll after pause and closes the complete segment', () {
     const config = AudioCaptureConfig(sampleRate: 1000);
     final pipeline = AudioPipeline(config)
       ..processFrame(Float32List(500), isSpeech: false)
@@ -123,9 +126,30 @@ void main() {
       Float32List.fromList(List<double>.filled(100, 0.2)),
       isSpeech: true,
     );
+    final closed = pipeline.flush();
 
     expect(pipeline.currentSample, 600);
     expect(opened.frameStart, 500);
     expect(opened.openedAtSample, 500);
+    expect(opened.openedAudioStartSample, 500);
+    expect(opened.openedSamples, hasLength(100));
+    expect(closed?.boundary.audioStart, 500);
+    expect(closed?.samples, hasLength(100));
+  });
+
+  test('preserves quality timestamps when audio memory is cleared', () {
+    const config = AudioCaptureConfig(sampleRate: 1000);
+    final pipeline = AudioPipeline(config);
+    for (var second = 0; second < 5; second++) {
+      pipeline.processFrame(Float32List(1000), isSpeech: false);
+    }
+    pipeline.clear(preserveTimeline: true);
+
+    final output = pipeline.processFrame(
+      Float32List(1000),
+      isSpeech: false,
+    );
+
+    expect(output.qualityReadings.single.endSample, 6000);
   });
 }

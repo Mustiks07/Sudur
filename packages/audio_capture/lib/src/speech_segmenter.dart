@@ -48,6 +48,9 @@ final class SpeechSegmenter {
   /// Absolute first speech sample of the open segment.
   int? get speechStart => _speechStart;
 
+  /// Absolute first available padded sample of the open segment.
+  int? get audioStart => _audioStart;
+
   int get _preRollSamples => _msToSamples(_config.preRollMs);
   int get _postRollSamples => _msToSamples(_config.postRollMs);
   int get _endPauseSamples => _msToSamples(_config.segmentEndPauseMs);
@@ -58,6 +61,7 @@ final class SpeechSegmenter {
   List<SegmentBoundary> addFrame({
     required Float32List samples,
     required int frameStart,
+    required int availableStart,
     required bool isSpeech,
   }) {
     if (samples.isEmpty) {
@@ -65,7 +69,7 @@ final class SpeechSegmenter {
     }
     final frameEnd = frameStart + samples.length;
     if (isSpeech && _speechStart == null) {
-      _beginSpeech(frameStart);
+      _beginSpeech(frameStart, availableStart);
     }
     if (_speechStart != null) {
       _energyFrames.add(
@@ -89,7 +93,7 @@ final class SpeechSegmenter {
       final split = _quietestSplit(frameEnd);
       final boundary = _close(speechEnd: split, availableEnd: frameEnd);
       if (isSpeech) {
-        _beginSpeech(split);
+        _beginSpeech(split, availableStart);
         _lastSpeechEnd = frameEnd;
         _energyFrames.removeWhere((frame) => frame.end <= split);
       }
@@ -123,9 +127,10 @@ final class SpeechSegmenter {
     _energyFrames.clear();
   }
 
-  void _beginSpeech(int start) {
+  void _beginSpeech(int start, int availableStart) {
     _speechStart = start;
-    _audioStart = start > _preRollSamples ? start - _preRollSamples : 0;
+    final desiredStart = start > _preRollSamples ? start - _preRollSamples : 0;
+    _audioStart = desiredStart < availableStart ? availableStart : desiredStart;
     final previousEnd = _previousSegmentSpeechEnd;
     _pauseBefore =
         previousEnd == null || start <= previousEnd ? 0 : start - previousEnd;

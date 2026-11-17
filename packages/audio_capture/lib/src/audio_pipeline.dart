@@ -29,7 +29,8 @@ final class AudioPipelineOutput {
     required this.wasSegmentOpen,
     required this.isSegmentOpen,
     required this.openedAtSample,
-    required this.reopenedSamples,
+    required this.openedAudioStartSample,
+    required this.openedSamples,
   });
 
   /// Newly closed segments.
@@ -53,8 +54,11 @@ final class AudioPipelineOutput {
   /// Start of a segment opened by this frame, including a forced split.
   final int? openedAtSample;
 
-  /// Audio replayed into the new segment after a forced split.
-  final Float32List? reopenedSamples;
+  /// First available pre-roll sample streamed for the newly opened segment.
+  final int? openedAudioStartSample;
+
+  /// Available pre-roll plus the current frame for a newly opened segment.
+  final Float32List? openedSamples;
 }
 
 /// Pure in-memory audio processing after VAD classification.
@@ -85,6 +89,7 @@ final class AudioPipeline {
     final boundaries = _segmenter.addFrame(
       samples: samples,
       frameStart: frameStart,
+      availableStart: _ring.availableStart,
       isSpeech: isSpeech,
     );
     final isSegmentOpen = _segmenter.isOpen;
@@ -92,9 +97,11 @@ final class AudioPipeline {
             boundaries.isNotEmpty && isSegmentOpen
         ? _segmenter.speechStart
         : null;
-    final reopenedSamples = boundaries.isNotEmpty && isSegmentOpen
-        ? _ring.read(openedAtSample ?? frameStart, _ring.totalSamples)
-        : null;
+    final openedAudioStartSample =
+        openedAtSample == null ? null : _segmenter.audioStart;
+    final openedSamples = openedAudioStartSample == null
+        ? null
+        : _ring.read(openedAudioStartSample, _ring.totalSamples);
     return AudioPipelineOutput(
       segments: boundaries.map(_copySegment).toList(growable: false),
       qualityReadings: _quality.add(samples, isSpeech: isSpeech),
@@ -103,7 +110,8 @@ final class AudioPipeline {
       wasSegmentOpen: wasSegmentOpen,
       isSegmentOpen: isSegmentOpen,
       openedAtSample: openedAtSample,
-      reopenedSamples: reopenedSamples,
+      openedAudioStartSample: openedAudioStartSample,
+      openedSamples: openedSamples,
     );
   }
 
@@ -134,7 +142,7 @@ final class AudioPipeline {
   void clear({bool preserveTimeline = false}) {
     _ring.clear(preservePosition: preserveTimeline);
     _segmenter.reset();
-    _quality.reset();
+    _quality.reset(startSample: _ring.totalSamples);
   }
 
   ProcessedSegment _copySegment(SegmentBoundary boundary) => ProcessedSegment(
