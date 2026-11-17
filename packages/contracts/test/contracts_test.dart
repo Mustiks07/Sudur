@@ -211,6 +211,14 @@ void main() {
       expect(frame.startMs, 20);
       expect(frame.endMs, 30);
       expect(quality, isA<SessionAudioEvent>());
+      expect(
+        const SessionAudioSegmentOpened(
+          atMs: 500,
+          segmentId: 4,
+          pauseBeforeMs: 300,
+        ).pauseBeforeMs,
+        300,
+      );
     });
 
     test('word outcomes exactly cover the section 10.6 summary', () {

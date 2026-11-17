@@ -20,10 +20,14 @@ final class SessionAudioSegmentOpened extends SessionAudioEvent {
   const SessionAudioSegmentOpened({
     required super.atMs,
     required this.segmentId,
+    this.pauseBeforeMs = 0,
   });
 
   /// Monotonically increasing segment number within the session.
   final int segmentId;
+
+  /// Silence since the previous segment, retained for hesitation checks.
+  final int pauseBeforeMs;
 }
 
 /// One frame from an open speech segment.
