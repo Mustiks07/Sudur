@@ -28,14 +28,29 @@
 
 ## 12.2 База содержания (только чтение)
 
+Текст и разметка страниц хранятся раздельно, как пакеты `text` и `layout` (4.9; ADR 0004). Текст есть для всего Корана; разметка — только для страниц, на которые есть права (ADR 0002). Пустых полей «страница неизвестна» нет: у слова либо есть строка в `word_layout`, либо нет.
+
+**Текст** — весь Коран:
+
 | Таблица | Поля |
 |---|---|
 | `surah` | `number`, `name_ar`, `name_ru`, `name_kk`, `name_uz`, `ayah_count`, `revelation` (makkah/madinah) |
-| `ayah` | `surah`, `ayah`, `first_word_index`, `word_count`, `page`, `juz`, `hizb`, `sajda` (bool) |
-| `word` | `word_index`, `surah`, `ayah`, `position`, `text_uthmani` (канон), `page`, `line`, `line_position`, `glyph_code` |
-| Знак конца аята | Место (страница, строка, позиция в строке) и код знака шрифта для каждого аята — без них страницу не нарисовать (ADR 0002) |
-| `page` | `number`, `layout_id`, `first_word_index`, `last_word_index` |
-| `line` | `page`, `line`, `kind` (ayah/surahName/basmala), `first_word_index`, `last_word_index`, `centered`, номер суры для строк заголовка (ADR 0002) |
+| `ayah` | `surah`, `ayah`, `first_word_index`, `word_count`, `juz`, `hizb`, `sajda` (bool); `juz`, `hizb`, `sajda` пусты, пока нет источника |
+| `word` | `word_index`, `surah`, `ayah`, `position`, `text_uthmani` (канон) |
+
+**Разметка** — только страницы с правами; `layout_id` позволяет заменить разметку или добавить другой мусхаф, не трогая текст:
+
+| Таблица | Поля |
+|---|---|
+| `word_layout` | `layout_id`, `word_index`, `page`, `line`, `line_position`, `glyph_code` |
+| `ayah_layout` | `layout_id`, `surah`, `ayah`, `page`, `end_page`, `end_line`, `end_line_position`, `end_glyph_code` — место и знак конца аята (ADR 0002) |
+| `page` | `layout_id`, `number`, `first_word_index`, `last_word_index` |
+| `line` | `layout_id`, `page`, `line`, `kind` (ayah/surahName/basmala), `first_word_index`, `last_word_index`, `centered`, номер суры для строк заголовка (ADR 0002) |
+
+**Прочее:**
+
+| Таблица | Поля |
+|---|---|
 | `passage_default` | `id`, `from_word_index`, `to_word_index` |
 | `similar_pair` | `id`, `a_from`, `a_to`, `b_from`, `b_to`, `verified` |
 | `tajweed_mark` | `word_index`, `char_offset`, `rule` |
