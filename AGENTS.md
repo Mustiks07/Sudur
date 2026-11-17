@@ -62,7 +62,8 @@ docs/adr/            architecture decision records
 - Unidirectional data flow: event → ViewModel command → repository → new data → ViewModel state → View rebuild.
 - Views listen with `ListenableBuilder`. DI with `provider`. Navigation with `go_router`.
 - Cross-layer errors use a `Result` type (`Ok` / `Error`); services catch library exceptions and return `Result.error`. No empty `catch`.
-- Domain models are immutable (`freezed`).
+- Domain models are immutable (`freezed` or hand-written immutable classes).
+- Separate storage/API models from domain models: drift row classes and Supabase JSON never leave `storage` / `sync`; their public API returns plain immutable models.
 - Pure-Dart packages must not import Flutter. Never import another package's `src/`.
 - Reference implementation: Flutter's Compass sample app.
 
