@@ -10,7 +10,12 @@
     "selfCorrectionRecall": { "min": 0.90 },
     "groupPrecision": { "min": 0.90 }
   },
-  "groups": ["nativeLanguage", "gender", "device", "noise"],
+  "groups": {
+    "nativeLanguage": ["ru", "kk", "uz"],
+    "gender": ["m", "f"],
+    "device": ["budget-android", "mid-android", "iphone"],
+    "noise": ["quiet", "noisy"]
+  },
   "normalNoise": ["quiet"],
   "timeToleranceMs": 500,
   "bootstrap": { "samples": 1000, "confidence": 0.95, "seed": 20261116 },

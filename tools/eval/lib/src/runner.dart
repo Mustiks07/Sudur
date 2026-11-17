@@ -158,6 +158,8 @@ RecordingOutcome runRecording(
 
   return RecordingOutcome(
     revealed: revealed,
-    checkEvents: checker == null ? null : events,
+    // With check on, a recording without results is checked and has no
+    // events; only --no-check leaves check metrics without data.
+    checkEvents: check == null ? null : events,
   );
 }

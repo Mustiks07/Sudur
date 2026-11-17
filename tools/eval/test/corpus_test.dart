@@ -72,6 +72,9 @@ void main() {
     Map<WordKey, String> substitute = const {},
     Map<WordKey, String> selfCorrect = const {},
     String language = 'kk',
+    String gender = 'f',
+    String device = 'budget-android',
+    String noise = 'quiet',
   }) {
     final r = SyntheticRecording(
       id: id,
@@ -79,6 +82,9 @@ void main() {
       from: '${words.first.key}',
       to: '${words.last.key}',
       nativeLanguage: language,
+      gender: gender,
+      device: device,
+      noise: noise,
     );
     int? ayah;
     for (final w in words) {
@@ -99,14 +105,14 @@ void main() {
     return r;
   }
 
-  Report evaluate({bool withCheck = false}) {
+  Report evaluate({bool withCheck = false, AcceptanceConfig? using}) {
     final recordings = switch (loadCorpus(dir.path, model)) {
       Ok(:final value) => value,
       Error(:final error) => throw error,
     };
     return buildReport(
       model: model,
-      config: config,
+      config: using ?? config,
       recordings: [
         for (final r in recordings)
           (
@@ -194,7 +200,10 @@ void main() {
     expect(report.metrics[Metric.followRevealedNotRead]!.value.numerator, 0);
   });
 
-  test('with check: known mistakes are found, nothing else is flagged', () {
+  test('with check: known mistakes found in every required group → mode А', () {
+    // Three people cover every required group of КЧ-08 (acceptance.json):
+    // ru/kk/uz, m/f, budget-android/mid-android/iphone, quiet/noisy — and
+    // each group value has at least one confirmed mistake.
     final a = ayahs(1, 12);
     final b = ayahs(13, 24);
     final c = ayahs(25, 36);
@@ -206,6 +215,9 @@ void main() {
         b,
         substitute: {b[6].key: unrelatedTo(b[6])},
         language: 'ru',
+        gender: 'm',
+        device: 'mid-android',
+        noise: 'noisy',
       ),
     );
     save(
@@ -216,6 +228,7 @@ void main() {
         omit: {c[20].key},
         selfCorrect: {c[8].key: nearMiss(c[8])},
         language: 'uz',
+        device: 'iphone',
       ),
     );
     final report = evaluate(withCheck: true);
@@ -228,7 +241,83 @@ void main() {
     expect(value(Metric.selfCorrectionRecall), 1.0);
     expect(value(Metric.refusalRate), 0.0);
     expect(value(Metric.followRevealedInPlace), 1.0);
+    expect(report.missingGroups, isEmpty);
+    for (final MapEntry(:key, value: required)
+        in config.requiredGroups.entries) {
+      for (final v in required) {
+        expect(report.groupStatuses[key]![v], Status.pass, reason: '$key=$v');
+      }
+    }
     expect(report.mode, ReleaseMode.a);
+    expect(report.passed, isTrue);
+  });
+
+  test('required groups missing from the corpus: no data, never mode А', () {
+    // Only women, budget Android, quiet — every present group passes, yet
+    // men, noise, other phones and languages are not checked at all.
+    final a = ayahs(1, 12);
+    final b = ayahs(13, 24);
+    save(
+      reading(
+        'r1',
+        'p1',
+        a,
+        omit: {a[5].key, a[20].key},
+        selfCorrect: {a[12].key: nearMiss(a[12])},
+      ),
+    );
+    save(reading('r2', 'p2', b, substitute: {b[6].key: unrelatedTo(b[6])}));
+    final report = evaluate(withCheck: true);
+    // Every overall metric passes: only the missing groups keep А out.
+    for (final MapEntry(key: m, value: r) in report.metrics.entries) {
+      expect(r.status, Status.pass, reason: m.name);
+    }
+    expect(report.groupStatuses['gender']!['f'], Status.pass);
+    expect(report.groupStatuses['gender']!['m'], Status.noData);
+    expect(report.groupStatuses['noise']!['noisy'], Status.noData);
+    expect(report.groupRecordings['gender']!['m'], 0);
+    expect(
+      report.missingGroups,
+      containsAll([
+        'nativeLanguage=ru',
+        'nativeLanguage=uz',
+        'gender=m',
+        'device=mid-android',
+        'device=iphone',
+        'noise=noisy',
+      ]),
+    );
+    expect(report.mode, isNot(ReleaseMode.a));
+    expect(report.passed, isFalse);
+    expect(report.toMarkdown(), contains('Нет записей в обязательных группах'));
+    final json = report.toJson();
+    expect(json['missingGroups'], contains('gender=m'));
+
+    // The bug: checking only the groups found in the corpus (no required
+    // values) passed this very corpus as mode А.
+    final onlyPresent = switch (AcceptanceConfig.parse(
+      File('config/acceptance.json').readAsStringSync().replaceAllMapped(
+            RegExp(r'"(nativeLanguage|gender|device|noise)": \[[^\]]*\]'),
+            (m) => '"${m[1]}": []',
+          ),
+    )) {
+      Ok(:final value) => value,
+      Error(:final error) => throw error,
+    };
+    expect(evaluate(withCheck: true, using: onlyPresent).mode, ReleaseMode.a);
+  });
+
+  test('a recording without recognition results does not disable check', () {
+    final a = ayahs(1, 12);
+    save(reading('r1', 'p1', a, omit: {a[5].key}));
+    final silent = reading('r2', 'p2', ayahs(13, 14));
+    File(p.join(dir.path, 'r2.ann.json'))
+        .writeAsStringSync(jsonEncode(silent.annotationJson()));
+    File(p.join(dir.path, 'r2.$model.asr.jsonl')).writeAsStringSync('');
+    final report = evaluate(withCheck: true);
+    expect(report.recordings, 2);
+    expect(report.metrics[Metric.precision]!.value.value, 1.0);
+    expect(report.metrics[Metric.omissionRecall]!.value.value, 1.0);
   });
 
   test('a group without any mistake has no precision: not mode А', () {

@@ -79,7 +79,7 @@ final class AcceptanceConfig {
   const AcceptanceConfig({
     required this.thresholds,
     required this.groupPrecision,
-    required this.groupKeys,
+    required this.requiredGroups,
     required this.normalNoise,
     required this.timeToleranceMs,
     required this.bootstrapSamples,
@@ -105,10 +105,14 @@ final class AcceptanceConfig {
             thresholds['groupPrecision'],
             'thresholds.groupPrecision',
           ),
-          groupKeys: [
-            for (final k in _list(root['groups'], 'groups'))
-              _string(k, 'groups'),
-          ],
+          requiredGroups: {
+            for (final MapEntry(:key, :value)
+                in _object(root['groups'], 'groups').entries)
+              key: [
+                for (final v in _list(value, 'groups.$key'))
+                  _string(v, 'groups.$key'),
+              ],
+          },
           normalNoise: {
             for (final n in _list(root['normalNoise'], 'normalNoise'))
               _string(n, 'normalNoise'),
@@ -137,8 +141,14 @@ final class AcceptanceConfig {
   /// Threshold of precision in each group (docs/tz КЧ-08).
   final Threshold groupPrecision;
 
-  /// Annotation group keys reported separately (docs/tz КЧ-08).
-  final List<String> groupKeys;
+  /// Groups of docs/tz КЧ-08: annotation key → values that must be in the
+  /// corpus (native language ru/kk/uz, gender, phone class, quiet/noisy).
+  /// A required value without recordings has no data, so mode А is not
+  /// possible; values found in the corpus beyond these are reported too.
+  final Map<String, List<String>> requiredGroups;
+
+  /// Annotation group keys reported separately.
+  List<String> get groupKeys => requiredGroups.keys.toList();
 
   /// Noise conditions of recordings of normal quality (docs/tz КЧ-06).
   final Set<String> normalNoise;

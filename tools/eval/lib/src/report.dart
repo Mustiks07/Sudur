@@ -43,6 +43,7 @@ final class Report {
     required this.metrics,
     required this.groups,
     required this.groupStatuses,
+    required this.groupRecordings,
     required this.mode,
     required this.thresholds,
     this.baseline,
@@ -65,6 +66,17 @@ final class Report {
 
   /// Metrics per group key and group value (docs/tz КЧ-08).
   final Map<String, Map<String, Map<Metric, MetricValue>>> groups;
+
+  /// Recordings per group key and value; 0 for a required value the corpus
+  /// lacks.
+  final Map<String, Map<String, int>> groupRecordings;
+
+  /// Required group values without any recording, as `key=value`.
+  List<String> get missingGroups => [
+        for (final MapEntry(:key, :value) in groupRecordings.entries)
+          for (final MapEntry(key: v, value: n) in value.entries)
+            if (n == 0) '$key=$v',
+      ];
 
   /// Precision status per group key and value.
   final Map<String, Map<String, Status>> groupStatuses;
@@ -125,11 +137,13 @@ final class Report {
               if (changes[m] case final c?) 'change': c,
             },
         },
+        'missingGroups': missingGroups,
         'groups': {
           for (final MapEntry(:key, value: byValue) in groups.entries)
             key: {
               for (final MapEntry(key: value, value: values) in byValue.entries)
                 value: {
+                  'recordings': groupRecordings[key]?[value] ?? 0,
                   'precisionStatus': groupStatuses[key]?[value]?.name,
                   for (final MapEntry(key: m, value: v) in values.entries)
                     m.name: _valueJson(v),
@@ -144,6 +158,13 @@ final class Report {
       ..writeln('# Отчёт оценки: $model')
       ..writeln()
       ..writeln('Записей: $recordings, людей: $people.')
+      ..writeln()
+      ..writeln(
+        missingGroups.isEmpty
+            ? 'Все обязательные группы КЧ-08 представлены.'
+            : '**Нет записей в обязательных группах КЧ-08:** '
+                '${missingGroups.join(', ')} — режим «А» невозможен.',
+      )
       ..writeln()
       ..writeln(
         '**Итог: ${passed ? 'прошло' : 'не прошло'}.** '
@@ -168,14 +189,14 @@ final class Report {
         ..writeln()
         ..writeln('## Группа: $key')
         ..writeln()
-        ..writeln('| Значение | ${[
+        ..writeln('| Значение | Записей | ${[
           for (final m in Metric.values) m.column,
         ].join(' | ')} | Точность ≥ порога |')
-        ..writeln('|---|${[for (final _ in Metric.values) '---'].join('|')}'
+        ..writeln('|---|---|${[for (final _ in Metric.values) '---'].join('|')}'
             '|---|');
       for (final MapEntry(key: value, value: values) in byValue.entries) {
         b.writeln(
-          '| $value | ${[
+          '| $value | ${groupRecordings[key]?[value] ?? 0} | ${[
             for (final m in Metric.values) _format(m, values[m]?.value),
           ].join(' | ')} | ${groupStatuses[key]?[value]?.label ?? '—'} |',
         );
@@ -299,14 +320,22 @@ Report buildReport({
 
   final groups = <String, Map<String, Map<Metric, MetricValue>>>{};
   final groupStatuses = <String, Map<String, Status>>{};
-  for (final key in config.groupKeys) {
-    final byValue = <String, Counts>{};
+  final groupRecordings = <String, Map<String, int>>{};
+  for (final MapEntry(:key, value: required) in config.requiredGroups.entries) {
+    // Required values start empty: without recordings they have no data,
+    // and a group without data keeps the release mode below А (КЧ-08).
+    final byValue = <String, Counts>{
+      for (final v in required) v: const Counts(hasCheck: true),
+    };
+    final counted = <String, int>{for (final v in required) v: 0};
     for (final r in recordings) {
       final value = r.annotation.groups[key];
       if (value == null) continue;
       byValue[value] =
           (byValue[value] ?? const Counts(hasCheck: true)) + countsOf(r);
+      counted[value] = (counted[value] ?? 0) + 1;
     }
+    groupRecordings[key] = counted;
     final values = byValue.keys.toList()..sort();
     groups[key] = {
       for (final v in values)
@@ -325,6 +354,7 @@ Report buildReport({
     metrics: metrics,
     groups: groups,
     groupStatuses: groupStatuses,
+    groupRecordings: groupRecordings,
     thresholds: config.thresholds,
     mode: releaseMode(
       {for (final e in metrics.entries) e.key: e.value.status},
