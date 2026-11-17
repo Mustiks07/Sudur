@@ -40,7 +40,7 @@
 | [S03 — следование и поиск по всему Корану](S03-follow-quran.md) | Opus | `opus/s03-follow-quran` | Код готов в ветке; часть `tools/eval` и PR — после слияния №11 и №13 |
 | [PL01 — план повторений и занятие на сегодня](PL01-planner.md) | GPT-A | `gpt-a/pl01-planner` | Ветка доставлена, PR открывает владелец |
 | [K01 — движок уроков](K01-lessons.md) | Opus | `opus/k01-lessons` | В работе |
-| [S05 — сессия чтения v0 (+ ADR 0005)](S05-session.md) | GPT-B | `gpt-b/adr-0005-session-contract`, `gpt-b/s05-session` | В работе |
+| [S05 — сессия чтения v0 (+ ADR 0005)](S05-session.md) | GPT-B | `gpt-b/adr-0005-session-contract`, `gpt-b/s05-session` | Ветки доставлены; ADR 0005 ждёт согласия владельца, PR открывает владелец |
 
 Следующие без задач (распишу, когда освободятся агенты):
 
