@@ -6,12 +6,12 @@
 
 | Задача | Агент | Ветка | Зависит от | Статус |
 |---|---|---|---|---|
-| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation-r2` | — | PR №10, конфликты разрешены; после №8 — ещё `git merge origin/main` и новый `pubspec.lock` (пакет `record`); сливается последней |
+| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation-r2` | — | PR №10, одобрена Астрой; осталось `git merge origin/main` (№6, №8) и новый `pubspec.lock` (пакет `record`) |
 | [P03 — данные суры 78](P03-content-build.md) | Opus | `opus/p03-content-build` | — | Слита (PR №1) |
 | [P02 — текст, ключи, сходство](P02-quran-text.md) | Opus | `opus/p02-quran-text` | P03 | Слита (PR №2) |
 | [P06 — следование v0](P06-follow.md) | Opus | `opus/p06-follow` | P02 | Слита (PR №3) |
 | [P04 — распознаватель на sherpa-onnx](P04-asr-sherpa.md) | GPT-B | `gpt-b/p04-asr-sherpa-r2` | — | Слита (PR №7) |
-| [P05 — микрофон и отрезки речи](P05-audio-capture.md) | GPT-B | `gpt-b/p05-audio-capture-r2` | — | PR №8, правки сделаны, ждёт перепроверки Астры |
+| [P05 — микрофон и отрезки речи](P05-audio-capture.md) | GPT-B | `gpt-b/p05-audio-capture-r2` | — | Слита (PR №8) |
 | [P07 — отрисовка мусхафа v0](P07-mushaf-view.md) | GPT-A | `gpt-a/p07-mushaf-view-r2` | — | Слита (PR №9) |
 | [P08 — сборка прототипа и замеры](P08-prototype.md) | Астра | `astra/p08-prototype` | все выше | Открыта |
 | Проверка и слияние всех запросов | Астра | — | — | Постоянно |
