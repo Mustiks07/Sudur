@@ -6,7 +6,7 @@
 
 | Задача | Агент | Ветка | Зависит от | Статус |
 |---|---|---|---|---|
-| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation-r2` | — | PR №10, одобрена Астрой; осталось `git merge origin/main` (№6, №8) и новый `pubspec.lock` (пакет `record`) |
+| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation-r2` | — | Слита (PR №10) |
 | [P03 — данные суры 78](P03-content-build.md) | Opus | `opus/p03-content-build` | — | Слита (PR №1) |
 | [P02 — текст, ключи, сходство](P02-quran-text.md) | Opus | `opus/p02-quran-text` | P03 | Слита (PR №2) |
 | [P06 — следование v0](P06-follow.md) | Opus | `opus/p06-follow` | P02 | Слита (PR №3) |
@@ -27,6 +27,8 @@
 | [S04 — проверка ошибок v0](S04-check.md) | Opus | `opus/s04-check` | Слита (PR №5) |
 | [M01 — оценка качества на записях](M01-eval.md) | Opus | `opus/m01-eval` | Слита (PR №4) |
 | [ADR 0003 — путь, версии, качество сигнала в `contracts`](../adr/0003-kontrakty-put-versii-signal.md) | Opus | `opus/adr-0003-contracts` | Слита (PR №6) |
+| Подключение `check` к инструменту оценки (M01) | Opus | `opus/m01-eval-check` | PR №11, правки после проверки Астры (обязательные группы КЧ-08) |
+| Общий тип качества сигнала в `audio_capture` (ADR 0003) | GPT-B | `gpt-b/p05-signal-quality` | Ветка доставлена, PR открывает владелец |
 
 Ещё без задач:
 
