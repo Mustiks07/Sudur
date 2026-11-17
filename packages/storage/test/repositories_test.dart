@@ -5,31 +5,31 @@ import 'package:storage/storage.dart';
 import 'helpers.dart';
 
 void main() {
-  late SudurDatabase database;
+  late StorageService storage;
 
   setUp(() {
-    database = SudurDatabase.memory();
+    storage = StorageService.memory();
   });
 
-  tearDown(() => database.close());
+  tearDown(() => storage.close());
 
   test('all repositories persist and read their schema-v1 entities', () async {
-    final profiles = DriftProfileRepository(database);
-    final units = DriftUnitRepository(database);
-    final attempts = DriftAttemptRepository(database);
-    final events = DriftCheckEventRepository(database);
-    final sessions = DriftSessionRepository(database);
-    final lessons = DriftLessonRepository(database);
-    final settings = DriftSettingsRepository(database);
-    final downloads = DriftDownloadRepository(database);
-    final recordings = DriftRecordingRepository(database);
-    final uploads = DriftUploadQueueRepository(database);
-    final plans = DriftDailyPlanRepository(database);
-    final usage = DriftFreeUsageRepository(database);
-    final entitlements = DriftEntitlementRepository(database);
-    final searchKeys = DriftSearchKeyCacheRepository(database);
-    final ngrams = DriftNgramCacheRepository(database);
-    final outbox = DriftOutboxRepository(database);
+    final profiles = storage.profiles;
+    final units = storage.units;
+    final attempts = storage.attempts;
+    final events = storage.checkEvents;
+    final sessions = storage.sessions;
+    final lessons = storage.lessons;
+    final settings = storage.settings;
+    final downloads = storage.downloads;
+    final recordings = storage.recordings;
+    final uploads = storage.uploads;
+    final plans = storage.dailyPlans;
+    final usage = storage.freeUsage;
+    final entitlements = storage.entitlements;
+    final searchKeys = storage.searchKeys;
+    final ngrams = storage.ngrams;
+    final outbox = storage.outbox;
 
     expect(unwrap(await outbox.list()), isEmpty);
 
@@ -41,7 +41,7 @@ void main() {
     unwrap(await events.put(checkEvent()));
     unwrap(
       await lessons.put(
-        const LessonProgressRecord(
+        const (
           lessonId: 'lesson-1',
           state: LessonState.inProgress,
           stepIndex: 2,
@@ -53,7 +53,7 @@ void main() {
     );
     unwrap(
       await settings.put(
-        SettingRecord(
+        (
           key: 'notifications',
           value: JsonValueData.fromJson(true),
         ),
@@ -61,10 +61,11 @@ void main() {
     );
     unwrap(
       await downloads.put(
-        const DownloadRecord(
+        const (
           packageId: 'model-1',
           kind: DownloadKind.model,
           activeVersion: '1',
+          pendingVersion: null,
           state: DownloadState.installed,
           bytesTotal: 100,
           bytesDone: 100,
@@ -74,7 +75,7 @@ void main() {
     );
     unwrap(
       await recordings.put(
-        const SavedRecordingRecord(
+        const (
           id: recordingId,
           sessionId: sessionId,
           path: '/private/recording.opus',
@@ -85,7 +86,7 @@ void main() {
     );
     unwrap(
       await uploads.put(
-        UploadQueueRecord(
+        (
           id: uploadId,
           sessionId: sessionId,
           filePath: '/private/upload.opus',
@@ -100,7 +101,7 @@ void main() {
     );
     unwrap(
       await plans.put(
-        DailyPlanRecord(
+        (
           date: '2026-11-17',
           items: DailyPlanItems.fromJson(const <Object?>[
             <String, Object?>{'unitId': unitId},
@@ -111,12 +112,12 @@ void main() {
     );
     unwrap(
       await usage.put(
-        const FreeUsageRecord(date: '2026-11-17', listeningMs: 900),
+        const (date: '2026-11-17', listeningMs: 900),
       ),
     );
     unwrap(
       await entitlements.put(
-        const EntitlementCacheRecord(
+        const (
           id: 'premium',
           state: EntitlementState.active,
           expiresAt: 3000,
@@ -125,8 +126,8 @@ void main() {
       ),
     );
     unwrap(
-      await searchKeys.replace('normalizer-1', const <SearchKeyCacheRecord>[
-        SearchKeyCacheRecord(
+      await searchKeys.replace('normalizer-1', const <SearchKeyCacheData>[
+        (
           normalizerId: 'normalizer-1',
           wordIndex: 10,
           key: 'key',
@@ -134,8 +135,8 @@ void main() {
       ]),
     );
     unwrap(
-      await ngrams.replace('normalizer-1', <NgramCacheRecord>[
-        NgramCacheRecord(
+      await ngrams.replace('normalizer-1', <NgramCacheData>[
+        (
           normalizerId: 'normalizer-1',
           ngram: 'key',
           wordIndexes: WordIndexes.fromJson(const <Object?>[10]),
@@ -144,7 +145,7 @@ void main() {
     );
     unwrap(
       await outbox.add(
-        OutboxRecord(
+        (
           id: outboxId,
           event: JsonObjectData.fromJson(
             const <String, Object?>{'kind': 'attempt'},
@@ -182,15 +183,15 @@ void main() {
 
   test('passage write rolls back every row when an event insert fails',
       () async {
-    final attempts = DriftAttemptRepository(database);
-    final events = DriftCheckEventRepository(database);
-    final units = DriftUnitRepository(database);
+    final attempts = storage.attempts;
+    final events = storage.checkEvents;
+    final units = storage.units;
     unwrap(await events.put(checkEvent()));
 
     final result = await attempts.recordPassage(
       PassageWrite(
         attempt: attempt(),
-        checkEvents: <CheckEventRecord>[checkEvent()],
+        checkEvents: <CheckEventData>[checkEvent()],
         unitState: unitState(),
       ),
     );
@@ -202,8 +203,17 @@ void main() {
   });
 
   test('invalid identifiers are returned as Result.error', () async {
-    final result = await DriftProfileRepository(database).put(
-      profile().copyWith(id: 'not-a-uuid'),
+    final valid = profile();
+    final result = await storage.profiles.put(
+      (
+        id: 'not-a-uuid',
+        createdAt: valid.createdAt,
+        uiLanguage: valid.uiLanguage,
+        path: valid.path,
+        dailyMinutes: valid.dailyMinutes,
+        behavior: valid.behavior,
+        showFirstWord: valid.showFirstWord,
+      ),
     );
 
     expect(result, isA<Error<void>>());

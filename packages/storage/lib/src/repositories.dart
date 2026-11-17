@@ -1,6 +1,7 @@
 import 'package:contracts/contracts.dart';
 import 'package:drift/drift.dart';
 import 'package:storage/src/database.dart';
+import 'package:storage/src/models.dart';
 import 'package:storage/src/storage_exception.dart';
 
 final _uuidV4 = RegExp(
@@ -20,46 +21,46 @@ final class PassageWrite {
   });
 
   /// Attempt completed for the passage.
-  final AttemptRecord attempt;
+  final AttemptData attempt;
 
   /// Check events produced by the attempt.
-  final List<CheckEventRecord> checkEvents;
+  final List<CheckEventData> checkEvents;
 
   /// New scheduling state for the attempted unit.
-  final UnitStateRecord unitState;
+  final UnitStateData unitState;
 }
 
 /// Profile persistence.
 abstract interface class ProfileRepository {
   /// Inserts or replaces the V1 profile.
-  Future<Result<void>> put(ProfileRecord profile);
+  Future<Result<void>> put(ProfileData profile);
 
   /// Returns all profiles (one in V1).
-  Future<Result<List<ProfileRecord>>> list();
+  Future<Result<List<ProfileData>>> list();
 }
 
 /// Plan-unit and unit-state persistence.
 abstract interface class UnitRepository {
   /// Inserts or replaces a unit.
-  Future<Result<void>> putUnit(UnitRecord unit);
+  Future<Result<void>> putUnit(UnitData unit);
 
   /// Inserts or replaces unit state.
-  Future<Result<void>> putState(UnitStateRecord state);
+  Future<Result<void>> putState(UnitStateData state);
 
   /// Returns units for [profileId].
-  Future<Result<List<UnitRecord>>> listForProfile(String profileId);
+  Future<Result<List<UnitData>>> listForProfile(String profileId);
 
   /// Returns state for [unitId], if present.
-  Future<Result<UnitStateRecord?>> getState(String unitId);
+  Future<Result<UnitStateData?>> getState(String unitId);
 }
 
 /// Attempt persistence and the НФ-21 atomic passage write.
 abstract interface class AttemptRepository {
   /// Inserts one attempt.
-  Future<Result<void>> add(AttemptRecord attempt);
+  Future<Result<void>> add(AttemptData attempt);
 
   /// Returns attempts for [unitId] in chronological order.
-  Future<Result<List<AttemptRecord>>> listForUnit(String unitId);
+  Future<Result<List<AttemptData>>> listForUnit(String unitId);
 
   /// Writes an attempt, its events and new unit state atomically.
   Future<Result<void>> recordPassage(PassageWrite write);
@@ -68,58 +69,58 @@ abstract interface class AttemptRepository {
 /// Check-event persistence.
 abstract interface class CheckEventRepository {
   /// Inserts or replaces a check event.
-  Future<Result<void>> put(CheckEventRecord event);
+  Future<Result<void>> put(CheckEventData event);
 
   /// Returns events for [sessionId] in creation order.
-  Future<Result<List<CheckEventRecord>>> listForSession(String sessionId);
+  Future<Result<List<CheckEventData>>> listForSession(String sessionId);
 }
 
 /// Reading-session persistence.
 abstract interface class SessionRepository {
   /// Inserts or replaces a session.
-  Future<Result<void>> put(SessionRecord session);
+  Future<Result<void>> put(SessionData session);
 
   /// Returns sessions for [profileId] in start order.
-  Future<Result<List<SessionRecord>>> listForProfile(String profileId);
+  Future<Result<List<SessionData>>> listForProfile(String profileId);
 }
 
 /// Lesson progress persistence.
 abstract interface class LessonRepository {
   /// Inserts or replaces lesson progress.
-  Future<Result<void>> put(LessonProgressRecord progress);
+  Future<Result<void>> put(LessonProgressData progress);
 
   /// Returns all lesson progress rows.
-  Future<Result<List<LessonProgressRecord>>> list();
+  Future<Result<List<LessonProgressData>>> list();
 }
 
 /// Settings persistence.
 abstract interface class SettingsRepository {
   /// Inserts or replaces a setting.
-  Future<Result<void>> put(SettingRecord setting);
+  Future<Result<void>> put(SettingData setting);
 
   /// Returns a setting by [key], if present.
-  Future<Result<SettingRecord?>> get(String key);
+  Future<Result<SettingData?>> get(String key);
 
   /// Returns all settings.
-  Future<Result<List<SettingRecord>>> list();
+  Future<Result<List<SettingData>>> list();
 }
 
 /// Installed-package persistence.
 abstract interface class DownloadRepository {
   /// Inserts or replaces package state.
-  Future<Result<void>> put(DownloadRecord download);
+  Future<Result<void>> put(DownloadData download);
 
   /// Returns all package states.
-  Future<Result<List<DownloadRecord>>> list();
+  Future<Result<List<DownloadData>>> list();
 }
 
 /// Explicitly saved recording metadata persistence.
 abstract interface class RecordingRepository {
   /// Inserts or replaces saved recording metadata.
-  Future<Result<void>> put(SavedRecordingRecord recording);
+  Future<Result<void>> put(SavedRecordingData recording);
 
   /// Returns all saved recording metadata.
-  Future<Result<List<SavedRecordingRecord>>> list();
+  Future<Result<List<SavedRecordingData>>> list();
 
   /// Removes metadata for [id].
   Future<Result<void>> remove(String id);
@@ -128,37 +129,37 @@ abstract interface class RecordingRepository {
 /// Consented recording-upload queue persistence.
 abstract interface class UploadQueueRepository {
   /// Inserts or replaces an upload item.
-  Future<Result<void>> put(UploadQueueRecord upload);
+  Future<Result<void>> put(UploadQueueData upload);
 
   /// Returns upload items ordered by state, priority and creation time.
-  Future<Result<List<UploadQueueRecord>>> list();
+  Future<Result<List<UploadQueueData>>> list();
 }
 
 /// Stable daily-plan persistence.
 abstract interface class DailyPlanRepository {
   /// Inserts or replaces a day plan.
-  Future<Result<void>> put(DailyPlanRecord plan);
+  Future<Result<void>> put(DailyPlanData plan);
 
   /// Returns the plan for [date], if present.
-  Future<Result<DailyPlanRecord?>> get(String date);
+  Future<Result<DailyPlanData?>> get(String date);
 }
 
 /// Free voice-usage persistence.
 abstract interface class FreeUsageRepository {
   /// Inserts or replaces daily usage.
-  Future<Result<void>> put(FreeUsageRecord usage);
+  Future<Result<void>> put(FreeUsageData usage);
 
   /// Returns usage for [date], if present.
-  Future<Result<FreeUsageRecord?>> get(String date);
+  Future<Result<FreeUsageData?>> get(String date);
 }
 
 /// Cached entitlement persistence.
 abstract interface class EntitlementRepository {
   /// Inserts or replaces entitlement state.
-  Future<Result<void>> put(EntitlementCacheRecord entitlement);
+  Future<Result<void>> put(EntitlementCacheData entitlement);
 
   /// Returns the premium entitlement, if cached.
-  Future<Result<EntitlementCacheRecord?>> getPremium();
+  Future<Result<EntitlementCacheData?>> getPremium();
 }
 
 /// Search-key cache persistence.
@@ -166,11 +167,11 @@ abstract interface class SearchKeyCacheRepository {
   /// Replaces all keys for [normalizerId].
   Future<Result<void>> replace(
     String normalizerId,
-    List<SearchKeyCacheRecord> entries,
+    List<SearchKeyCacheData> entries,
   );
 
   /// Returns all keys for [normalizerId].
-  Future<Result<List<SearchKeyCacheRecord>>> list(String normalizerId);
+  Future<Result<List<SearchKeyCacheData>>> list(String normalizerId);
 }
 
 /// N-gram cache persistence.
@@ -178,20 +179,20 @@ abstract interface class NgramCacheRepository {
   /// Replaces all n-grams for [normalizerId].
   Future<Result<void>> replace(
     String normalizerId,
-    List<NgramCacheRecord> entries,
+    List<NgramCacheData> entries,
   );
 
   /// Returns all n-grams for [normalizerId].
-  Future<Result<List<NgramCacheRecord>>> list(String normalizerId);
+  Future<Result<List<NgramCacheData>>> list(String normalizerId);
 }
 
 /// Future sync-outbox persistence. The table starts empty in schema v1.
 abstract interface class OutboxRepository {
   /// Adds an event to the outbox.
-  Future<Result<void>> add(OutboxRecord event);
+  Future<Result<void>> add(OutboxData event);
 
   /// Returns queued events in creation order.
-  Future<Result<List<OutboxRecord>>> list();
+  Future<Result<List<OutboxData>>> list();
 }
 
 /// Drift implementation of [ProfileRepository].
@@ -202,16 +203,20 @@ final class DriftProfileRepository implements ProfileRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<void>> put(ProfileRecord profile) => _guard(() async {
+  Future<Result<void>> put(ProfileData profile) => _guard(() async {
         _validateUuid(profile.id, 'profile.id');
         await _database
             .into(_database.profiles)
-            .insertOnConflictUpdate(profile);
+            .insertOnConflictUpdate(_profileRow(profile));
       });
 
   @override
-  Future<Result<List<ProfileRecord>>> list() =>
-      _guard(() => _database.select(_database.profiles).get());
+  Future<Result<List<ProfileData>>> list() => _guard(
+        () => _mappedList(
+          _database.select(_database.profiles).get(),
+          _profileData,
+        ),
+      );
 }
 
 /// Drift implementation of [UnitRepository].
@@ -222,37 +227,38 @@ final class DriftUnitRepository implements UnitRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<UnitStateRecord?>> getState(String unitId) => _guard(() {
+  Future<Result<UnitStateData?>> getState(String unitId) => _guard(() {
         _validateUuid(unitId, 'unitId');
         final query = _database.select(_database.unitStates)
           ..where((row) => row.unitId.equals(unitId));
-        return query.getSingleOrNull();
+        return _mappedNullable(query.getSingleOrNull(), _unitStateData);
       });
 
   @override
-  Future<Result<List<UnitRecord>>> listForProfile(String profileId) =>
-      _guard(() {
+  Future<Result<List<UnitData>>> listForProfile(String profileId) => _guard(() {
         _validateUuid(profileId, 'profileId');
         final query = _database.select(_database.units)
           ..where((row) => row.profileId.equals(profileId))
           ..orderBy(<OrderingTerm Function(Units)>[
             (row) => OrderingTerm.asc(row.createdAt),
           ]);
-        return query.get();
+        return _mappedList(query.get(), _unitData);
       });
 
   @override
-  Future<Result<void>> putState(UnitStateRecord state) => _guard(() async {
+  Future<Result<void>> putState(UnitStateData state) => _guard(() async {
         _validateUuid(state.unitId, 'unit_state.unit_id');
         await _database
             .into(_database.unitStates)
-            .insertOnConflictUpdate(state);
+            .insertOnConflictUpdate(_unitStateRow(state));
       });
 
   @override
-  Future<Result<void>> putUnit(UnitRecord unit) => _guard(() async {
+  Future<Result<void>> putUnit(UnitData unit) => _guard(() async {
         _validateUnit(unit);
-        await _database.into(_database.units).insertOnConflictUpdate(unit);
+        await _database
+            .into(_database.units)
+            .insertOnConflictUpdate(_unitRow(unit));
       });
 }
 
@@ -264,20 +270,20 @@ final class DriftAttemptRepository implements AttemptRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<void>> add(AttemptRecord attempt) => _guard(() async {
+  Future<Result<void>> add(AttemptData attempt) => _guard(() async {
         _validateAttempt(attempt);
-        await _database.into(_database.attempts).insert(attempt);
+        await _database.into(_database.attempts).insert(_attemptRow(attempt));
       });
 
   @override
-  Future<Result<List<AttemptRecord>>> listForUnit(String unitId) => _guard(() {
+  Future<Result<List<AttemptData>>> listForUnit(String unitId) => _guard(() {
         _validateUuid(unitId, 'unitId');
         final query = _database.select(_database.attempts)
           ..where((row) => row.unitId.equals(unitId))
           ..orderBy(<OrderingTerm Function(Attempts)>[
             (row) => OrderingTerm.asc(row.createdAt),
           ]);
-        return query.get();
+        return _mappedList(query.get(), _attemptData);
       });
 
   @override
@@ -297,13 +303,17 @@ final class DriftAttemptRepository implements AttemptRepository {
           }
         }
         await _database.transaction(() async {
-          await _database.into(_database.attempts).insert(write.attempt);
+          await _database
+              .into(_database.attempts)
+              .insert(_attemptRow(write.attempt));
           for (final event in write.checkEvents) {
-            await _database.into(_database.checkEvents).insert(event);
+            await _database
+                .into(_database.checkEvents)
+                .insert(_checkEventRow(event));
           }
           await _database
               .into(_database.unitStates)
-              .insertOnConflictUpdate(write.unitState);
+              .insertOnConflictUpdate(_unitStateRow(write.unitState));
         });
       });
 }
@@ -316,7 +326,7 @@ final class DriftCheckEventRepository implements CheckEventRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<List<CheckEventRecord>>> listForSession(String sessionId) =>
+  Future<Result<List<CheckEventData>>> listForSession(String sessionId) =>
       _guard(() {
         _validateUuid(sessionId, 'sessionId');
         final query = _database.select(_database.checkEvents)
@@ -324,15 +334,15 @@ final class DriftCheckEventRepository implements CheckEventRepository {
           ..orderBy(<OrderingTerm Function(CheckEvents)>[
             (row) => OrderingTerm.asc(row.createdAt),
           ]);
-        return query.get();
+        return _mappedList(query.get(), _checkEventData);
       });
 
   @override
-  Future<Result<void>> put(CheckEventRecord event) => _guard(() async {
+  Future<Result<void>> put(CheckEventData event) => _guard(() async {
         _validateCheckEvent(event);
         await _database
             .into(_database.checkEvents)
-            .insertOnConflictUpdate(event);
+            .insertOnConflictUpdate(_checkEventRow(event));
       });
 }
 
@@ -344,7 +354,7 @@ final class DriftSessionRepository implements SessionRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<List<SessionRecord>>> listForProfile(String profileId) =>
+  Future<Result<List<SessionData>>> listForProfile(String profileId) =>
       _guard(() {
         _validateUuid(profileId, 'profileId');
         final query = _database.select(_database.sessions)
@@ -352,11 +362,11 @@ final class DriftSessionRepository implements SessionRepository {
           ..orderBy(<OrderingTerm Function(Sessions)>[
             (row) => OrderingTerm.asc(row.startedAt),
           ]);
-        return query.get();
+        return _mappedList(query.get(), _sessionData);
       });
 
   @override
-  Future<Result<void>> put(SessionRecord session) => _guard(() async {
+  Future<Result<void>> put(SessionData session) => _guard(() async {
         _validateUuid(session.id, 'session.id');
         _validateUuid(session.profileId, 'session.profile_id');
         _validateRange(session.fromWordIndex, session.toWordIndex, 'session');
@@ -366,7 +376,7 @@ final class DriftSessionRepository implements SessionRepository {
         }
         await _database
             .into(_database.sessions)
-            .insertOnConflictUpdate(session);
+            .insertOnConflictUpdate(_sessionRow(session));
       });
 }
 
@@ -378,17 +388,21 @@ final class DriftLessonRepository implements LessonRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<List<LessonProgressRecord>>> list() =>
-      _guard(() => _database.select(_database.lessonProgressEntries).get());
+  Future<Result<List<LessonProgressData>>> list() => _guard(
+        () => _mappedList(
+          _database.select(_database.lessonProgressEntries).get(),
+          _lessonProgressData,
+        ),
+      );
 
   @override
-  Future<Result<void>> put(LessonProgressRecord progress) => _guard(() async {
+  Future<Result<void>> put(LessonProgressData progress) => _guard(() async {
         if (progress.quizPercent < 0 || progress.quizPercent > 100) {
           throw const FormatException('quiz_percent must be from 0 to 100.');
         }
         await _database
             .into(_database.lessonProgressEntries)
-            .insertOnConflictUpdate(progress);
+            .insertOnConflictUpdate(_lessonProgressRow(progress));
       });
 }
 
@@ -400,21 +414,25 @@ final class DriftSettingsRepository implements SettingsRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<SettingRecord?>> get(String key) => _guard(() {
+  Future<Result<SettingData?>> get(String key) => _guard(() {
         final query = _database.select(_database.settings)
           ..where((row) => row.key.equals(key));
-        return query.getSingleOrNull();
+        return _mappedNullable(query.getSingleOrNull(), _settingData);
       });
 
   @override
-  Future<Result<List<SettingRecord>>> list() =>
-      _guard(() => _database.select(_database.settings).get());
+  Future<Result<List<SettingData>>> list() => _guard(
+        () => _mappedList(
+          _database.select(_database.settings).get(),
+          _settingData,
+        ),
+      );
 
   @override
-  Future<Result<void>> put(SettingRecord setting) => _guard(() async {
+  Future<Result<void>> put(SettingData setting) => _guard(() async {
         await _database
             .into(_database.settings)
-            .insertOnConflictUpdate(setting);
+            .insertOnConflictUpdate(_settingRow(setting));
       });
 }
 
@@ -426,11 +444,15 @@ final class DriftDownloadRepository implements DownloadRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<List<DownloadRecord>>> list() =>
-      _guard(() => _database.select(_database.downloads).get());
+  Future<Result<List<DownloadData>>> list() => _guard(
+        () => _mappedList(
+          _database.select(_database.downloads).get(),
+          _downloadData,
+        ),
+      );
 
   @override
-  Future<Result<void>> put(DownloadRecord download) => _guard(() async {
+  Future<Result<void>> put(DownloadData download) => _guard(() async {
         if (download.bytesTotal < 0 ||
             download.bytesDone < 0 ||
             download.bytesDone > download.bytesTotal) {
@@ -438,7 +460,7 @@ final class DriftDownloadRepository implements DownloadRepository {
         }
         await _database
             .into(_database.downloads)
-            .insertOnConflictUpdate(download);
+            .insertOnConflictUpdate(_downloadRow(download));
       });
 }
 
@@ -450,11 +472,15 @@ final class DriftRecordingRepository implements RecordingRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<List<SavedRecordingRecord>>> list() =>
-      _guard(() => _database.select(_database.savedRecordings).get());
+  Future<Result<List<SavedRecordingData>>> list() => _guard(
+        () => _mappedList(
+          _database.select(_database.savedRecordings).get(),
+          _savedRecordingData,
+        ),
+      );
 
   @override
-  Future<Result<void>> put(SavedRecordingRecord recording) => _guard(() async {
+  Future<Result<void>> put(SavedRecordingData recording) => _guard(() async {
         _validateUuid(recording.id, 'saved_recording.id');
         _validateUuid(recording.sessionId, 'saved_recording.session_id');
         if (recording.path.isEmpty || recording.durationMs < 0) {
@@ -462,7 +488,7 @@ final class DriftRecordingRepository implements RecordingRepository {
         }
         await _database
             .into(_database.savedRecordings)
-            .insertOnConflictUpdate(recording);
+            .insertOnConflictUpdate(_savedRecordingRow(recording));
       });
 
   @override
@@ -482,18 +508,18 @@ final class DriftUploadQueueRepository implements UploadQueueRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<List<UploadQueueRecord>>> list() => _guard(() {
+  Future<Result<List<UploadQueueData>>> list() => _guard(() {
         final query = _database.select(_database.uploadQueueEntries)
           ..orderBy(<OrderingTerm Function(UploadQueueEntries)>[
             (row) => OrderingTerm.asc(row.state),
             (row) => OrderingTerm.desc(row.priority),
             (row) => OrderingTerm.asc(row.createdAt),
           ]);
-        return query.get();
+        return _mappedList(query.get(), _uploadQueueData);
       });
 
   @override
-  Future<Result<void>> put(UploadQueueRecord upload) => _guard(() async {
+  Future<Result<void>> put(UploadQueueData upload) => _guard(() async {
         _validateUuid(upload.id, 'upload_queue.id');
         _validateUuid(upload.sessionId, 'upload_queue.session_id');
         if (upload.filePath.isEmpty || upload.bytes < 0 || upload.tries < 0) {
@@ -501,7 +527,7 @@ final class DriftUploadQueueRepository implements UploadQueueRepository {
         }
         await _database
             .into(_database.uploadQueueEntries)
-            .insertOnConflictUpdate(upload);
+            .insertOnConflictUpdate(_uploadQueueRow(upload));
       });
 }
 
@@ -513,17 +539,19 @@ final class DriftDailyPlanRepository implements DailyPlanRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<DailyPlanRecord?>> get(String date) => _guard(() {
+  Future<Result<DailyPlanData?>> get(String date) => _guard(() {
         _validateDate(date);
         final query = _database.select(_database.dailyPlans)
           ..where((row) => row.date.equals(date));
-        return query.getSingleOrNull();
+        return _mappedNullable(query.getSingleOrNull(), _dailyPlanData);
       });
 
   @override
-  Future<Result<void>> put(DailyPlanRecord plan) => _guard(() async {
+  Future<Result<void>> put(DailyPlanData plan) => _guard(() async {
         _validateDate(plan.date);
-        await _database.into(_database.dailyPlans).insertOnConflictUpdate(plan);
+        await _database
+            .into(_database.dailyPlans)
+            .insertOnConflictUpdate(_dailyPlanRow(plan));
       });
 }
 
@@ -535,22 +563,22 @@ final class DriftFreeUsageRepository implements FreeUsageRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<FreeUsageRecord?>> get(String date) => _guard(() {
+  Future<Result<FreeUsageData?>> get(String date) => _guard(() {
         _validateDate(date);
         final query = _database.select(_database.freeUsageEntries)
           ..where((row) => row.date.equals(date));
-        return query.getSingleOrNull();
+        return _mappedNullable(query.getSingleOrNull(), _freeUsageData);
       });
 
   @override
-  Future<Result<void>> put(FreeUsageRecord usage) => _guard(() async {
+  Future<Result<void>> put(FreeUsageData usage) => _guard(() async {
         _validateDate(usage.date);
         if (usage.listeningMs < 0) {
           throw const FormatException('listening_ms must be non-negative.');
         }
         await _database
             .into(_database.freeUsageEntries)
-            .insertOnConflictUpdate(usage);
+            .insertOnConflictUpdate(_freeUsageRow(usage));
       });
 }
 
@@ -562,21 +590,21 @@ final class DriftEntitlementRepository implements EntitlementRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<EntitlementCacheRecord?>> getPremium() => _guard(() {
+  Future<Result<EntitlementCacheData?>> getPremium() => _guard(() {
         final query = _database.select(_database.entitlementCacheEntries)
           ..where((row) => row.id.equals('premium'));
-        return query.getSingleOrNull();
+        return _mappedNullable(query.getSingleOrNull(), _entitlementData);
       });
 
   @override
-  Future<Result<void>> put(EntitlementCacheRecord entitlement) =>
+  Future<Result<void>> put(EntitlementCacheData entitlement) =>
       _guard(() async {
         if (entitlement.id != 'premium') {
           throw const FormatException('Entitlement id must be premium.');
         }
         await _database
             .into(_database.entitlementCacheEntries)
-            .insertOnConflictUpdate(entitlement);
+            .insertOnConflictUpdate(_entitlementRow(entitlement));
       });
 }
 
@@ -588,20 +616,20 @@ final class DriftSearchKeyCacheRepository implements SearchKeyCacheRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<List<SearchKeyCacheRecord>>> list(String normalizerId) =>
+  Future<Result<List<SearchKeyCacheData>>> list(String normalizerId) =>
       _guard(() {
         final query = _database.select(_database.searchKeyCacheEntries)
           ..where((row) => row.normalizerId.equals(normalizerId))
           ..orderBy(<OrderingTerm Function(SearchKeyCacheEntries)>[
             (row) => OrderingTerm.asc(row.wordIndex),
           ]);
-        return query.get();
+        return _mappedList(query.get(), _searchKeyData);
       });
 
   @override
   Future<Result<void>> replace(
     String normalizerId,
-    List<SearchKeyCacheRecord> entries,
+    List<SearchKeyCacheData> entries,
   ) =>
       _guard(() async {
         if (normalizerId.isEmpty ||
@@ -613,7 +641,10 @@ final class DriftSearchKeyCacheRepository implements SearchKeyCacheRepository {
                 ..where((row) => row.normalizerId.equals(normalizerId)))
               .go();
           await _database.batch((batch) {
-            batch.insertAll(_database.searchKeyCacheEntries, entries);
+            batch.insertAll(
+              _database.searchKeyCacheEntries,
+              entries.map(_searchKeyRow),
+            );
           });
         });
       });
@@ -627,20 +658,19 @@ final class DriftNgramCacheRepository implements NgramCacheRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<List<NgramCacheRecord>>> list(String normalizerId) =>
-      _guard(() {
+  Future<Result<List<NgramCacheData>>> list(String normalizerId) => _guard(() {
         final query = _database.select(_database.ngramCacheEntries)
           ..where((row) => row.normalizerId.equals(normalizerId))
           ..orderBy(<OrderingTerm Function(NgramCacheEntries)>[
             (row) => OrderingTerm.asc(row.ngram),
           ]);
-        return query.get();
+        return _mappedList(query.get(), _ngramData);
       });
 
   @override
   Future<Result<void>> replace(
     String normalizerId,
-    List<NgramCacheRecord> entries,
+    List<NgramCacheData> entries,
   ) =>
       _guard(() async {
         if (normalizerId.isEmpty ||
@@ -652,7 +682,10 @@ final class DriftNgramCacheRepository implements NgramCacheRepository {
                 ..where((row) => row.normalizerId.equals(normalizerId)))
               .go();
           await _database.batch((batch) {
-            batch.insertAll(_database.ngramCacheEntries, entries);
+            batch.insertAll(
+              _database.ngramCacheEntries,
+              entries.map(_ngramRow),
+            );
           });
         });
       });
@@ -666,18 +699,18 @@ final class DriftOutboxRepository implements OutboxRepository {
   final SudurDatabase _database;
 
   @override
-  Future<Result<void>> add(OutboxRecord event) => _guard(() async {
+  Future<Result<void>> add(OutboxData event) => _guard(() async {
         _validateUuid(event.id, 'outbox.id');
-        await _database.into(_database.outboxEntries).insert(event);
+        await _database.into(_database.outboxEntries).insert(_outboxRow(event));
       });
 
   @override
-  Future<Result<List<OutboxRecord>>> list() => _guard(() {
+  Future<Result<List<OutboxData>>> list() => _guard(() {
         final query = _database.select(_database.outboxEntries)
           ..orderBy(<OrderingTerm Function(OutboxEntries)>[
             (row) => OrderingTerm.asc(row.createdAt),
           ]);
-        return query.get();
+        return _mappedList(query.get(), _outboxData);
       });
 }
 
@@ -690,6 +723,352 @@ Future<Result<T>> _guard<T>(Future<T> Function() operation) async {
     return Result<T>.error(const StorageException('unexpectedFailure'));
   }
 }
+
+Future<List<R>> _mappedList<T, R>(
+  Future<List<T>> rows,
+  R Function(T) mapper,
+) async =>
+    (await rows).map(mapper).toList(growable: false);
+
+Future<R?> _mappedNullable<T, R>(
+  Future<T?> row,
+  R Function(T) mapper,
+) async {
+  final value = await row;
+  return value == null ? null : mapper(value);
+}
+
+ProfileRecord _profileRow(ProfileData value) => ProfileRecord(
+      id: value.id,
+      createdAt: value.createdAt,
+      uiLanguage: value.uiLanguage,
+      path: value.path,
+      dailyMinutes: value.dailyMinutes,
+      behavior: value.behavior,
+      showFirstWord: value.showFirstWord,
+    );
+
+ProfileData _profileData(ProfileRecord value) => (
+      id: value.id,
+      createdAt: value.createdAt,
+      uiLanguage: value.uiLanguage,
+      path: value.path,
+      dailyMinutes: value.dailyMinutes,
+      behavior: value.behavior,
+      showFirstWord: value.showFirstWord,
+    );
+
+UnitRecord _unitRow(UnitData value) => UnitRecord(
+      id: value.id,
+      profileId: value.profileId,
+      kind: value.kind,
+      fromWordIndex: value.fromWordIndex,
+      toWordIndex: value.toWordIndex,
+      skillId: value.skillId,
+      surah: value.surah,
+      origin: value.origin,
+      parentUnitId: value.parentUnitId,
+      createdAt: value.createdAt,
+    );
+
+UnitData _unitData(UnitRecord value) => (
+      id: value.id,
+      profileId: value.profileId,
+      kind: value.kind,
+      fromWordIndex: value.fromWordIndex,
+      toWordIndex: value.toWordIndex,
+      skillId: value.skillId,
+      surah: value.surah,
+      origin: value.origin,
+      parentUnitId: value.parentUnitId,
+      createdAt: value.createdAt,
+    );
+
+UnitStateRecord _unitStateRow(UnitStateData value) => UnitStateRecord(
+      unitId: value.unitId,
+      queue: value.queue,
+      memoryState: value.memoryState,
+      fsrsCard: value.fsrsCard,
+      dueAt: value.dueAt,
+      recentSince: value.recentSince,
+      lastAttemptAt: value.lastAttemptAt,
+      lastMethod: value.lastMethod,
+      updatedAt: value.updatedAt,
+    );
+
+UnitStateData _unitStateData(UnitStateRecord value) => (
+      unitId: value.unitId,
+      queue: value.queue,
+      memoryState: value.memoryState,
+      fsrsCard: value.fsrsCard,
+      dueAt: value.dueAt,
+      recentSince: value.recentSince,
+      lastAttemptAt: value.lastAttemptAt,
+      lastMethod: value.lastMethod,
+      updatedAt: value.updatedAt,
+    );
+
+AttemptRecord _attemptRow(AttemptData value) => AttemptRecord(
+      id: value.id,
+      unitId: value.unitId,
+      sessionId: value.sessionId,
+      mode: value.mode,
+      outcome: value.outcome,
+      hints: value.hints,
+      errorEventIds: value.errorEventIds,
+      rating: value.rating,
+      method: value.method,
+      durationMs: value.durationMs,
+      words: value.words,
+      modelId: value.modelId,
+      modelVersion: value.modelVersion,
+      rulesVersion: value.rulesVersion,
+      textVersion: value.textVersion,
+      createdAt: value.createdAt,
+    );
+
+AttemptData _attemptData(AttemptRecord value) => (
+      id: value.id,
+      unitId: value.unitId,
+      sessionId: value.sessionId,
+      mode: value.mode,
+      outcome: value.outcome,
+      hints: value.hints,
+      errorEventIds: value.errorEventIds,
+      rating: value.rating,
+      method: value.method,
+      durationMs: value.durationMs,
+      words: value.words,
+      modelId: value.modelId,
+      modelVersion: value.modelVersion,
+      rulesVersion: value.rulesVersion,
+      textVersion: value.textVersion,
+      createdAt: value.createdAt,
+    );
+
+CheckEventRecord _checkEventRow(CheckEventData value) => CheckEventRecord(
+      id: value.id,
+      sessionId: value.sessionId,
+      kind: value.kind,
+      state: value.state,
+      wordIndexes: value.wordIndexes,
+      expectedText: value.expectedText,
+      heardText: value.heardText,
+      jumpFromWordIndex: value.jumpFromWordIndex,
+      jumpToWordIndex: value.jumpToWordIndex,
+      audioStartMs: value.audioStartMs,
+      audioEndMs: value.audioEndMs,
+      versions: value.versions,
+      createdAt: value.createdAt,
+      updatedAt: value.updatedAt,
+    );
+
+CheckEventData _checkEventData(CheckEventRecord value) => (
+      id: value.id,
+      sessionId: value.sessionId,
+      kind: value.kind,
+      state: value.state,
+      wordIndexes: value.wordIndexes,
+      expectedText: value.expectedText,
+      heardText: value.heardText,
+      jumpFromWordIndex: value.jumpFromWordIndex,
+      jumpToWordIndex: value.jumpToWordIndex,
+      audioStartMs: value.audioStartMs,
+      audioEndMs: value.audioEndMs,
+      versions: value.versions,
+      createdAt: value.createdAt,
+      updatedAt: value.updatedAt,
+    );
+
+SessionRecord _sessionRow(SessionData value) => SessionRecord(
+      id: value.id,
+      profileId: value.profileId,
+      fromWordIndex: value.fromWordIndex,
+      toWordIndex: value.toWordIndex,
+      mode: value.mode,
+      behavior: value.behavior,
+      startedAt: value.startedAt,
+      endedAt: value.endedAt,
+      listeningMs: value.listeningMs,
+      signalOkRatio: value.signalOkRatio,
+      summary: value.summary,
+    );
+
+SessionData _sessionData(SessionRecord value) => (
+      id: value.id,
+      profileId: value.profileId,
+      fromWordIndex: value.fromWordIndex,
+      toWordIndex: value.toWordIndex,
+      mode: value.mode,
+      behavior: value.behavior,
+      startedAt: value.startedAt,
+      endedAt: value.endedAt,
+      listeningMs: value.listeningMs,
+      signalOkRatio: value.signalOkRatio,
+      summary: value.summary,
+    );
+
+LessonProgressRecord _lessonProgressRow(LessonProgressData value) =>
+    LessonProgressRecord(
+      lessonId: value.lessonId,
+      state: value.state,
+      stepIndex: value.stepIndex,
+      quizPercent: value.quizPercent,
+      contentVersion: value.contentVersion,
+      updatedAt: value.updatedAt,
+    );
+
+LessonProgressData _lessonProgressData(LessonProgressRecord value) => (
+      lessonId: value.lessonId,
+      state: value.state,
+      stepIndex: value.stepIndex,
+      quizPercent: value.quizPercent,
+      contentVersion: value.contentVersion,
+      updatedAt: value.updatedAt,
+    );
+
+SettingRecord _settingRow(SettingData value) =>
+    SettingRecord(key: value.key, value: value.value);
+
+SettingData _settingData(SettingRecord value) =>
+    (key: value.key, value: value.value);
+
+DownloadRecord _downloadRow(DownloadData value) => DownloadRecord(
+      packageId: value.packageId,
+      kind: value.kind,
+      activeVersion: value.activeVersion,
+      pendingVersion: value.pendingVersion,
+      state: value.state,
+      bytesTotal: value.bytesTotal,
+      bytesDone: value.bytesDone,
+      updatedAt: value.updatedAt,
+    );
+
+DownloadData _downloadData(DownloadRecord value) => (
+      packageId: value.packageId,
+      kind: value.kind,
+      activeVersion: value.activeVersion,
+      pendingVersion: value.pendingVersion,
+      state: value.state,
+      bytesTotal: value.bytesTotal,
+      bytesDone: value.bytesDone,
+      updatedAt: value.updatedAt,
+    );
+
+SavedRecordingRecord _savedRecordingRow(SavedRecordingData value) =>
+    SavedRecordingRecord(
+      id: value.id,
+      sessionId: value.sessionId,
+      path: value.path,
+      durationMs: value.durationMs,
+      createdAt: value.createdAt,
+    );
+
+SavedRecordingData _savedRecordingData(SavedRecordingRecord value) => (
+      id: value.id,
+      sessionId: value.sessionId,
+      path: value.path,
+      durationMs: value.durationMs,
+      createdAt: value.createdAt,
+    );
+
+UploadQueueRecord _uploadQueueRow(UploadQueueData value) => UploadQueueRecord(
+      id: value.id,
+      sessionId: value.sessionId,
+      filePath: value.filePath,
+      meta: value.meta,
+      priority: value.priority,
+      bytes: value.bytes,
+      state: value.state,
+      tries: value.tries,
+      createdAt: value.createdAt,
+    );
+
+UploadQueueData _uploadQueueData(UploadQueueRecord value) => (
+      id: value.id,
+      sessionId: value.sessionId,
+      filePath: value.filePath,
+      meta: value.meta,
+      priority: value.priority,
+      bytes: value.bytes,
+      state: value.state,
+      tries: value.tries,
+      createdAt: value.createdAt,
+    );
+
+DailyPlanRecord _dailyPlanRow(DailyPlanData value) => DailyPlanRecord(
+      date: value.date,
+      items: value.items,
+      createdAt: value.createdAt,
+    );
+
+DailyPlanData _dailyPlanData(DailyPlanRecord value) => (
+      date: value.date,
+      items: value.items,
+      createdAt: value.createdAt,
+    );
+
+FreeUsageRecord _freeUsageRow(FreeUsageData value) => FreeUsageRecord(
+      date: value.date,
+      listeningMs: value.listeningMs,
+    );
+
+FreeUsageData _freeUsageData(FreeUsageRecord value) => (
+      date: value.date,
+      listeningMs: value.listeningMs,
+    );
+
+EntitlementCacheRecord _entitlementRow(EntitlementCacheData value) =>
+    EntitlementCacheRecord(
+      id: value.id,
+      state: value.state,
+      expiresAt: value.expiresAt,
+      lastVerifiedAt: value.lastVerifiedAt,
+    );
+
+EntitlementCacheData _entitlementData(EntitlementCacheRecord value) => (
+      id: value.id,
+      state: value.state,
+      expiresAt: value.expiresAt,
+      lastVerifiedAt: value.lastVerifiedAt,
+    );
+
+SearchKeyCacheRecord _searchKeyRow(SearchKeyCacheData value) =>
+    SearchKeyCacheRecord(
+      normalizerId: value.normalizerId,
+      wordIndex: value.wordIndex,
+      key: value.key,
+    );
+
+SearchKeyCacheData _searchKeyData(SearchKeyCacheRecord value) => (
+      normalizerId: value.normalizerId,
+      wordIndex: value.wordIndex,
+      key: value.key,
+    );
+
+NgramCacheRecord _ngramRow(NgramCacheData value) => NgramCacheRecord(
+      normalizerId: value.normalizerId,
+      ngram: value.ngram,
+      wordIndexes: value.wordIndexes,
+    );
+
+NgramCacheData _ngramData(NgramCacheRecord value) => (
+      normalizerId: value.normalizerId,
+      ngram: value.ngram,
+      wordIndexes: value.wordIndexes,
+    );
+
+OutboxRecord _outboxRow(OutboxData value) => OutboxRecord(
+      id: value.id,
+      event: value.event,
+      createdAt: value.createdAt,
+    );
+
+OutboxData _outboxData(OutboxRecord value) => (
+      id: value.id,
+      event: value.event,
+      createdAt: value.createdAt,
+    );
 
 void _validateUuid(String value, String field) {
   if (!_uuidV4.hasMatch(value)) {
@@ -709,7 +1088,7 @@ void _validateRange(int from, int to, String field) {
   }
 }
 
-void _validateUnit(UnitRecord unit) {
+void _validateUnit(UnitData unit) {
   _validateUuid(unit.id, 'unit.id');
   _validateUuid(unit.profileId, 'unit.profile_id');
   if (unit.parentUnitId case final parent?) {
@@ -731,7 +1110,7 @@ void _validateUnit(UnitRecord unit) {
   _validateRange(from, to, 'unit');
 }
 
-void _validateAttempt(AttemptRecord attempt) {
+void _validateAttempt(AttemptData attempt) {
   _validateUuid(attempt.id, 'attempt.id');
   _validateUuid(attempt.unitId, 'attempt.unit_id');
   _validateUuid(attempt.sessionId, 'attempt.session_id');
@@ -740,7 +1119,7 @@ void _validateAttempt(AttemptRecord attempt) {
   }
 }
 
-void _validateCheckEvent(CheckEventRecord event) {
+void _validateCheckEvent(CheckEventData event) {
   _validateUuid(event.id, 'check_event.id');
   _validateUuid(event.sessionId, 'check_event.session_id');
   if (event.audioStartMs < 0 || event.audioEndMs < event.audioStartMs) {

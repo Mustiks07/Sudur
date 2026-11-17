@@ -18,7 +18,7 @@ const versions = ReadingVersions(
   textVersion: '1',
 );
 
-ProfileRecord profile() => const ProfileRecord(
+ProfileData profile() => const (
       id: profileId,
       createdAt: 1000,
       uiLanguage: UiLanguage.ru,
@@ -28,23 +28,32 @@ ProfileRecord profile() => const ProfileRecord(
       showFirstWord: true,
     );
 
-UnitRecord unit() => const UnitRecord(
+UnitData unit() => const (
       id: unitId,
       profileId: profileId,
       kind: UnitKind.passage,
       fromWordIndex: 10,
       toWordIndex: 20,
+      skillId: null,
+      surah: null,
       origin: UnitOrigin.defaultOrigin,
+      parentUnitId: null,
       createdAt: 1000,
     );
 
-UnitStateRecord unitState() => const UnitStateRecord(
+UnitStateData unitState() => const (
       unitId: unitId,
       queue: UnitQueue.learning,
+      memoryState: null,
+      fsrsCard: null,
+      dueAt: null,
+      recentSince: null,
+      lastAttemptAt: null,
+      lastMethod: null,
       updatedAt: 2000,
     );
 
-SessionRecord session() => SessionRecord(
+SessionData session() => (
       id: sessionId,
       profileId: profileId,
       fromWordIndex: 10,
@@ -60,7 +69,7 @@ SessionRecord session() => SessionRecord(
       ),
     );
 
-AttemptRecord attempt() => AttemptRecord(
+AttemptData attempt() => (
       id: attemptId,
       unitId: unitId,
       sessionId: sessionId,
@@ -81,7 +90,7 @@ AttemptRecord attempt() => AttemptRecord(
       createdAt: 2000,
     );
 
-CheckEventRecord checkEvent() => CheckEventRecord(
+CheckEventData checkEvent() => (
       id: eventId,
       sessionId: sessionId,
       kind: CheckKind.repetition,
@@ -89,6 +98,8 @@ CheckEventRecord checkEvent() => CheckEventRecord(
       wordIndexes: WordIndexes.fromJson(const <Object?>[12]),
       expectedText: 'expected',
       heardText: 'heard',
+      jumpFromWordIndex: null,
+      jumpToWordIndex: null,
       audioStartMs: 100,
       audioEndMs: 200,
       versions: versions,

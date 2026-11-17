@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:contracts/contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:storage/src/database.dart';
 import 'package:storage/storage.dart';
 
 void main() {
@@ -60,10 +62,10 @@ void main() {
     final directory = await Directory.systemTemp.createTemp('sudur-storage-');
     addTearDown(() => directory.delete(recursive: true));
     final file = File('${directory.path}/user.sqlite');
-    final database = SudurDatabase.openFile(file.path);
+    final storage = StorageService.openFile(file.path);
 
-    await database.select(database.profiles).get();
-    await database.close();
+    expect(await storage.profiles.list(), isA<Ok<List<ProfileData>>>());
+    await storage.close();
 
     expect(file.existsSync(), isTrue);
     expect(file.lengthSync(), greaterThan(0));
