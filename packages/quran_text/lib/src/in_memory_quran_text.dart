@@ -139,18 +139,20 @@ final class InMemoryQuranText implements QuranText {
         final start = p - anchor;
         if (start < 0 || start + m > all.length || !seen.add(start)) continue;
         var sum = 0.0;
-        var fits = true;
-        for (var t = 0; t < m && fits; t++) {
+        final sims = <double>[];
+        for (var t = 0; t < m; t++) {
           final sim = similar[t][all[start + t].value];
-          if (sim == null) {
-            fits = false;
-          } else {
-            sum += 1 - sim;
-          }
+          if (sim == null) break;
+          sims.add(sim);
+          sum += 1 - sim;
         }
-        if (fits && sum / m <= maxMeanCost) {
+        if (sims.length == m && sum / m <= maxMeanCost) {
           matches.add(
-            SimilarMatch(start: _words[start].key, meanCost: sum / m),
+            SimilarMatch(
+              start: _words[start].key,
+              meanCost: sum / m,
+              similarities: List.unmodifiable(sims),
+            ),
           );
         }
       }

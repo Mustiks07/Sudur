@@ -24,13 +24,20 @@ final class SequenceMatch {
 @immutable
 final class SimilarMatch {
   /// Creates a match.
-  const SimilarMatch({required this.start, required this.meanCost});
+  const SimilarMatch({
+    required this.start,
+    required this.meanCost,
+    required this.similarities,
+  });
 
   /// Word where the first searched key would stand.
   final WordKey start;
 
   /// Mean of `1 − similarity` over the searched words; 0 is a perfect fit.
   final double meanCost;
+
+  /// Similarity of each searched word to the word at its place, in order.
+  final List<double> similarities;
 
   @override
   String toString() => 'SimilarMatch($start, ${meanCost.toStringAsFixed(3)})';
