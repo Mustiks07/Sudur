@@ -101,8 +101,16 @@ Exact commands are defined in task P01 and must be kept up to date here.
 fvm flutter pub get
 dart format --set-exit-if-changed .
 fvm flutter analyze
-fvm flutter test            # app and Flutter packages
-dart test                   # pure-Dart packages
+for dir in packages/*/ tools/*/ app/; do
+  [ -d "${dir}test" ] || continue
+  if grep -q "sdk: flutter" "${dir}pubspec.yaml"; then
+    (cd "$dir" && fvm flutter test)
+  else
+    (cd "$dir" && fvm dart test)
+  fi
+done
+bash tools/check_deps.sh
+(cd app && fvm flutter build apk --debug --target lib/main_dev.dart)
 dart run tools/eval         # when follow/check/quran_text changed
 ```
 
