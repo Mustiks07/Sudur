@@ -24,11 +24,15 @@ dart run tools/content_build/bin/content_build.dart
    - сведения о сурах (`chapters/…`);
    - шрифты страниц QPC V2 (`fonts/…/p582.ttf`).
 2. Проверки ПР-04 (если хоть одна не прошла — сборка останавливается).
-3. Результат в `build/content/<id>/` (тоже вне git): `content.sqlite`, `content.json` (те же таблицы), `fonts/`, `ATTRIBUTION.md`.
+3. Результат в `build/content/<id>/` (тоже вне git):
+   - `content.sqlite` — база содержания по схеме ТЗ 12.2 (ADR 0004): **текст всего Корана** в `surah`, `ayah`, `word` и **разметка только страниц из конфигурации** в `word_layout`, `ayah_layout`, `page`, `line` (с `layout_id`);
+   - `text.json` — текст всего Корана в формате тестовых данных (ADR 0004);
+   - `content.json` — страницы сборки вместе с разметкой (вид прототипа);
+   - `fonts/`, `ATTRIBUTION.md`.
 
 Параметры сборки — в [`config/prototype.json`](config/prototype.json): страницы (582–583), адреса источников, лицензии, ожидаемые числа и закреплённая контрольная сумма канона.
 
-Флаги: `--fixture-out <путь>` — ещё одна копия JSON (так собирается `packages/testing/fixtures/content_p582_583.json`), `--no-fonts`, `--refresh`, `--verbose`.
+Флаги: `--fixture-out <путь>` — копия страниц (так собирается `packages/testing/fixtures/content_p582_583.json`), `--text-fixture-out <путь>` — копия текста всего Корана (`packages/testing/fixtures/quran_text.json`), `--no-fonts`, `--refresh`, `--verbose`.
 
 ## Проверки
 
@@ -52,15 +56,14 @@ dart run tools/content_build/bin/content_build.dart
 
 `word_index` — сквозной номер слова по всему тексту Tanzil при таком делении (всего 77 433 слова). Для сур 78 и 79 число слов в каждом аяте совпадает с разметкой.
 
-## Отличия от схемы ТЗ 12.2
+## Схема (ТЗ 12.2, ADR 0004)
 
-Нужны для отрисовки страницы; требуют согласования с Астрой и владельцем:
-
-- `ayah.end_page`, `end_line`, `end_line_position`, `end_glyph_code` — где и каким знаком рисуется конец аята (в разметке QPC V2 это отдельный знак строки).
-- `line.surah` — номер суры для строк заголовка и басмалы.
+- Текст и разметка раздельно: у слова либо есть строка в `word_layout`, либо нет — пустых полей «страница неизвестна» нет. Разметку можно заменить или добавить другую по `layout_id`, не трогая текст.
+- `juz`, `hizb`, `sajda` у аята и место ниспослания у суры заполнены только там, где их дал источник разметки (страницы сборки); в остальных — пусто.
+- `ayah_layout.end_*` — где и каким знаком рисуется конец аята; `line.surah` — номер суры для строк заголовка и басмалы (ADR 0002).
 - `line_position` считает слова и знаки конца аята вместе — это порядок знаков в строке.
 - `surah.name_ru`, `name_kk`, `name_uz` пусты: лицензированного источника нет (TODO_CONTENT).
-- Таблицы `passage_default`, `similar_pair`, `tajweed_mark` в v0 не собираются.
+- Таблицы `passage_default`, `similar_pair`, `tajweed_mark` пока не собираются.
 
 ## Ограничения v0
 
