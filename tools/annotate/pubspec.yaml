@@ -1,0 +1,16 @@
+name: annotate
+description: "Offline recording annotation tool and corpus validator."
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  contracts:
+    path: ../../packages/contracts
+  eval:
+    path: ../eval
+
+dev_dependencies:
+  test: 1.32.0

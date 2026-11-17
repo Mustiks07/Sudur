@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; media-src blob:; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Sudur — разметка записей</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">SUDUR · M02</p>
+      <h1>Разметка записей</h1>
+      <p class="privacy">Работает только на этом компьютере. Файлы никуда не отправляются.</p>
+    </div>
+    <div class="top-actions">
+      <button id="folderButton" class="primary" type="button">1. Выбрать папку</button>
+      <button id="fallbackFolderButton" class="secondary" type="button">Открыть без доступа к папке</button>
+      <input id="fallbackFolderInput" class="visually-hidden" type="file" webkitdirectory multiple
+             accept="audio/*,.wav,.m4a,.mp3,.ogg,.opus,.json,.jsonl">
+      <button id="contentButton" class="secondary" type="button">2. Выбрать content.json</button>
+      <input id="contentInput" class="visually-hidden" type="file" accept="application/json,.json">
+    </div>
+  </header>
+
+  <div id="message" class="message info" role="status" aria-live="polite">
+    Выберите папку с записями, затем файл содержания.
+  </div>
+
+  <main class="workspace">
+    <aside class="recordings-panel" aria-label="Записи">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">ПАПКА</p>
+          <h2>Записи</h2>
+        </div>
+        <span id="recordingCount" class="count">0</span>
+      </div>
+      <label class="search-label" for="recordingSearch">Поиск</label>
+      <input id="recordingSearch" type="search" placeholder="Имя записи">
+      <div id="recordingList" class="recording-list">
+        <p class="empty-small">Папка ещё не выбрана.</p>
+      </div>
+      <div class="legend">
+        <span><i class="dot none"></i> Нет разметки</span>
+        <span><i class="dot draft"></i> Черновик</span>
+        <span><i class="dot ready"></i> Готово</span>
+      </div>
+    </aside>
+
+    <section id="welcome" class="welcome">
+      <div class="welcome-card">
+        <span class="welcome-icon" aria-hidden="true">⌁</span>
+        <h2>Начните с папки записей</h2>
+        <ol>
+          <li>Нажмите «Выбрать папку» и разрешите Chrome сохранять файлы.</li>
+          <li>Выберите готовый <code>content.json</code>.</li>
+          <li>Откройте запись слева и задайте диапазон слов.</li>
+        </ol>
+        <p>Если Chrome не показывает выбор папки, используйте резервную кнопку. Тогда готовая разметка будет скачана в «Загрузки».</p>
+      </div>
+    </section>
+
+    <section id="editor" class="editor hidden" aria-label="Редактор разметки">
+      <div class="editor-titlebar">
+        <div>
+          <p class="eyebrow">ТЕКУЩАЯ ЗАПИСЬ</p>
+          <h2 id="recordingTitle">—</h2>
+          <p id="recordingMeta" class="muted">—</p>
+        </div>
+        <div class="save-actions">
+          <button id="saveDraftButton" class="secondary" type="button">Сохранить черновик</button>
+          <button id="saveReadyButton" class="primary" type="button">Отметить готовой</button>
+        </div>
+      </div>
+
+      <section class="card player-card">
+        <audio id="audio" controls preload="metadata"></audio>
+        <div class="speed-control">
+          <label for="speed">Скорость <strong id="speedValue">1,0×</strong></label>
+          <input id="speed" type="range" min="0.5" max="1.5" step="0.1" value="1">
+        </div>
+        <div class="transport-actions" aria-label="Перемотка">
+          <button id="backButton" type="button">−2 с <kbd>A</kbd></button>
+          <button id="playButton" type="button">Пауза / пуск <kbd>Пробел</kbd></button>
+          <button id="forwardButton" type="button">+2 с <kbd>D</kbd></button>
+          <button id="undoButton" type="button">Отменить <kbd>Ctrl Z</kbd></button>
+        </div>
+      </section>
+
+      <section class="card metadata-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">СВЕДЕНИЯ</p>
+            <h3>Чтец и условия</h3>
+          </div>
+          <span class="required-note">* обязательно для «Готово»</span>
+        </div>
+        <div class="form-grid">
+          <label>ID чтеца *<input id="speakerId" autocomplete="off" placeholder="p001"></label>
+          <label>Родной язык *
+            <select id="nativeLanguage">
+              <option value="">Выберите</option>
+              <option value="ru">Русский</option>
+              <option value="kk">Казахский</option>
+              <option value="uz">Узбекский</option>
+              <option value="other">Другой</option>
+            </select>
+          </label>
+          <label id="otherLanguageLabel" class="hidden">Код другого языка *
+            <input id="otherLanguage" autocomplete="off" placeholder="например, tt">
+          </label>
+          <label>Пол *
+            <select id="gender">
+              <option value="">Выберите</option>
+              <option value="f">Женский</option>
+              <option value="m">Мужской</option>
+            </select>
+          </label>
+          <label>Возрастная группа
+            <select id="ageGroup">
+              <option value="">Не указана</option>
+              <option>18-24</option><option>25-34</option><option>35-44</option>
+              <option>45-54</option><option>55-64</option><option>65+</option>
+            </select>
+          </label>
+          <label>Класс телефона *
+            <select id="device">
+              <option value="">Выберите</option>
+              <option value="budget-android">Бюджетный Android</option>
+              <option value="midrange-android">Средний Android</option>
+              <option value="flagship-android">Флагманский Android</option>
+              <option value="iphone">iPhone</option>
+              <option value="other">Другой</option>
+            </select>
+          </label>
+          <label>Условия *
+            <select id="noise">
+              <option value="">Выберите</option>
+              <option value="quiet">Тишина</option>
+              <option value="noisy">Шум</option>
+            </select>
+          </label>
+          <label>Разметчики <span class="muted">через запятую</span>
+            <input id="annotators" autocomplete="off" placeholder="a1, a2">
+          </label>
+        </div>
+      </section>
+
+      <section class="card range-card">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ОЖИДАЕМЫЙ ОТРЫВОК</p>
+            <h3>Диапазон слов</h3>
+          </div>
+          <button id="applyRangeButton" class="secondary" type="button">Показать слова</button>
+        </div>
+        <div class="range-inputs">
+          <label>От *<input id="rangeFrom" autocomplete="off" placeholder="78:1:1"></label>
+          <span aria-hidden="true">→</span>
+          <label>До *<input id="rangeTo" autocomplete="off" placeholder="78:10:5"></label>
+          <p id="rangeSummary" class="muted">Сначала выберите content.json.</p>
+        </div>
+      </section>
+
+      <section id="asrCard" class="card asr-card hidden">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ПОДСКАЗКА ASR · НЕ РАЗМЕТКА</p>
+            <h3 id="asrTitle">Распознанный текст</h3>
+          </div>
+          <span class="hint-badge">Нужно подтвердить вручную</span>
+        </div>
+        <div id="asrText" class="asr-text"></div>
+        <div id="asrTokens" class="asr-tokens"></div>
+      </section>
+
+      <section class="annotation-layout">
+        <div class="card words-card">
+          <div class="section-heading sticky-heading">
+            <div>
+              <p class="eyebrow">БЫСТРАЯ РАЗМЕТКА</p>
+              <h3>Слова <span id="wordProgress" class="muted">0 / 0</span></h3>
+            </div>
+            <button id="endWordButton" class="accent" type="button">Конец слова <kbd>Enter</kbd></button>
+          </div>
+          <div class="status-shortcuts" aria-label="Статус текущего слова">
+            <button data-status="correct" type="button">Верно <kbd>1</kbd></button>
+            <button data-status="omitted" type="button">Пропуск <kbd>2</kbd></button>
+            <button data-status="substituted" type="button">Замена <kbd>3</kbd></button>
+            <button data-status="selfCorrected" type="button">Исправил <kbd>4</kbd></button>
+            <button data-status="repeated" type="button">Повтор <kbd>5</kbd></button>
+            <button data-status="unclear" type="button">Неясно <kbd>6</kbd></button>
+          </div>
+          <div id="wordList" class="word-list">
+            <p class="empty-small">Задайте диапазон слов.</p>
+          </div>
+        </div>
+
+        <aside class="card details-card">
+          <p class="eyebrow">ТЕКУЩЕЕ СЛОВО</p>
+          <h3 id="currentWordKey">—</h3>
+          <p id="currentWordText" class="current-word" dir="rtl">—</p>
+          <label>Статус
+            <select id="currentStatus">
+              <option value="correct">Верно</option>
+              <option value="omitted">Пропуск</option>
+              <option value="substituted">Замена</option>
+              <option value="selfCorrected">Самоисправление</option>
+              <option value="repeated">Повтор</option>
+              <option value="unclear">Неразборчиво</option>
+            </select>
+          </label>
+          <div class="two-columns">
+            <label>Начало, мс<input id="wordStart" type="number" min="0" step="1"></label>
+            <label>Конец, мс<input id="wordEnd" type="number" min="0" step="1"></label>
+          </div>
+          <label id="heardLabel" class="hidden">Что услышано *
+            <input id="heard" autocomplete="off">
+          </label>
+          <div id="correctionFields" class="hidden">
+            <label>Исправление через, мс *
+              <input id="correctionAfterMs" type="number" min="0" step="1">
+            </label>
+            <label>Исправление через слов
+              <input id="correctionAfterWords" type="number" min="0" step="1">
+            </label>
+          </div>
+          <p id="confirmationState" class="confirmation">Не подтверждено</p>
+          <button id="confirmDetailsButton" class="secondary full-width" type="button">Применить поля</button>
+          <hr>
+          <button id="addInsertionButton" class="secondary full-width" type="button">Лишнее слово после текущего <kbd>I</kbd></button>
+          <button id="addJumpButton" class="secondary full-width" type="button">Добавить перескок <kbd>J</kbd></button>
+          <div id="spanList" class="span-list"></div>
+        </aside>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="insertionDialog">
+    <form method="dialog" id="insertionForm">
+      <h2>Лишнее слово</h2>
+      <p class="muted">Оно будет записано после текущего ожидаемого слова.</p>
+      <label>Что услышано *<input id="insertionHeard" required autocomplete="off"></label>
+      <div class="two-columns">
+        <label>Начало, мс *<input id="insertionStart" type="number" min="0" required></label>
+        <label>Конец, мс *<input id="insertionEnd" type="number" min="0" required></label>
+      </div>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Отмена</button>
+        <button id="confirmInsertionButton" value="default" class="primary">Добавить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="jumpDialog">
+    <form method="dialog" id="jumpForm">
+      <h2>Перескок</h2>
+      <p class="muted">Укажите место, куда перескочил чтец.</p>
+      <label>Ключ слова назначения *<input id="jumpTo" required autocomplete="off" placeholder="78:12:1"></label>
+      <div class="two-columns">
+        <label>Начало, мс *<input id="jumpStart" type="number" min="0" required></label>
+        <label>Конец, мс *<input id="jumpEnd" type="number" min="0" required></label>
+      </div>
+      <div class="dialog-actions">
+        <button value="cancel" class="secondary">Отмена</button>
+        <button id="confirmJumpButton" value="default" class="primary">Добавить</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer>
+    <span>Sudur M02 · автономный инструмент</span>
+    <span>Сеть отключена политикой страницы</span>
+  </footer>
+</body>
+</html>

@@ -24,6 +24,7 @@ workspace:
   - packages/sync
   - tools/eval
   - tools/content_build
+  - tools/annotate
 
 dev_dependencies:
   very_good_analysis: 11.0.0
