@@ -1,3 +1,4 @@
+import 'package:contracts/src/versions.dart';
 import 'package:contracts/src/word_key.dart';
 import 'package:meta/meta.dart';
 
@@ -142,6 +143,7 @@ final class CheckEvent extends SessionEvent {
     required this.heardText,
     required this.audioStartMs,
     required this.audioEndMs,
+    required this.versions,
     this.jumpTo,
   });
 
@@ -171,4 +173,51 @@ final class CheckEvent extends SessionEvent {
 
   /// End of the related audio, in milliseconds from session start.
   final int audioEndMs;
+
+  /// Model, rules and text versions the event was produced with (ПО-11).
+  final ReadingVersions versions;
+}
+
+/// Level of the microphone signal (docs/tz 10.2).
+enum SignalQualityLevel {
+  /// The signal can be checked.
+  ok,
+
+  /// Speech stayed below `quietDbfs` for `signalHoldMs`.
+  tooQuiet,
+
+  /// More than `clippingRatio` of samples hit the limit within the window.
+  clipping,
+
+  /// The level in pauses stayed above `noisyDbfs` for `signalHoldMs`.
+  noisy,
+}
+
+/// The signal level changed (docs/tz 4.5). Emitted by `audio_capture` when
+/// the level differs from the previous one. While the level is not `ok`,
+/// `check` leaves candidates there `unverified` (docs/tz 10.5).
+final class SignalQuality extends SessionEvent {
+  /// Creates a signal quality event.
+  const SignalQuality({
+    required super.sessionId,
+    required super.atMs,
+    required this.level,
+    this.sinceMs,
+    this.dbfs,
+    this.clippedRatio,
+  });
+
+  /// The new level; it holds until the next [SignalQuality].
+  final SignalQualityLevel level;
+
+  /// Start of the audio the level was measured on, if known. A level found
+  /// after a hold time (for example 3 s of quiet speech) applies from here,
+  /// not only from `atMs`; without it consumers use `atMs`.
+  final int? sinceMs;
+
+  /// RMS level of the measurement window, dBFS.
+  final double? dbfs;
+
+  /// Share of samples at the limit in the window.
+  final double? clippedRatio;
 }

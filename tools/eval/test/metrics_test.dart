@@ -35,6 +35,14 @@ Annotation annotation(
 
 var _ids = 0;
 
+/// Versions every check event carries (ПО-11, ADR 0003).
+const ReadingVersions versions = ReadingVersions(
+  modelId: 'fake/scripted',
+  modelVersion: '0',
+  rulesVersion: 'test',
+  textVersion: 'fixture',
+);
+
 CheckEvent event(
   CheckKind kind,
   CheckState state,
@@ -54,6 +62,7 @@ CheckEvent event(
       heardText: 'heard',
       audioStartMs: startMs,
       audioEndMs: endMs,
+      versions: versions,
     );
 
 Counts count(

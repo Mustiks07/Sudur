@@ -15,21 +15,22 @@ final checker = Checker(
   text: quranText, normalizer: normalizer.id,
   from: from, to: to,
   params: CheckParams.defaults,          // или CheckParams.fromJson(thresholds)
-  sessionId: id, versions: versions,     // версии модели, правил, текста (ПО-11)
+  sessionId: id, versions: versions,     // ReadingVersions: модель, правила, текст (ПО-11)
   strict: false,                          // строгое поведение (ЭЧ-05)
 );
 checker.accept(path: steps, jumps: jumps); // на каждый FollowUpdate
 checker.onPause(pause);                    // паузы VAD → запинки
-checker.markUnreliable(span);              // плохой сигнал, deviceTooSlow
+checker.onSignalQuality(quality);         // SignalQuality из audio_capture
+checker.markUnreliable(span);            // deviceTooSlow
 checker.tick(nowMs);                       // время без слов (окна, строгий режим)
 checker.onHint(word, nowMs);               // взята подсказка
 checker.dispute(eventId, nowMs);           // «Не согласен» → disputed
 checker.finish(endMs);                     // конец сессии
 ```
 
-Каждый вызов возвращает `CheckUpdate`: новые события и смены состояний (`CheckOutput` = `CheckEvent` из `contracts` + версии) и сигналы строгого поведения (`WaitForWord`, `OfferHint`, `StopWaiting`). Смена состояния — новое `CheckEvent` с тем же `eventId`.
+Каждый вызов возвращает `CheckUpdate`: новые события и смены состояний (`CheckEvent` из `contracts`, в каждом — версии модели, правил и текста, ПО-11) и сигналы строгого поведения (`WaitForWord`, `OfferHint`, `StopWaiting`). Смена состояния — новое `CheckEvent` с тем же `eventId`.
 
-**Вход — свои типы** (`PathStep`, `PathWord`, `JumpInput`): по правилам зависимостей `check` не может импортировать `follow`. Сессия копирует в них `AlignmentStep`, `HeardWord`, `JumpCandidate` поле в поле (пример — `test/helpers.dart`). Перенос этих типов в `contracts` — через ADR.
+**Вход — типы пути из `contracts`** (`AlignmentStep`, `HeardWord`, `JumpCandidate`; ADR 0003): `follow` их выдаёт в `FollowUpdate`, сессия передаёт `path` и `jumps` в `accept` как есть. `check` от `follow` не зависит.
 
 ## Правила (ТЗ 10.5)
 
@@ -45,7 +46,7 @@ checker.finish(endMs);                     // конец сессии
 | Пауза внутри аята > `hesitationPauseMs` и > `hesitationTempoFactor` × личной медианы | Запинка — сигнал | — |
 
 - **Самоисправление:** пока окно открыто (не прошло `selfCorrectionWords` слов **и** `selfCorrectionMs`), сильное совпадение с тем же словом переводит кандидата в `corrected`. Поэтому ошибка подтверждается только после закрытия окна. Особый случай: человек пропустил слово, сказал следующее и сразу вернулся — `follow` видит «лишнее слово, равное следующему», и `check` записывает это как пропуск → `corrected`.
-- **Плохой сигнал:** кандидат, попавший в `UnreliableSpan`, становится `unverified`, а не `confirmed`.
+- **Плохой сигнал:** `onSignalQuality(SignalQuality)` из `contracts` — от уровня не `ok` (с `sinceMs`, если оно есть) до следующего `ok` звук ненадёжен; `markUnreliable(UnreliableSpan)` — то же для `deviceTooSlow`. Кандидат, попавший в такой отрезок, становится `unverified`, а не `confirmed`.
 - **Конец сессии:** все недоподтверждённые → `unverified`.
 - **Состояния** — строго по схеме: `preliminary → confirmed | corrected | unverified`, `confirmed → disputed`; из `confirmed` в `corrected` нельзя (`canMove`, `allowedTransitions`).
 - **Сигналы** (повтор, запинка) выдаются один раз сразу в состоянии `confirmed` — это «замечено», а не ошибка.
@@ -58,7 +59,5 @@ checker.finish(endMs);                     // конец сессии
 
 ## Не сделано / вопросы
 
-- **ПО-11:** в `CheckEvent` из `contracts` нет поля версий, поэтому версии идут рядом (`CheckOutput.versions`). Предлагаю добавить поле в контракт (ADR).
-- Типа `SignalQuality` в `contracts` пока нет: плохой сигнал передаётся как `UnreliableSpan`.
 - `stuckWordTries` из 12.4 не используется: в 10.5 для него нет правила.
 - Подключение к `tools/eval` (M01) — после слияния: показатели проверки там пока «нет данных».

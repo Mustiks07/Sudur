@@ -1,7 +1,6 @@
 import 'package:check/src/check_params.dart';
 import 'package:check/src/check_state_machine.dart';
 import 'package:check/src/check_types.dart';
-import 'package:check/src/path_input.dart';
 import 'package:contracts/contracts.dart';
 import 'package:quran_text/quran_text.dart';
 
@@ -26,7 +25,7 @@ final class Checker {
     required WordKey to,
     required CheckParams params,
     required String sessionId,
-    required CheckVersions versions,
+    required ReadingVersions versions,
     bool strict = false,
   })  : _text = text,
         _normalizer = normalizer,
@@ -44,7 +43,7 @@ final class Checker {
   final NormalizerId _normalizer;
   final CheckParams _params;
   final String _sessionId;
-  final CheckVersions _versions;
+  final ReadingVersions _versions;
   final bool _strict;
   final List<Word> _passage;
   final Map<WordKey, int> _index = {};
@@ -52,12 +51,13 @@ final class Checker {
   int _nextPos = 0;
   int _lastHeardMs = 0;
   int _lastHeardIndex = -1;
-  PathStep? _pendingInsert;
+  AlignmentStep? _pendingInsert;
   int _ids = 0;
   final List<_Candidate> _open = [];
   final Map<String, _Candidate> _all = {};
   final List<UnreliableSpan> _unreliable = [];
   final List<int> _pauses = [];
+  int? _poorSignalSinceMs;
 
   int? _waitPos;
   int _waitStartMs = 0;
@@ -67,8 +67,8 @@ final class Checker {
   /// Processes new final steps of the alignment path and jump candidates,
   /// as `follow` produced them for one recognition result.
   CheckUpdate accept({
-    required List<PathStep> path,
-    List<JumpInput> jumps = const [],
+    required List<AlignmentStep> path,
+    List<JumpCandidate> jumps = const [],
   }) {
     final out = _Output();
     for (final step in path) {
@@ -111,11 +111,39 @@ final class Checker {
   /// `unverified`, and later ones there are never confirmed.
   CheckUpdate markUnreliable(UnreliableSpan span) {
     final out = _Output(atMs: span.endMs);
+    _markUnreliable(span, out);
+    return out.build();
+  }
+
+  void _markUnreliable(UnreliableSpan span, _Output out) {
     _unreliable.add(span);
     for (final c in List.of(_open)) {
       if (span.overlaps(c.startMs, c.endMs)) {
         _move(c, CheckState.unverified, out);
       }
+    }
+  }
+
+  /// The signal level changed (docs/tz 4.5, 10.5). From a level other
+  /// than `ok` until the next `ok`, audio is unreliable: candidates there
+  /// become `unverified`. The bad stretch starts at `sinceMs` if given.
+  CheckUpdate onSignalQuality(SignalQuality quality) {
+    final out = _Output(atMs: quality.atMs);
+    final start = _poorSignalSinceMs;
+    if (quality.level == SignalQualityLevel.ok) {
+      if (start != null) {
+        _poorSignalSinceMs = null;
+        _markUnreliable(
+          UnreliableSpan(
+            startMs: start,
+            endMs: quality.atMs,
+            reason: UnreliableReason.poorSignal,
+          ),
+          out,
+        );
+      }
+    } else if (start == null) {
+      _poorSignalSinceMs = quality.sinceMs ?? quality.atMs;
     }
     return out.build();
   }
@@ -171,19 +199,19 @@ final class Checker {
 
   // --- Steps -------------------------------------------------------------
 
-  void _onStep(PathStep step, _Output out) {
+  void _onStep(AlignmentStep step, _Output out) {
     final heard = step.heard;
     out.atMs = heard.atMs;
     switch (step.kind) {
-      case PathStepKind.insert:
+      case AlignmentStepKind.insert:
         _flushInsert(out);
         _pendingInsert = step;
         _resetContext();
         _strictTry(matchedPos: null, strong: false, out: out);
-      case PathStepKind.unaligned:
+      case AlignmentStepKind.unaligned:
         _flushInsert(out);
         _resetContext();
-      case PathStepKind.skip:
+      case AlignmentStepKind.skip:
         final skipped = [for (final k in step.skipped) _pos(k)];
         final insert = _pendingInsert;
         _pendingInsert = null;
@@ -216,10 +244,10 @@ final class Checker {
           );
         }
         _onMatch(step, out, isBack: false);
-      case PathStepKind.match:
+      case AlignmentStepKind.match:
         _flushInsert(out, next: step);
         _onMatch(step, out, isBack: false);
-      case PathStepKind.back:
+      case AlignmentStepKind.back:
         _flushInsert(out);
         final pos = _pos(step.expected!); // Back steps always have one.
         final end = _nextPos > pos ? _nextPos : pos + 1;
@@ -238,7 +266,7 @@ final class Checker {
     _resolveReady(out);
   }
 
-  void _onMatch(PathStep step, _Output out, {required bool isBack}) {
+  void _onMatch(AlignmentStep step, _Output out, {required bool isBack}) {
     final pos = _pos(step.expected!); // Match, skip and back have one.
     final sim = step.similarity ?? 0;
     final heard = step.heard;
@@ -279,7 +307,7 @@ final class Checker {
     _nextPos = pos + 1;
   }
 
-  void _onJump(JumpInput jump, _Output out) {
+  void _onJump(JumpCandidate jump, _Output out) {
     if (jump.matchedNgrams < 1 || jump.heard.length < _params.jumpMinWords) {
       return;
     }
@@ -303,7 +331,7 @@ final class Checker {
     );
   }
 
-  void _flushInsert(_Output out, {PathStep? next}) {
+  void _flushInsert(_Output out, {AlignmentStep? next}) {
     final insert = _pendingInsert;
     if (insert == null) return;
     _pendingInsert = null;
@@ -316,13 +344,13 @@ final class Checker {
   /// equals the word after the expected one, then a match of the expected
   /// word: this is an omission corrected by the reader (docs/tz ПО-05).
   bool _skippedThenCorrected(
-    PathStep insert,
-    PathStep next,
+    AlignmentStep insert,
+    AlignmentStep next,
     _Output out,
   ) {
     final ahead = _nextPos + 1;
     if (ahead >= _passage.length ||
-        next.kind != PathStepKind.match ||
+        next.kind != AlignmentStepKind.match ||
         next.expected != _passage[_nextPos].key ||
         (next.similarity ?? 0) < _params.strongMatch ||
         !_matches(insert.heard, ahead)) {
@@ -340,7 +368,7 @@ final class Checker {
     return true;
   }
 
-  bool _matches(PathWord heard, int pos) =>
+  bool _matches(HeardWord heard, int pos) =>
       similarity(
         heard.key.value,
         _text.searchKey(_passage[pos].key, _normalizer).value,
@@ -349,7 +377,7 @@ final class Checker {
 
   /// An extra word: a repetition if it matches a neighboring expected word,
   /// otherwise an insertion candidate (docs/tz 10.5).
-  void _insertion(PathStep insert, _Output out) {
+  void _insertion(AlignmentStep insert, _Output out) {
     final heard = insert.heard;
     final neighbors = [
       for (final p in [_nextPos - 1, _nextPos])
@@ -475,8 +503,12 @@ final class Checker {
 
   /// Whether [c]'s audio overlaps a stretch that cannot be trusted
   /// (docs/tz 10.5 «Плохой сигнал»): no candidate there is confirmed.
-  bool _isUnreliable(_Candidate c) =>
-      _unreliable.any((s) => s.overlaps(c.startMs, c.endMs));
+  /// An open stretch of poor signal (no `ok` yet) counts too.
+  bool _isUnreliable(_Candidate c) {
+    final poorSince = _poorSignalSinceMs;
+    return _unreliable.any((s) => s.overlaps(c.startMs, c.endMs)) ||
+        (poorSince != null && c.endMs >= poorSince);
+  }
 
   /// The self-correction window is open while neither
   /// `selfCorrectionWords` heard words nor `selfCorrectionMs` have passed.
@@ -529,25 +561,20 @@ final class Checker {
   // --- Helpers -------------------------------------------------------------
 
   void _emit(_Candidate c, _Output out) {
-    final words = [for (final p in c.positions) _passage[p].key];
     out.events.add(
-      CheckOutput(
-        CheckEvent(
-          sessionId: _sessionId,
-          atMs: out.atMs,
-          eventId: c.id,
-          kind: c.kind,
-          state: c.state,
-          words: words,
-          expectedText: [for (final p in c.positions) _passage[p].text].join(
-            ' ',
-          ),
-          heardText: c.heard,
-          audioStartMs: c.startMs,
-          audioEndMs: c.endMs,
-          jumpTo: c.jumpTo,
-        ),
-        _versions,
+      CheckEvent(
+        sessionId: _sessionId,
+        atMs: out.atMs,
+        eventId: c.id,
+        kind: c.kind,
+        state: c.state,
+        words: [for (final p in c.positions) _passage[p].key],
+        expectedText: [for (final p in c.positions) _passage[p].text].join(' '),
+        heardText: c.heard,
+        audioStartMs: c.startMs,
+        audioEndMs: c.endMs,
+        jumpTo: c.jumpTo,
+        versions: _versions,
       ),
     );
   }
@@ -611,7 +638,7 @@ final class _Output {
   _Output({this.atMs = 0});
 
   int atMs;
-  final List<CheckOutput> events = [];
+  final List<CheckEvent> events = [];
   final List<StrictSignal> strict = [];
 
   CheckUpdate build() => CheckUpdate(
