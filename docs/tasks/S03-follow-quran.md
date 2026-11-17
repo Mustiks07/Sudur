@@ -2,7 +2,7 @@
 
 - **Агент:** Opus
 - **Ветка:** `opus/s03-follow-quran`
-- **Можно менять:** `tools/content_build/`, `packages/quran_text/`, `packages/follow/`, `packages/testing/`, `tools/eval/`; `docs/adr/` — новый ADR
+- **Можно менять:** `tools/content_build/`, `packages/quran_text/`, `packages/follow/`, `packages/testing/`, `tools/eval/`; `docs/adr/` — новый ADR; раздел 12.2 в `docs/tz/12-formaty-i-parametry.md` — по ADR 0004
 - **ТЗ:** 4.8, 10.1, 10.4 (потеря позиции, поиск по Корану, неоднозначность), 2.7 (СЛ-01…), 15.5 (О-03), 15.6 (С-03)
 
 ## Зачем
@@ -25,7 +25,7 @@
 
 ## Порядок
 
-Начинать от свежего `main` после слияния №11.
+ADR 0004 — отдельным PR от свежего `main` сразу (только документы: `docs/adr/` и схема 12.2 в `docs/tz/12-formaty-i-parametry.md`). Код S03 — в ветке, начатой от ветки ADR; после слияния ADR — `git merge origin/main`. Изменения в `tools/eval` — после слияния №11, чтобы не было конфликтов.
 
 ## Не делать
 
