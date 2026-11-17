@@ -12,6 +12,7 @@
 
 | Что | Зачем | Добавлено |
 |---|---|---|
+| `fixtures/quran_text.json` | Текст всего Корана из Tanzil без изменений (ADR 0004); см. [`fixtures/README.md`](fixtures/README.md) | S03 |
 | `fixtures/content_p582_583.json` | Данные страниц 582–583 (сура 78, 79:1–15) из `tools/content_build`; см. [`fixtures/README.md`](fixtures/README.md) | P03 |
 | `FakeSpeechRecognizer` | `SpeechRecognizer`, который проигрывает заранее подготовленные результаты (СЛ-07, ПО-12) | P06 |
 | `RecognitionScript` | Строит последовательность результатов как у распознавателя (ТЗ 10.3): растущие частичные, окончательный, заданные частичные, скользящее окно, паузы | P06 |
