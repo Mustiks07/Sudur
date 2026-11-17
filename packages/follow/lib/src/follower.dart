@@ -1,6 +1,6 @@
 import 'package:contracts/contracts.dart';
-import 'package:follow/src/alignment.dart';
 import 'package:follow/src/follow_params.dart';
+import 'package:follow/src/follow_update.dart';
 import 'package:follow/src/stable_words.dart';
 import 'package:quran_text/quran_text.dart';
 

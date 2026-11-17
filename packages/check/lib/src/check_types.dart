@@ -1,54 +1,6 @@
 import 'package:contracts/contracts.dart';
 import 'package:meta/meta.dart';
 
-/// Versions stored with every check event (docs/tz ПО-11).
-///
-/// `CheckEvent` in `contracts` has no field for them, so they travel next
-/// to the event in [CheckOutput]; adding the field to the contract needs an
-/// ADR.
-@immutable
-final class CheckVersions {
-  /// Creates versions.
-  const CheckVersions({
-    required this.modelId,
-    required this.modelVersion,
-    required this.rulesVersion,
-    required this.textVersion,
-  });
-
-  /// Recognition model id.
-  final String modelId;
-
-  /// Recognition model version.
-  final String modelVersion;
-
-  /// Version of the check rules and thresholds.
-  final String rulesVersion;
-
-  /// Version of the content (canonical text) package.
-  final String textVersion;
-
-  /// JSON form for `check_event.versions` (docs/tz 12.1).
-  Map<String, String> toJson() => {
-        'model': '$modelId@$modelVersion',
-        'rules': rulesVersion,
-        'text': textVersion,
-      };
-}
-
-/// A check event with the versions it was produced with.
-@immutable
-final class CheckOutput {
-  /// Creates an output.
-  const CheckOutput(this.event, this.versions);
-
-  /// The event; a state change is a new event with the same `eventId`.
-  final CheckEvent event;
-
-  /// Versions of model, rules and text (docs/tz ПО-11).
-  final CheckVersions versions;
-}
-
 /// A pause between words, from voice activity detection.
 @immutable
 final class SpeechPause {
@@ -67,7 +19,8 @@ final class SpeechPause {
 
 /// Why a stretch of audio cannot be trusted.
 enum UnreliableReason {
-  /// `SignalQuality` was not `ok` (too quiet, clipping, noisy).
+  /// `SignalQuality` was not `ok` (too quiet, clipping, noisy); spans of
+  /// this kind come from [SignalQuality] events.
   poorSignal,
 
   /// Recognition was late (`deviceTooSlow`).
@@ -150,8 +103,9 @@ final class CheckUpdate {
   /// Creates an update.
   const CheckUpdate({this.events = const [], this.strict = const []});
 
-  /// New events and state changes, in order.
-  final List<CheckOutput> events;
+  /// New events and state changes, in order; each carries the versions it
+  /// was produced with (ПО-11).
+  final List<CheckEvent> events;
 
   /// Strict behavior signals, in order.
   final List<StrictSignal> strict;
