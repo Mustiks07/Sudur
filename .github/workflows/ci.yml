@@ -15,10 +15,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Task P01 switches this to the version pinned in .fvmrc.
       - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version-file: .fvmrc
           cache: true
 
       - name: Install dependencies
@@ -45,3 +44,7 @@ jobs:
               (cd "$dir" && dart test)
             fi
           done
+
+      - name: Build Android
+        run: flutter build apk --debug --target lib/main_dev.dart
+        working-directory: app

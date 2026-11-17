@@ -62,7 +62,8 @@ docs/adr/            architecture decision records
 - Unidirectional data flow: event → ViewModel command → repository → new data → ViewModel state → View rebuild.
 - Views listen with `ListenableBuilder`. DI with `provider`. Navigation with `go_router`.
 - Cross-layer errors use a `Result` type (`Ok` / `Error`); services catch library exceptions and return `Result.error`. No empty `catch`.
-- Domain models are immutable (`freezed`).
+- Domain models are immutable (`freezed` or hand-written immutable classes).
+- Separate storage/API models from domain models: drift row classes and Supabase JSON never leave `storage` / `sync`; their public API returns plain immutable models.
 - Pure-Dart packages must not import Flutter. Never import another package's `src/`.
 - Reference implementation: Flutter's Compass sample app.
 
@@ -101,8 +102,16 @@ Exact commands are defined in task P01 and must be kept up to date here.
 fvm flutter pub get
 dart format --set-exit-if-changed .
 fvm flutter analyze
-fvm flutter test            # app and Flutter packages
-dart test                   # pure-Dart packages
+for dir in packages/*/ tools/*/ app/; do
+  [ -d "${dir}test" ] || continue
+  if grep -q "sdk: flutter" "${dir}pubspec.yaml"; then
+    (cd "$dir" && fvm flutter test)
+  else
+    (cd "$dir" && fvm dart test)
+  fi
+done
+bash tools/check_deps.sh
+(cd app && fvm flutter build apk --debug --target lib/main_dev.dart)
 dart run tools/eval         # when follow/check/quran_text changed
 ```
 
