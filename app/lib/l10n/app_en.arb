@@ -6,5 +6,109 @@
   "learnToRead": "Learn to read",
   "progress": "Progress",
   "more": "More",
-  "sectionComingSoon": "This section is being prepared"
+  "sectionComingSoon": "This section is being prepared",
+  "prototypeTitle": "Прототип · Пробую вспомнить · 78",
+  "prototypeNotice": "Слова открываются по услышанному. Проверка ошибок не включена. Заголовки и басмала пока не показаны.",
+  "prototypeShare": "Поделиться журналом",
+  "prototypeSmall": "small",
+  "prototypeTiny": "tiny",
+  "prototypeBenchmark": "Тест телефона",
+  "prototypeReload": "Загрузить файлы",
+  "prototypeFile": "Подавать input.wav вместо микрофона",
+  "prototypeRecommendation": "Рекомендация",
+  "prototypeSlow": "small · частичные результаты раз в секунду",
+  "prototypeSelfCheck": "Самопроверка без распознавания",
+  "prototypeInstall": "Установите данные, модели и шрифты по docs/prototype.md",
+  "prototypeMicTitle": "Доступ к микрофону",
+  "prototypeMicReason": "Звук обрабатывается только на телефоне и не сохраняется. Разрешите микрофон, чтобы открывать слова по чтению. При отказе можно пользоваться самопроверкой.",
+  "prototypeCancel": "Отмена",
+  "prototypeContinue": "Продолжить",
+  "prototypeStart": "Начать",
+  "prototypeStop": "Завершить",
+  "prototypeFailed": "Не удалось выполнить действие. Проверьте файлы и разрешение микрофона. Сессия остановлена.",
+  "prototypeLoading": "Загрузка…",
+  "prototypeRunning": "Слушаю",
+  "prototypeLost": "Место потеряно: продолжите читать",
+  "prototypeStopping": "Ожидание последних результатов…",
+  "prototypeInterrupted": "Прервано. Начните новую сессию.",
+  "prototypeStopped": "Сессия завершена",
+  "prototypeReady": "Готово",
+  "@prototypeTitle": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeNotice": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeShare": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeSmall": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeTiny": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeBenchmark": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeReload": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeFile": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeRecommendation": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeSlow": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeSelfCheck": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeInstall": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeMicTitle": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeMicReason": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeCancel": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeContinue": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeStart": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeStop": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeFailed": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeLoading": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeRunning": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeLost": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeStopping": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeInterrupted": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeStopped": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  },
+  "@prototypeReady": {
+    "description": "TODO_TRANSLATION: Russian prototype placeholder"
+  }
 }

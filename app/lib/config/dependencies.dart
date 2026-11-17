@@ -2,8 +2,11 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/config/app_config.dart';
+import 'package:sudur/data/repositories/prototype_repository.dart';
+import 'package:sudur/data/services/prototype_platform.dart';
 import 'package:sudur/routing/app_router.dart';
 import 'package:sudur/ui/home/view_models/home_view_model.dart';
+import 'package:sudur/ui/prototype/view_models/prototype_view_model.dart';
 
 /// Builds and owns application-level dependencies.
 class AppDependencies extends StatelessWidget {
@@ -21,8 +24,14 @@ class AppDependencies extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<AppConfig>.value(value: config),
+        if (config == AppConfig.dev)
+          ChangeNotifierProvider<PrototypeViewModel>(
+            create: (_) => PrototypeViewModel(
+              LocalPrototypeRepository(platform: PrototypePlatform()),
+            ),
+          ),
         Provider<GoRouter>(
-          create: (_) => createAppRouter(),
+          create: (_) => createAppRouter(config),
           dispose: (_, router) => router.dispose(),
         ),
         ChangeNotifierProvider<HomeViewModel>(create: (_) => HomeViewModel()),

@@ -143,6 +143,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This section is being prepared'**
   String get sectionComingSoon;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Прототип · Пробую вспомнить · 78'**
+  String get prototypeTitle;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Слова открываются по услышанному. Проверка ошибок не включена. Заголовки и басмала пока не показаны.'**
+  String get prototypeNotice;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Поделиться журналом'**
+  String get prototypeShare;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'small'**
+  String get prototypeSmall;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'tiny'**
+  String get prototypeTiny;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Тест телефона'**
+  String get prototypeBenchmark;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Загрузить файлы'**
+  String get prototypeReload;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Подавать input.wav вместо микрофона'**
+  String get prototypeFile;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Рекомендация'**
+  String get prototypeRecommendation;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'small · частичные результаты раз в секунду'**
+  String get prototypeSlow;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Самопроверка без распознавания'**
+  String get prototypeSelfCheck;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Установите данные, модели и шрифты по docs/prototype.md'**
+  String get prototypeInstall;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Доступ к микрофону'**
+  String get prototypeMicTitle;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Звук обрабатывается только на телефоне и не сохраняется. Разрешите микрофон, чтобы открывать слова по чтению. При отказе можно пользоваться самопроверкой.'**
+  String get prototypeMicReason;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Отмена'**
+  String get prototypeCancel;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Продолжить'**
+  String get prototypeContinue;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Начать'**
+  String get prototypeStart;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Завершить'**
+  String get prototypeStop;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Не удалось выполнить действие. Проверьте файлы и разрешение микрофона. Сессия остановлена.'**
+  String get prototypeFailed;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Загрузка…'**
+  String get prototypeLoading;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Слушаю'**
+  String get prototypeRunning;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Место потеряно: продолжите читать'**
+  String get prototypeLost;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Ожидание последних результатов…'**
+  String get prototypeStopping;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Прервано. Начните новую сессию.'**
+  String get prototypeInterrupted;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Сессия завершена'**
+  String get prototypeStopped;
+
+  /// TODO_TRANSLATION: Russian prototype placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Готово'**
+  String get prototypeReady;
 }
 
 class _AppLocalizationsDelegate

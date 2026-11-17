@@ -1,0 +1,34 @@
+--- a/app/lib/data/repositories/prototype_repository.dart
++++ b/app/lib/data/repositories/prototype_repository.dart
+@@ -102,7 +102,7 @@
+       _recognizer = recognizer;
+       _require(await recognizer.load('$directory/$model'));
+       trace.add('modelLoaded');
+-      final capture = audio.AudioCaptureService();
++      final capture = audio.AudioCaptureService(sessionId: _session);
+       _capture = capture;
+       _subscriptions.add(
+         recognizer.outcomes.listen((outcome) {
+@@ -137,13 +137,18 @@
+       );
+       _subscriptions.add(
+         capture.events.listen((result) {
+-          if (result case Error<audio.AudioCaptureEvent>()) {
++          if (result case Error<Object>()) {
+             _fail();
+             return;
+           }
+-          if (result case Ok<audio.AudioCaptureEvent>(:final value)) {
+-            _endMs = value.atMs;
+-            trace.add(value.runtimeType.toString(), audioMs: value.atMs);
++          if (result case Ok<Object>(:final value)) {
++            final atMs = switch (value) {
++              audio.AudioCaptureEvent(:final atMs) => atMs,
++              SignalQuality(:final atMs) => atMs,
++              _ => throw StateError('unexpectedCaptureEvent'),
++            };
++            _endMs = atMs;
++            trace.add(value.runtimeType.toString(), audioMs: atMs);
+             switch (value) {
+               case audio.SpeechSegmentAudioFrame():
+                 if (_failed) return;

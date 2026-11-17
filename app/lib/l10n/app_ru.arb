@@ -6,5 +6,109 @@
   "learnToRead": "Учусь читать",
   "progress": "Прогресс",
   "more": "Ещё",
-  "sectionComingSoon": "Этот раздел готовится"
+  "sectionComingSoon": "Этот раздел готовится",
+  "prototypeTitle": "Прототип · Пробую вспомнить · 78",
+  "prototypeNotice": "Слова открываются по услышанному. Проверка ошибок не включена. Заголовки и басмала пока не показаны.",
+  "prototypeShare": "Поделиться журналом",
+  "prototypeSmall": "small",
+  "prototypeTiny": "tiny",
+  "prototypeBenchmark": "Тест телефона",
+  "prototypeReload": "Загрузить файлы",
+  "prototypeFile": "Подавать input.wav вместо микрофона",
+  "prototypeRecommendation": "Рекомендация",
+  "prototypeSlow": "small · частичные результаты раз в секунду",
+  "prototypeSelfCheck": "Самопроверка без распознавания",
+  "prototypeInstall": "Установите данные, модели и шрифты по docs/prototype.md",
+  "prototypeMicTitle": "Доступ к микрофону",
+  "prototypeMicReason": "Звук обрабатывается только на телефоне и не сохраняется. Разрешите микрофон, чтобы открывать слова по чтению. При отказе можно пользоваться самопроверкой.",
+  "prototypeCancel": "Отмена",
+  "prototypeContinue": "Продолжить",
+  "prototypeStart": "Начать",
+  "prototypeStop": "Завершить",
+  "prototypeFailed": "Не удалось выполнить действие. Проверьте файлы и разрешение микрофона. Сессия остановлена.",
+  "prototypeLoading": "Загрузка…",
+  "prototypeRunning": "Слушаю",
+  "prototypeLost": "Место потеряно: продолжите читать",
+  "prototypeStopping": "Ожидание последних результатов…",
+  "prototypeInterrupted": "Прервано. Начните новую сессию.",
+  "prototypeStopped": "Сессия завершена",
+  "prototypeReady": "Готово",
+  "@prototypeTitle": {
+    "description": "Prototype UI"
+  },
+  "@prototypeNotice": {
+    "description": "Prototype UI"
+  },
+  "@prototypeShare": {
+    "description": "Prototype UI"
+  },
+  "@prototypeSmall": {
+    "description": "Prototype UI"
+  },
+  "@prototypeTiny": {
+    "description": "Prototype UI"
+  },
+  "@prototypeBenchmark": {
+    "description": "Prototype UI"
+  },
+  "@prototypeReload": {
+    "description": "Prototype UI"
+  },
+  "@prototypeFile": {
+    "description": "Prototype UI"
+  },
+  "@prototypeRecommendation": {
+    "description": "Prototype UI"
+  },
+  "@prototypeSlow": {
+    "description": "Prototype UI"
+  },
+  "@prototypeSelfCheck": {
+    "description": "Prototype UI"
+  },
+  "@prototypeInstall": {
+    "description": "Prototype UI"
+  },
+  "@prototypeMicTitle": {
+    "description": "Prototype UI"
+  },
+  "@prototypeMicReason": {
+    "description": "Prototype UI"
+  },
+  "@prototypeCancel": {
+    "description": "Prototype UI"
+  },
+  "@prototypeContinue": {
+    "description": "Prototype UI"
+  },
+  "@prototypeStart": {
+    "description": "Prototype UI"
+  },
+  "@prototypeStop": {
+    "description": "Prototype UI"
+  },
+  "@prototypeFailed": {
+    "description": "Prototype UI"
+  },
+  "@prototypeLoading": {
+    "description": "Prototype UI"
+  },
+  "@prototypeRunning": {
+    "description": "Prototype UI"
+  },
+  "@prototypeLost": {
+    "description": "Prototype UI"
+  },
+  "@prototypeStopping": {
+    "description": "Prototype UI"
+  },
+  "@prototypeInterrupted": {
+    "description": "Prototype UI"
+  },
+  "@prototypeStopped": {
+    "description": "Prototype UI"
+  },
+  "@prototypeReady": {
+    "description": "Prototype UI"
+  }
 }

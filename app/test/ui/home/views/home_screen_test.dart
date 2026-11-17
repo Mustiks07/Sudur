@@ -7,7 +7,7 @@ import 'package:sudur/config/dependencies.dart';
 void main() {
   testWidgets('shows all five destinations in English', (tester) async {
     await tester.pumpWidget(
-      const AppDependencies(config: AppConfig.dev, child: SudurApp()),
+      const AppDependencies(config: AppConfig.prod, child: SudurApp()),
     );
     await tester.pumpAndSettle();
 
@@ -20,7 +20,7 @@ void main() {
 
   testWidgets('selects another placeholder destination', (tester) async {
     await tester.pumpWidget(
-      const AppDependencies(config: AppConfig.dev, child: SudurApp()),
+      const AppDependencies(config: AppConfig.prod, child: SudurApp()),
     );
     await tester.pumpAndSettle();
 

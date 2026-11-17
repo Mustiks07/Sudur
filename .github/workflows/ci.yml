@@ -45,6 +45,20 @@ jobs:
             fi
           done
 
+      - name: Prototype trace summary tests
+        run: python3 -m unittest discover -s app/tool -p 'test_*.py'
+
       - name: Build Android
         run: flutter build apk --debug --target lib/main_dev.dart
         working-directory: app
+
+      - name: Build prototype profile APK
+        run: flutter build apk --profile --target lib/main_dev.dart
+        working-directory: app
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sudur-prototype-profile
+          path: app/build/app/outputs/flutter-apk/app-profile.apk
+          if-no-files-found: error
+          retention-days: 14
