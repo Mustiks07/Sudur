@@ -129,7 +129,7 @@ locked → available → inProgress(шаг) → quiz → passed
 | Параметр | По умолчанию | Откуда |
 |---|---|---|
 | `quizPassPercent` | 80 | ТЗ 12.4, УЧ-04 |
-| `skillReviewQuestions` | 3 | ТЗ 11.2 «3 вопроса»; **в таблице 12.4 его нет — предлагаю добавить** |
+| `skillReviewQuestions` | 3 | ТЗ 12.4, 11.2 (повторение навыка) |
 
 ## Тесты
 

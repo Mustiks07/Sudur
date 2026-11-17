@@ -36,7 +36,7 @@ final class LessonParams {
     );
   }
 
-  /// Built-in values: 12.4 and 11.2.
+  /// Built-in values of docs/tz 12.4.
   static const LessonParams defaults = LessonParams(
     quizPassPercent: 80,
     skillReviewQuestions: 3,
@@ -46,7 +46,6 @@ final class LessonParams {
   /// `quizPassPercent`). A quiz step of a package may set its own value.
   final double quizPassPercent;
 
-  /// Questions in one skill review (docs/tz 11.2: «3 вопроса»). Not in the
-  /// 12.4 table yet; proposed for it.
+  /// Questions in one skill review (docs/tz 12.4, 11.2).
   final int skillReviewQuestions;
 }
