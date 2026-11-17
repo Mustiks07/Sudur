@@ -253,7 +253,7 @@ Report buildReport({
   required List<EvaluatedRecording> recordings,
   required AcceptanceConfig config,
   Map<Metric, double?>? baseline,
-  CorrectionWindow window = CorrectionWindow.defaults,
+  CorrectionWindow? window,
 }) {
   Counts countsOf(EvaluatedRecording r) => Counts.of(
         r.annotation,

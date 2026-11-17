@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:check/check.dart';
 import 'package:contracts/contracts.dart';
 import 'package:eval/eval.dart';
 import 'package:follow/follow.dart';
@@ -68,6 +69,8 @@ void main() {
     String person,
     List<Word> words, {
     Set<WordKey> omit = const {},
+    Map<WordKey, String> substitute = const {},
+    Map<WordKey, String> selfCorrect = const {},
     String language = 'kk',
   }) {
     final r = SyntheticRecording(
@@ -81,8 +84,14 @@ void main() {
     for (final w in words) {
       if (ayah != null && w.key.ayah != ayah) r.endSegment();
       ayah = w.key.ayah;
+      final wrong = substitute[w.key];
+      final misread = selfCorrect[w.key];
       if (omit.contains(w.key)) {
         r.omitted('${w.key}');
+      } else if (wrong != null) {
+        r.substituted('${w.key}', wrong);
+      } else if (misread != null) {
+        r.selfCorrected('${w.key}', misread, heard(w));
       } else {
         r.correct('${w.key}', heard(w));
       }
@@ -90,7 +99,7 @@ void main() {
     return r;
   }
 
-  Report evaluate() {
+  Report evaluate({bool withCheck = false}) {
     final recordings = switch (loadCorpus(dir.path, model)) {
       Ok(:final value) => value,
       Error(:final error) => throw error,
@@ -107,10 +116,39 @@ void main() {
               text: quran,
               normalizer: normalizer,
               params: FollowParams.defaults,
+              check: withCheck
+                  ? const CheckSetup(
+                      params: CheckParams.defaults,
+                      rulesVersion: 'test',
+                      textVersion: 'fixture',
+                    )
+                  : null,
             ),
           ),
       ],
     );
+  }
+
+  /// A key of surah 78 not similar (below simFloor) to [w] or the words
+  /// around it, so the reader clearly said another word.
+  String unrelatedTo(Word w) {
+    final surah = [
+      for (final x in quran.words)
+        if (x.key.surah == 78) x,
+    ];
+    final i = surah.indexOf(w);
+    final around = surah.sublist(i - 8 < 0 ? 0 : i - 8, i + 6);
+    return surah.map(heard).firstWhere(
+          (k) => around.every(
+            (a) => similarity(k, heard(a)) < FollowParams.defaults.simFloor,
+          ),
+        );
+  }
+
+  /// [w]'s key with one middle letter dropped: a near miss to self-correct.
+  String nearMiss(Word w) {
+    final k = heard(w);
+    return dropLetter(k, k.runes.length ~/ 2);
   }
 
   test('ASR JSONL round-trips every field', () {
@@ -154,6 +192,89 @@ void main() {
     expect(inPlace.denominator, words.length - omit.length);
     expect(inPlace.value, 1.0);
     expect(report.metrics[Metric.followRevealedNotRead]!.value.numerator, 0);
+  });
+
+  test('with check: known mistakes are found, nothing else is flagged', () {
+    final a = ayahs(1, 12);
+    final b = ayahs(13, 24);
+    final c = ayahs(25, 36);
+    save(reading('r1', 'p1', a, omit: {a[5].key, a[20].key}));
+    save(
+      reading(
+        'r2',
+        'p2',
+        b,
+        substitute: {b[6].key: unrelatedTo(b[6])},
+        language: 'ru',
+      ),
+    );
+    save(
+      reading(
+        'r3',
+        'p3',
+        c,
+        omit: {c[20].key},
+        selfCorrect: {c[8].key: nearMiss(c[8])},
+        language: 'uz',
+      ),
+    );
+    final report = evaluate(withCheck: true);
+    double? value(Metric m) => report.metrics[m]!.value.value;
+    expect(value(Metric.precision), 1.0);
+    expect(report.metrics[Metric.precision]!.value.denominator, 4);
+    expect(value(Metric.omissionRecall), 1.0);
+    expect(value(Metric.substitutionRecall), 1.0);
+    expect(value(Metric.falseAlarmsPer1000), 0.0);
+    expect(value(Metric.selfCorrectionRecall), 1.0);
+    expect(value(Metric.refusalRate), 0.0);
+    expect(value(Metric.followRevealedInPlace), 1.0);
+    expect(report.mode, ReleaseMode.a);
+  });
+
+  test('a group without any mistake has no precision: not mode А', () {
+    final a = ayahs(1, 12);
+    save(reading('r1', 'p1', a, omit: {a[5].key}));
+    save(reading('r2', 'p2', ayahs(13, 20), language: 'ru'));
+    final report = evaluate(withCheck: true);
+    expect(report.metrics[Metric.precision]!.status, Status.pass);
+    expect(report.groupStatuses['nativeLanguage']!['ru'], Status.noData);
+    expect(report.mode, ReleaseMode.b);
+  });
+
+  test('without check its metrics have no data', () {
+    final a = ayahs(1, 6);
+    save(reading('r1', 'p1', a, omit: {a[5].key}));
+    final report = evaluate();
+    expect(report.metrics[Metric.precision]!.status, Status.noData);
+    expect(report.metrics[Metric.omissionRecall]!.status, Status.noData);
+  });
+
+  test('check events carry the versions of the run (ПО-11)', () {
+    final words = ayahs(1, 8);
+    final recording = reading('r1', 'p1', words, omit: {words[5].key});
+    save(recording);
+    final loaded = switch (loadCorpus(dir.path, model)) {
+      Ok(:final value) => value.single,
+      Error(:final error) => throw error,
+    };
+    final outcome = runRecording(
+      loaded,
+      text: quran,
+      normalizer: normalizer,
+      params: FollowParams.defaults,
+      check: const CheckSetup(
+        params: CheckParams.defaults,
+        rulesVersion: 'rules-7',
+        textVersion: 'text-3',
+      ),
+    );
+    final events = outcome.checkEvents!; // Check ran.
+    expect(events, isNotEmpty);
+    for (final e in events) {
+      expect(e.versions.rulesVersion, 'rules-7');
+      expect(e.versions.textVersion, 'text-3');
+      expect(e.versions.modelId, scriptedRecognizerInfo.modelId);
+    }
   });
 
   test('a missing ASR file is an error, not a silent skip', () {
