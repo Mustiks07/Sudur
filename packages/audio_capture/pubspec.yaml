@@ -9,8 +9,11 @@ environment:
 dependencies:
   contracts:
     path: ../contracts
+  crypto: 3.0.6
   flutter:
     sdk: flutter
+  record: 6.1.2
+  sherpa_onnx: 2.0.1
 
 dev_dependencies:
   flutter_test:

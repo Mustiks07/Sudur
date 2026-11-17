@@ -6,14 +6,14 @@
 
 | Задача | Агент | Ветка | Зависит от | Статус |
 |---|---|---|---|---|
-| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation-r2` | — | PR №10, конфликты разрешены; после №8 — ещё `git merge origin/main` и новый `pubspec.lock` (пакет `record`); сливается последней |
+| [P01 — каркас приложения и зелёный CI](P01-foundation.md) | GPT-A | `gpt-a/p01-foundation-r2` | — | Слита (PR №10) |
 | [P03 — данные суры 78](P03-content-build.md) | Opus | `opus/p03-content-build` | — | Слита (PR №1) |
 | [P02 — текст, ключи, сходство](P02-quran-text.md) | Opus | `opus/p02-quran-text` | P03 | Слита (PR №2) |
 | [P06 — следование v0](P06-follow.md) | Opus | `opus/p06-follow` | P02 | Слита (PR №3) |
 | [P04 — распознаватель на sherpa-onnx](P04-asr-sherpa.md) | GPT-B | `gpt-b/p04-asr-sherpa-r2` | — | Слита (PR №7) |
-| [P05 — микрофон и отрезки речи](P05-audio-capture.md) | GPT-B | `gpt-b/p05-audio-capture-r2` | — | PR №8, правки сделаны, ждёт перепроверки Астры |
+| [P05 — микрофон и отрезки речи](P05-audio-capture.md) | GPT-B | `gpt-b/p05-audio-capture-r2` | — | Слита (PR №8) |
 | [P07 — отрисовка мусхафа v0](P07-mushaf-view.md) | GPT-A | `gpt-a/p07-mushaf-view-r2` | — | Слита (PR №9) |
-| [P08 — сборка прототипа и замеры](P08-prototype.md) | Астра | `astra/p08-prototype` | все выше | Открыта |
+| [P08 — сборка прототипа и замеры](P08-prototype.md) | Астра | `astra/p08-prototype` | все выше | Можно начинать: P01–P07 слиты |
 | Проверка и слияние всех запросов | Астра | — | — | Постоянно |
 
 Задачи владельца (не агентов): Э0-00 (установить Flutter), Э0-04 (записать свои чтения: 30 чисто и 30 с ошибками, сура 78 и короткие суры), П-09 (замеры на телефонах) — ТЗ, раздел 15.
@@ -27,6 +27,8 @@
 | [S04 — проверка ошибок v0](S04-check.md) | Opus | `opus/s04-check` | Слита (PR №5) |
 | [M01 — оценка качества на записях](M01-eval.md) | Opus | `opus/m01-eval` | Слита (PR №4) |
 | [ADR 0003 — путь, версии, качество сигнала в `contracts`](../adr/0003-kontrakty-put-versii-signal.md) | Opus | `opus/adr-0003-contracts` | Слита (PR №6) |
+| Подключение `check` к инструменту оценки (M01) | Opus | `opus/m01-eval-check` | PR №11, правки после проверки Астры (обязательные группы КЧ-08) |
+| Общий тип качества сигнала в `audio_capture` (ADR 0003) | GPT-B | `gpt-b/p05-signal-quality` | Ветка доставлена, PR открывает владелец |
 
 Ещё без задач:
 

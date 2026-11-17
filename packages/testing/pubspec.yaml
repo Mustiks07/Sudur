@@ -11,4 +11,4 @@ dependencies:
     path: ../contracts
 
 dev_dependencies:
-  test: any
+  test: 1.32.0
