@@ -10,4 +10,5 @@ export 'src/audio_capture_config.dart';
 export 'src/audio_capture_event.dart';
 export 'src/audio_capture_exception.dart';
 export 'src/audio_capture_service.dart';
+export 'src/audio_capture_session_source.dart';
 export 'src/audio_snippet.dart';
