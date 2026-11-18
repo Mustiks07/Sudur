@@ -1,0 +1,220 @@
+{
+  "format": 1,
+  "kind": "lessons",
+  "packageId": "test-stage1",
+  "version": "0.0.1-test",
+  "stage": 1,
+  "title": {
+    "ru": "TODO_CONTENT",
+    "kk": "TODO_CONTENT",
+    "uz": "TODO_CONTENT",
+    "en": "TODO_CONTENT"
+  },
+  "lessons": [
+    {
+      "lessonId": "test-stage1-01",
+      "title": {
+        "ru": "TODO_CONTENT",
+        "kk": "TODO_CONTENT",
+        "uz": "TODO_CONTENT",
+        "en": "TODO_CONTENT"
+      },
+      "skills": [
+        "letter:alif",
+        "letter:ba"
+      ],
+      "steps": [
+        {
+          "id": "explain-ba",
+          "type": "explain",
+          "skills": [
+            "letter:ba"
+          ],
+          "text": {
+            "ru": "TODO_CONTENT",
+            "kk": "TODO_CONTENT",
+            "uz": "TODO_CONTENT",
+            "en": "TODO_CONTENT"
+          },
+          "image": "img/ba.png",
+          "audio": "aud/ba.ogg"
+        },
+        {
+          "id": "listen-ba",
+          "type": "listen",
+          "skills": [
+            "letter:ba"
+          ],
+          "audio": "aud/ba.ogg",
+          "highlight": "TODO_CONTENT:letter:ba"
+        },
+        {
+          "id": "repeat-ba",
+          "type": "repeatAndCompare",
+          "skills": [
+            "letter:ba"
+          ],
+          "audio": "aud/ba.ogg"
+        },
+        {
+          "id": "hear-ba",
+          "type": "hearAndChoose",
+          "skills": [
+            "letter:ba"
+          ],
+          "audio": "aud/ba.ogg",
+          "options": [
+            "TODO_CONTENT:letter:ba",
+            "TODO_CONTENT:letter:ta",
+            "TODO_CONTENT:letter:tha"
+          ],
+          "answer": "TODO_CONTENT:letter:ba"
+        },
+        {
+          "id": "see-ba",
+          "type": "seeAndChoose",
+          "skills": [
+            "letter:ba"
+          ],
+          "prompt": "TODO_CONTENT:letter:ba",
+          "optionsAudio": [
+            "aud/ba.ogg",
+            "aud/ta.ogg",
+            "aud/tha.ogg"
+          ],
+          "answer": "aud/ba.ogg"
+        },
+        {
+          "id": "pair-alif-ba",
+          "type": "pairDiscriminate",
+          "skills": [
+            "letter:alif",
+            "letter:ba"
+          ],
+          "audio": "aud/alif.ogg",
+          "pair": [
+            "TODO_CONTENT:letter:alif",
+            "TODO_CONTENT:letter:ba"
+          ],
+          "answer": "TODO_CONTENT:letter:alif"
+        },
+        {
+          "id": "form-ba",
+          "type": "findForm",
+          "skills": [
+            "letter:ba"
+          ],
+          "letter": "TODO_CONTENT:letter:ba",
+          "position": "initial",
+          "options": [
+            "TODO_CONTENT:form:ba-initial",
+            "TODO_CONTENT:form:ba-medial",
+            "TODO_CONTENT:form:ba-final",
+            "TODO_CONTENT:form:ba-isolated"
+          ],
+          "answer": "TODO_CONTENT:form:ba-initial"
+        },
+        {
+          "id": "build-ba-fatha",
+          "type": "buildSyllable",
+          "skills": [
+            "letter:ba"
+          ],
+          "target": "TODO_CONTENT:letter:baTODO_CONTENT:haraka:fatha",
+          "pieces": [
+            "TODO_CONTENT:letter:ba",
+            "TODO_CONTENT:haraka:kasra",
+            "TODO_CONTENT:haraka:fatha"
+          ]
+        },
+        {
+          "id": "speak-ba",
+          "type": "speakAndCheck",
+          "skills": [
+            "letter:ba"
+          ],
+          "audio": "aud/ba.ogg",
+          "target": "TODO_CONTENT:letter:ba"
+        },
+        {
+          "id": "quiz",
+          "type": "quiz",
+          "stepIds": [
+            "hear-ba",
+            "see-ba",
+            "pair-alif-ba",
+            "form-ba",
+            "build-ba-fatha"
+          ]
+        }
+      ]
+    },
+    {
+      "lessonId": "test-stage1-02",
+      "title": {
+        "ru": "TODO_CONTENT",
+        "kk": "TODO_CONTENT",
+        "uz": "TODO_CONTENT",
+        "en": "TODO_CONTENT"
+      },
+      "skills": [
+        "letter:ta",
+        "rule:placeholder"
+      ],
+      "steps": [
+        {
+          "id": "explain-rule",
+          "type": "explain",
+          "text": {
+            "ru": "TODO_CONTENT",
+            "kk": "TODO_CONTENT",
+            "uz": "TODO_CONTENT",
+            "en": "TODO_CONTENT"
+          }
+        },
+        {
+          "id": "read-78",
+          "type": "readSupported",
+          "from": "78:1:1",
+          "to": "78:3:4",
+          "offerMemorize": true
+        },
+        {
+          "id": "rule-78",
+          "type": "findRule",
+          "skills": [
+            "rule:placeholder"
+          ],
+          "from": "78:2:1",
+          "to": "78:2:3",
+          "rule": "rule:placeholder",
+          "answerWords": [
+            "78:2:2"
+          ]
+        },
+        {
+          "id": "hear-ta",
+          "type": "hearAndChoose",
+          "skills": [
+            "letter:ta"
+          ],
+          "audio": "aud/ta.ogg",
+          "options": [
+            "TODO_CONTENT:letter:ba",
+            "TODO_CONTENT:letter:ta"
+          ],
+          "answer": "TODO_CONTENT:letter:ta"
+        },
+        {
+          "id": "quiz",
+          "type": "quiz",
+          "stepIds": [
+            "rule-78",
+            "hear-ta"
+          ],
+          "passPercent": 100
+        }
+      ]
+    }
+  ]
+}

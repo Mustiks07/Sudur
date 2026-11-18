@@ -74,8 +74,6 @@ final class ContentJsonSource implements QuranTextSource {
       key: WordKey(number('surah'), number('ayah'), number('position')),
       index: number('wordIndex'),
       text: text,
-      page: number('page'),
-      line: number('line'),
-    );
+    ); // Page and line of format 1 belong to the layout (ADR 0004).
   }
 }

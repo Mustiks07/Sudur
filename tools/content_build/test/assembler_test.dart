@@ -117,27 +117,74 @@ void main() {
     setUp(() => dir = Directory.systemTemp.createTempSync('content_build'));
     tearDown(() => dir.deleteSync(recursive: true));
 
-    test('SQLite and JSON hold the same rows', () {
-      final data = assemble();
+    test('SQLite keeps text and layout apart (ADR 0004)', () {
+      final layout = assemble();
+      final text = assembleText(
+        quran: syntheticQuran(),
+        verses: syntheticLayout(),
+        chapters: syntheticChapters(),
+        version: const {'version': 'test'},
+      );
       final dbPath = p.join(dir.path, 'content.sqlite');
-      final jsonPath = p.join(dir.path, 'content.json');
-      writeContentDatabase(data, dbPath);
-      writeContentJson(data, jsonPath);
+      writeContentDatabase(
+        ContentBuild(text: text, layout: layout, layoutId: 'test-layout'),
+        dbPath,
+      );
 
       final db = sqlite3.open(dbPath);
       addTearDown(db.dispose);
-      final row = db.select(
-        'SELECT text_uthmani, glyph_code FROM word WHERE word_index = 3',
+      final word = db.select('SELECT * FROM word WHERE word_index = 3');
+      expect(word.single['text_uthmani'], 'c1 $pauseMark');
+      expect(word.single.containsKey('page'), isFalse);
+      final place = db.select(
+        'SELECT glyph_code, page FROM word_layout WHERE word_index = 3',
       );
-      expect(row.single['text_uthmani'], 'c1 $pauseMark');
-      expect(row.single['glyph_code'], 'G1.2.1');
+      expect(place.single['glyph_code'], 'G1.2.1');
+      expect(place.single['page'], 10);
+      expect(db.select('SELECT * FROM word'), hasLength(9));
+      expect(db.select('SELECT * FROM ayah_layout'), hasLength(4));
       expect(db.select('SELECT * FROM line'), hasLength(8));
+      expect(
+        db.select('SELECT DISTINCT layout_id FROM line').single['layout_id'],
+        'test-layout',
+      );
+    });
 
+    test('prototype pages JSON keeps the table form', () {
+      final jsonPath = p.join(dir.path, 'content.json');
+      writeContentJson(assemble(), jsonPath);
       final json = jsonDecode(File(jsonPath).readAsStringSync());
       expect(json, isA<Map<String, Object?>>());
       final words = (json as Map<String, Object?>)['words'];
       expect(words, isA<List<Object?>>());
       expect(words! as List<Object?>, hasLength(9)); // Checked by isA above.
+    });
+
+    test('text JSON: one ayah per line, words join back to the source', () {
+      final text = assembleText(
+        quran: syntheticQuran(),
+        verses: const [],
+        chapters: const {},
+        version: const {'version': 'test'},
+      );
+      final jsonPath = p.join(dir.path, 'text.json');
+      writeTextJson(text, jsonPath);
+      final raw = File(jsonPath).readAsStringSync();
+      final json = jsonDecode(raw) as Map<String, Object?>;
+      expect(json['format'], textJsonFormat);
+      expect(json['kind'], 'text');
+      final ayahs = (json['ayahs']! as List<Object?>).cast<List<Object?>>();
+      // Every key was written by QuranTextData.toJson.
+      expect(ayahs, hasLength(4));
+      expect(ayahs[1], [
+        1,
+        2,
+        ['c1 $pauseMark', 'd1'],
+      ]);
+      expect(raw.split('\n').where((l) => l.startsWith('[')), hasLength(4));
+      expect(textCanonChecksum(text), canonChecksum(syntheticQuran()));
+      expect(text.surahs.first.revelation, isNull);
+      expect(text.ayahs.first.juz, isNull);
     });
   });
 
@@ -157,10 +204,13 @@ void main() {
       ).build();
       switch (result) {
         case Ok(:final value):
-          expect(value.words, hasLength(9));
-          expect(value.version['textLicense'], 'CC-BY-3.0');
-          expect(value.version['textNotice'], contains('Tanzil'));
-          expect(value.version['canonSha256'], isNotEmpty);
+          expect(value.text.wordCount, 9);
+          expect(value.layout.words, hasLength(9));
+          expect(value.text.surahs.last.revelation, 'madinah');
+          expect(value.text.ayahs.first.juz, 1);
+          expect(value.text.version['textLicense'], 'CC-BY-3.0');
+          expect(value.text.version['textNotice'], contains('Tanzil'));
+          expect(value.text.version['canonSha256'], isNotEmpty);
         case Error(:final error):
           fail('build failed: $error');
       }
@@ -200,7 +250,7 @@ void main() {
         fetcher: fetcher,
         logger: Logger('test'),
       ).build();
-      expect(result, isA<Error<ContentData>>());
+      expect(result, isA<Error<ContentBuild>>());
     });
   });
 }

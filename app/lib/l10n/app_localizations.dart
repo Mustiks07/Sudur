@@ -143,6 +143,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This section is being prepared'**
   String get sectionComingSoon;
+
+  /// No description provided for @prototypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah 78 prototype'**
+  String get prototypeTitle;
+
+  /// No description provided for @prototypePreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing the verified model, Mushaf pages, and fonts'**
+  String get prototypePreparing;
+
+  /// No description provided for @prototypeDownloadProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading {resource}: {percent}%'**
+  String prototypeDownloadProgress(String resource, int percent);
+
+  /// No description provided for @prototypeRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get prototypeRetry;
+
+  /// No description provided for @prototypeError.
+  ///
+  /// In en, this message translates to:
+  /// **'The prototype could not be prepared. Check the connection and try again.'**
+  String get prototypeError;
+
+  /// No description provided for @prototypeModelSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Small model'**
+  String get prototypeModelSmall;
+
+  /// No description provided for @prototypeModelTiny.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiny model'**
+  String get prototypeModelTiny;
+
+  /// No description provided for @prototypePhoneTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone test'**
+  String get prototypePhoneTest;
+
+  /// No description provided for @prototypePhoneTesting.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing…'**
+  String get prototypePhoneTesting;
+
+  /// No description provided for @prototypePhoneResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed ratio: {ratio}; decode: {decodeMs} ms'**
+  String prototypePhoneResult(String ratio, int decodeMs);
+
+  /// No description provided for @prototypeChooseWav.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose WAV'**
+  String get prototypeChooseWav;
+
+  /// No description provided for @prototypeUseMicrophone.
+  ///
+  /// In en, this message translates to:
+  /// **'Use microphone'**
+  String get prototypeUseMicrophone;
+
+  /// No description provided for @prototypeWavSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement input: {fileName}'**
+  String prototypeWavSelected(String fileName);
+
+  /// No description provided for @prototypeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get prototypeStart;
+
+  /// No description provided for @prototypePause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get prototypePause;
+
+  /// No description provided for @prototypeResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get prototypeResume;
+
+  /// No description provided for @prototypeStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get prototypeStop;
+
+  /// No description provided for @prototypeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hint'**
+  String get prototypeHint;
+
+  /// No description provided for @prototypeShareLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Share log'**
+  String get prototypeShareLog;
+
+  /// No description provided for @prototypeMockNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'S05 is not merged yet: the screen uses a scripted session. WAV mode and the real microphone pipeline will connect through ADR 0005.'**
+  String get prototypeMockNotice;
+
+  /// No description provided for @mushafAyahSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah {surah}, ayah {ayah}. {text}'**
+  String mushafAyahSemantics(int surah, int ayah, String text);
 }
 
 class _AppLocalizationsDelegate

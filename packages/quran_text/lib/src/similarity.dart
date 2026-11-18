@@ -34,3 +34,53 @@ double similarity(String a, String b) {
   if (longest == 0) return 1;
   return 1 - levenshtein(a, b) / longest;
 }
+
+/// The most edits two words may differ by when the longer has [longer]
+/// code points and their similarity must be at least [minSimilarity].
+///
+/// It is the largest `d` with `1 − d / longer ≥ minSimilarity` — tested
+/// with the same expression [similarity] uses, so the bound and the
+/// similarity agree exactly at the boundary. `((1 − min) × longer).floor()`
+/// alone is not enough: `(1 − 0.8) × 5` is `0.9999999999999998` in floating
+/// point, which would forbid the one edit a 5-letter word may have at 0.8.
+int maxEditsFor(int longer, double minSimilarity) {
+  if (longer <= 0) return 0;
+  var d = ((1 - minSimilarity) * longer).floor().clamp(0, longer);
+  while (d < longer && 1 - (d + 1) / longer >= minSimilarity) {
+    d++;
+  }
+  while (d > 0 && 1 - d / longer < minSimilarity) {
+    d--;
+  }
+  return d;
+}
+
+/// Levenshtein distance between code point lists [a] and [b] if it is at
+/// most [maxDistance], else `null`. Stops as soon as every cell of a row
+/// exceeds the bound, so dissimilar words cost little.
+int? boundedLevenshtein(List<int> a, List<int> b, int maxDistance) {
+  if ((a.length - b.length).abs() > maxDistance) return null;
+  if (a.isEmpty) return b.length;
+  if (b.isEmpty) return a.length;
+  var previous = List<int>.generate(b.length + 1, (j) => j);
+  var current = List<int>.filled(b.length + 1, 0);
+  for (var i = 1; i <= a.length; i++) {
+    current[0] = i;
+    var rowMin = current[0];
+    for (var j = 1; j <= b.length; j++) {
+      final substitution = previous[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1);
+      final deletion = previous[j] + 1;
+      final insertion = current[j - 1] + 1;
+      var best = substitution < deletion ? substitution : deletion;
+      if (insertion < best) best = insertion;
+      current[j] = best;
+      if (best < rowMin) rowMin = best;
+    }
+    if (rowMin > maxDistance) return null;
+    final swap = previous;
+    previous = current;
+    current = swap;
+  }
+  final d = previous[b.length];
+  return d <= maxDistance ? d : null;
+}
