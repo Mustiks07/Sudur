@@ -40,13 +40,13 @@
 | [S03 — следование и поиск по всему Корану](S03-follow-quran.md) | Opus | `opus/s03-follow-quran` | Слита (PR №21) |
 | [PL01 — план повторений и занятие на сегодня](PL01-planner.md) | GPT-A | `gpt-a/pl01-planner` | Слита (PR №16) |
 | [K01 — движок уроков](K01-lessons.md) | Opus | `opus/k01-lessons` | Слита (PR №17) |
+| [O05 — пакеты содержания и загрузки](O05-content.md) | Opus | `opus/o05-content` | Открыта |
 | [S05 — сессия чтения v0 (+ ADR 0005)](S05-session.md) | GPT-B | `gpt-b/adr-0005-session-contract`, `gpt-b/s05-session` | ADR 0005 слит (PR №18); S05 — PR №19, третьи правки у GPT-B (двойной Stop) |
 
 Следующие без задач (распишу, когда освободятся агенты):
 
 | Задача | Агент |
 |---|---|
-| `content` — манифест и загрузки (О-05) | GPT-A или GPT-B |
 
 ## Формат задачи
 
