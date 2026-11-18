@@ -7,10 +7,14 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
+  archive: 4.0.7
+  collection: 1.19.1
   contracts:
     path: ../contracts
+  drift: 2.31.0
   flutter:
     sdk: flutter
+  meta: 1.19.0
 
 dev_dependencies:
   flutter_test:
