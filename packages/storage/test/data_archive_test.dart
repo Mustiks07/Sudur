@@ -162,7 +162,7 @@ Future<void> _seedEveryRepository(StorageService storage) async {
     await storage.lessons.put(
       const (
         lessonId: 'lesson-1',
-        state: LessonState.completed,
+        state: LessonState.passed,
         stepIndex: 3,
         quizPercent: 100,
         contentVersion: '1',

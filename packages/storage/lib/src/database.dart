@@ -91,8 +91,8 @@ enum AttemptOutcome {
 /// FSRS rating supplied after an attempt.
 enum AttemptRating { again, hard, good, easy }
 
-/// Lesson progress state.
-enum LessonState { locked, available, inProgress, completed }
+/// Lesson progress state (docs/tz section 11.2).
+enum LessonState { locked, available, inProgress, quiz, passed, failed }
 
 /// Downloadable package kind.
 enum DownloadKind {

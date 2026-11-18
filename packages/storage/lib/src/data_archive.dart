@@ -364,7 +364,9 @@ const _lessonStates = <String>{
   'locked',
   'available',
   'inProgress',
-  'completed',
+  'quiz',
+  'passed',
+  'failed',
 };
 const _downloadKinds = <String>{
   'text',

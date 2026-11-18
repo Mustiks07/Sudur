@@ -13,6 +13,26 @@ void main() {
 
   tearDown(() => storage.close());
 
+  test('lesson repository round-trips every state from spec 11.2', () async {
+    for (final (index, state) in LessonState.values.indexed) {
+      unwrap(
+        await storage.lessons.put(
+          (
+            lessonId: 'lesson-$index',
+            state: state,
+            stepIndex: index,
+            quizPercent: index * 10,
+            contentVersion: '1',
+            updatedAt: 1000 + index,
+          ),
+        ),
+      );
+    }
+
+    final saved = unwrap(await storage.lessons.list());
+    expect(saved.map((progress) => progress.state).toSet(), LessonState.values);
+  });
+
   test('all repositories persist and read their schema-v1 entities', () async {
     final profiles = storage.profiles;
     final units = storage.units;

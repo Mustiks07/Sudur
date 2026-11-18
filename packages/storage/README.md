@@ -26,17 +26,27 @@
 1. изменить таблицы и увеличить `schemaVersion` ровно на один;
 2. добавить явный шаг `onUpgrade` для каждой предыдущей версии;
 3. сгенерировать `database.g.dart` и новый снимок командой
-   `dart run drift_dev schema dump lib/src/database.dart drift_schemas/`;
+   `tool/drift_generator/generate.sh --write`;
 4. не менять старые снимки;
 5. добавить миграционные тесты с каждого прежнего снимка до текущей версии и
    проверить сохранность данных.
 
-Сейчас workspace удерживает `sqlite3 2.x` через `tools/content_build`, а
-совместимый с общим analyzer новый `drift_dev` требует `sqlite3 3.x`. Поэтому
-runtime закреплён на drift 2.31, а генерация v1 выполнена в отдельном временном
-pub-окружении с `drift_dev 2.31.0` и `build_runner 2.10.4`. После общего
-перехода workspace на sqlite3 3.x генератор следует вернуть в
-`dev_dependencies` пакета.
+Воспроизводимый изолированный проект генератора лежит в
+`tool/drift_generator/`. Он закрепляет прямые и транзитивные зависимости через
+`pubspec.yaml` и `pubspec.lock`, копирует только необходимые исходники во
+временный каталог, запускает `build_runner` и `drift_dev`, а затем либо пишет
+результаты (`--write`), либо сравнивает их байт-в-байт с репозиторием
+(`--check`). Обычная проверка перед PR:
+
+```sh
+packages/storage/tool/drift_generator/generate.sh --check
+git diff --exit-code -- \
+  packages/storage/lib/src/database.g.dart \
+  packages/storage/drift_schemas/drift_schema_v1.json
+```
+
+Генератор изолирован, чтобы его analyzer/build-зависимости не меняли версии
+runtime-пакетов общего workspace.
 
 ## Резервная копия
 
@@ -56,6 +66,8 @@ pub-окружении с `drift_dev 2.31.0` и `build_runner 2.10.4`. Посл�
 - `archive` 4.0.7 (MIT) — zip для выгрузки и загрузки данных;
 - `collection` 1.19.1 (BSD-3-Clause) — сравнение неизменяемых JSON-значений;
 - `meta` 1.19.0 (BSD-3-Clause) — аннотации неизменяемости.
+- `drift_dev` 2.31.0 (MIT, только генератор) — генерация drift-кода и снимка;
+- `build_runner` 2.10.4 (BSD-3-Clause, только генератор) — запуск builder.
 
 ## Проверка
 
