@@ -1,3 +1,5 @@
+import 'package:contracts/src/session_audio.dart';
+import 'package:contracts/src/session_commands.dart';
 import 'package:contracts/src/versions.dart';
 import 'package:contracts/src/word_key.dart';
 import 'package:meta/meta.dart';
@@ -196,7 +198,7 @@ enum SignalQualityLevel {
 /// The signal level changed (docs/tz 4.5). Emitted by `audio_capture` when
 /// the level differs from the previous one. While the level is not `ok`,
 /// `check` leaves candidates there `unverified` (docs/tz 10.5).
-final class SignalQuality extends SessionEvent {
+final class SignalQuality extends SessionEvent implements SessionAudioEvent {
   /// Creates a signal quality event.
   const SignalQuality({
     required super.sessionId,
@@ -220,4 +222,130 @@ final class SignalQuality extends SessionEvent {
 
   /// Share of samples at the limit in the window.
   final double? clippedRatio;
+}
+
+/// A reading session was prepared and started.
+final class SessionStarted extends SessionEvent {
+  /// Creates a session-started event.
+  const SessionStarted({
+    required super.sessionId,
+    required super.atMs,
+    required this.fromWordKey,
+    required this.toWordKey,
+    required this.mode,
+    required this.versions,
+  });
+
+  /// First word in the session, inclusive.
+  final WordKey fromWordKey;
+
+  /// Last word in the session, inclusive.
+  final WordKey toWordKey;
+
+  /// Reading mode selected for the session.
+  final SessionMode mode;
+
+  /// Model, rules and text versions used by the session.
+  final ReadingVersions versions;
+}
+
+/// A requested hint was applied.
+final class HintGiven extends SessionEvent {
+  /// Creates a hint event.
+  const HintGiven({
+    required super.sessionId,
+    required super.atMs,
+    required this.kind,
+    required this.wordKey,
+  });
+
+  /// Kind of hint that was applied.
+  final HintKind kind;
+
+  /// First word affected by the hint.
+  final WordKey wordKey;
+}
+
+/// A check event moved to another state.
+final class CheckStateChanged extends SessionEvent {
+  /// Creates a check-state event.
+  const CheckStateChanged({
+    required super.sessionId,
+    required super.atMs,
+    required this.eventId,
+    required this.from,
+    required this.to,
+    required this.reason,
+  });
+
+  /// Check event whose state changed.
+  final String eventId;
+
+  /// Previous state.
+  final CheckState from;
+
+  /// New state.
+  final CheckState to;
+
+  /// Stable machine-readable reason for the transition.
+  final String reason;
+}
+
+/// Result of one word when a session finishes (docs/tz section 10.6).
+enum SessionWordOutcome {
+  /// The word was read without a recorded mistake or hint.
+  read,
+
+  /// The word was revealed or completed with a hint.
+  readWithHint,
+
+  /// A mistake affecting the word remained confirmed.
+  error,
+
+  /// The reader corrected a preliminary mistake.
+  corrected,
+
+  /// Audio or context was insufficient to check the word.
+  unverified,
+
+  /// The reader stopped before reaching the word; this is not a mistake.
+  notRead,
+}
+
+/// Final result for one word in the requested range.
+@immutable
+final class SessionWordResult {
+  /// Creates a word result.
+  const SessionWordResult({required this.wordKey, required this.outcome});
+
+  /// Word this result belongs to.
+  final WordKey wordKey;
+
+  /// Final outcome of the word.
+  final SessionWordOutcome outcome;
+}
+
+/// Final aggregate emitted after the session reaches `finished`.
+final class SessionFinished extends SessionEvent {
+  /// Creates a session-finished event.
+  const SessionFinished({
+    required super.sessionId,
+    required super.atMs,
+    required this.words,
+    required this.eventIds,
+    required this.durationMs,
+    required this.audioWasSuitable,
+  });
+
+  /// Exactly one result for every word in the requested range.
+  final List<SessionWordResult> words;
+
+  /// Check events produced during the session.
+  final List<String> eventIds;
+
+  /// Session duration in milliseconds.
+  final int durationMs;
+
+  /// Whether captured audio was suitable for checking.
+  final bool audioWasSuitable;
 }

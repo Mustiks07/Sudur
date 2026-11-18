@@ -8,6 +8,8 @@ export 'src/alignment.dart';
 export 'src/recognition.dart';
 export 'src/result.dart';
 export 'src/search_key.dart';
+export 'src/session_audio.dart';
+export 'src/session_commands.dart';
 export 'src/session_events.dart';
 export 'src/versions.dart';
 export 'src/word_key.dart';
