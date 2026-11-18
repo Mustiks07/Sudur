@@ -1,0 +1,16 @@
+diff --git a/packages/planner/test/learning_recovery_memory_test.dart b/packages/planner/test/learning_recovery_memory_test.dart
+index b17c0c6..5b0605c 100644
+--- a/packages/planner/test/learning_recovery_memory_test.dart
++++ b/packages/planner/test/learning_recovery_memory_test.dart
+@@ -7,6 +7,11 @@ import 'package:test/test.dart';
+ import 'test_helpers.dart';
+ 
+ void main() {
++  test('review: unverified first attempt is not independent', () {
++    final unit = passage(id: 'u', history: [record(attempt: attempt(unitId: 'u', result: AttemptResult.unableToVerify))]);
++    expect(_memory(unit), isNot(MemoryState.independent));
++  });
++
+   late PlannerEngine engine;
+ 
+   setUp(() {

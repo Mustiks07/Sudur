@@ -184,6 +184,7 @@ JSON с параметрами из 12.4, кроме порогов модели
 | Параметр | По умолчанию | Где |
 |---|---|---|
 | `quizPassPercent` | 80 | УЧ-04 |
+| `skillReviewQuestions` | 3 | 11.2 (повторение навыка) |
 | `listenRepeatPauseFactor` | 1,2 | АУ-06 |
 | `freeVoiceMinutesPerDay` | 10 | 11.6 |
 | `trialDays` | 7 | 11.6 |
