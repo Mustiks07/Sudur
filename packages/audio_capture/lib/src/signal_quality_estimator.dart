@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:audio_capture/src/audio_capture_config.dart';
-import 'package:audio_capture/src/audio_capture_event.dart';
+import 'package:contracts/contracts.dart';
 
 /// One complete signal-quality window.
 final class SignalQualityReading {
@@ -12,6 +12,7 @@ final class SignalQualityReading {
     required this.dbfs,
     required this.clippedRatio,
     required this.endSample,
+    required this.sinceSample,
   });
 
   /// Classified condition.
@@ -25,6 +26,11 @@ final class SignalQualityReading {
 
   /// Absolute end sample of this window.
   final int endSample;
+
+  /// Absolute beginning of the bad stretch.
+  ///
+  /// Null for [SignalQualityLevel.ok].
+  final int? sinceSample;
 }
 
 /// Streaming RMS, clipping, quiet-speech, and non-speech-noise estimator.
@@ -117,11 +123,20 @@ final class SignalQualityEstimator {
             : _noisyHoldMs >= _config.signalHoldMs
                 ? SignalQualityLevel.noisy
                 : SignalQualityLevel.ok;
+    final sinceSample = switch (level) {
+      SignalQualityLevel.clipping => _processedSamples - _windowSamples,
+      SignalQualityLevel.tooQuiet =>
+        _processedSamples - _msToSamples(_quietHoldMs),
+      SignalQualityLevel.noisy =>
+        _processedSamples - _msToSamples(_noisyHoldMs),
+      SignalQualityLevel.ok => null,
+    };
     final reading = SignalQualityReading(
       level: level,
       dbfs: dbfs,
       clippedRatio: clippedRatio,
       endSample: _processedSamples,
+      sinceSample: sinceSample,
     );
     _windowSamples = 0;
     _windowSquareSum = 0;
@@ -140,4 +155,7 @@ final class SignalQualityEstimator {
     final rms = math.sqrt(squareSum / count);
     return 20 * math.log(rms) / math.ln10;
   }
+
+  int _msToSamples(int milliseconds) =>
+      _config.sampleRate * milliseconds ~/ 1000;
 }

@@ -1,20 +1,5 @@
 import 'dart:typed_data';
 
-/// Signal condition measured over the configured quality window.
-enum SignalQualityLevel {
-  /// Signal can be checked.
-  ok,
-
-  /// Speech stayed below the configured level.
-  tooQuiet,
-
-  /// Too many samples reached the PCM limit.
-  clipping,
-
-  /// Non-speech level stayed above the configured limit.
-  noisy,
-}
-
 /// Why capture was paused.
 enum CapturePauseReason {
   /// A call or another application interrupted the recorder.
@@ -132,26 +117,6 @@ final class SpeechSegmentReady extends AudioCaptureEvent {
 
   /// Silence since the previous segment's unpadded speech end.
   final int pauseBeforeMs;
-}
-
-/// A signal-quality measurement.
-final class SignalQualityChanged extends AudioCaptureEvent {
-  /// Creates a quality event.
-  const SignalQualityChanged({
-    required super.atMs,
-    required this.level,
-    required this.dbfs,
-    required this.clippedRatio,
-  });
-
-  /// Classified quality.
-  final SignalQualityLevel level;
-
-  /// RMS level for the full quality window.
-  final double dbfs;
-
-  /// Fraction of saturated samples.
-  final double clippedRatio;
 }
 
 /// Capture paused because of a system or playback event.

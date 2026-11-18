@@ -11,6 +11,7 @@ import 'package:audio_capture/src/audio_pipeline.dart';
 import 'package:audio_capture/src/frame_accumulator.dart';
 import 'package:audio_capture/src/pcm16_converter.dart';
 import 'package:audio_capture/src/vad_queue.dart';
+import 'package:contracts/contracts.dart';
 import 'package:crypto/crypto.dart';
 import 'package:sherpa_onnx/sherpa_onnx.dart' as sherpa;
 
@@ -199,10 +200,14 @@ final class _AudioWorker {
     for (final reading in output.qualityReadings) {
       if (reading.level != _lastQuality) {
         _lastQuality = reading.level;
+        final sinceSample = reading.sinceSample;
         _event(<String, Object?>{
           'kind': 'quality',
           'atMs': _samplesToMs(reading.endSample, config.sampleRate),
           'level': reading.level.name,
+          'sinceMs': sinceSample == null
+              ? null
+              : _samplesToMs(sinceSample, config.sampleRate),
           'dbfs': reading.dbfs,
           'clippedRatio': reading.clippedRatio,
         });
