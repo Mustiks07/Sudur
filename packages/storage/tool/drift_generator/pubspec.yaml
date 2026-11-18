@@ -1,0 +1,10 @@
+name: sudur_storage_codegen_workspace
+description: Reproducible isolated workspace for storage drift generation.
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+workspace:
+  - packages/contracts
+  - packages/storage
