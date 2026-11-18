@@ -1,0 +1,374 @@
+{
+  "recordingId": "r04-substitutions",
+  "speaker": {
+    "id": "p4",
+    "nativeLanguage": "kk",
+    "gender": "m"
+  },
+  "conditions": {
+    "device": "budget-android",
+    "noise": "noisy"
+  },
+  "expected": {
+    "from": "78:16:1",
+    "to": "78:30:5"
+  },
+  "words": [
+    {
+      "wordKey": "78:16:1",
+      "status": "correct",
+      "startMs": 0,
+      "endMs": 400
+    },
+    {
+      "wordKey": "78:16:2",
+      "status": "correct",
+      "startMs": 400,
+      "endMs": 800
+    },
+    {
+      "wordKey": "78:17:1",
+      "status": "correct",
+      "startMs": 1600,
+      "endMs": 2000
+    },
+    {
+      "wordKey": "78:17:2",
+      "status": "correct",
+      "startMs": 2000,
+      "endMs": 2400
+    },
+    {
+      "wordKey": "78:17:3",
+      "status": "correct",
+      "startMs": 2400,
+      "endMs": 2800
+    },
+    {
+      "wordKey": "78:17:4",
+      "status": "correct",
+      "startMs": 2800,
+      "endMs": 3200
+    },
+    {
+      "wordKey": "78:17:5",
+      "status": "substituted",
+      "heard": "عم",
+      "startMs": 3200,
+      "endMs": 3600
+    },
+    {
+      "wordKey": "78:18:1",
+      "status": "correct",
+      "startMs": 4400,
+      "endMs": 4800
+    },
+    {
+      "wordKey": "78:18:2",
+      "status": "correct",
+      "startMs": 4800,
+      "endMs": 5200
+    },
+    {
+      "wordKey": "78:18:3",
+      "status": "correct",
+      "startMs": 5200,
+      "endMs": 5600
+    },
+    {
+      "wordKey": "78:18:4",
+      "status": "correct",
+      "startMs": 5600,
+      "endMs": 6000
+    },
+    {
+      "wordKey": "78:18:5",
+      "status": "correct",
+      "startMs": 6000,
+      "endMs": 6400
+    },
+    {
+      "wordKey": "78:18:6",
+      "status": "correct",
+      "startMs": 6400,
+      "endMs": 6800
+    },
+    {
+      "wordKey": "78:19:1",
+      "status": "correct",
+      "startMs": 7600,
+      "endMs": 8000
+    },
+    {
+      "wordKey": "78:19:2",
+      "status": "correct",
+      "startMs": 8000,
+      "endMs": 8400
+    },
+    {
+      "wordKey": "78:19:3",
+      "status": "correct",
+      "startMs": 8400,
+      "endMs": 8800
+    },
+    {
+      "wordKey": "78:19:4",
+      "status": "correct",
+      "startMs": 8800,
+      "endMs": 9200
+    },
+    {
+      "wordKey": "78:20:1",
+      "status": "correct",
+      "startMs": 10000,
+      "endMs": 10400
+    },
+    {
+      "wordKey": "78:20:2",
+      "status": "correct",
+      "startMs": 10400,
+      "endMs": 10800
+    },
+    {
+      "wordKey": "78:20:3",
+      "status": "correct",
+      "startMs": 10800,
+      "endMs": 11200
+    },
+    {
+      "wordKey": "78:20:4",
+      "status": "correct",
+      "startMs": 11200,
+      "endMs": 11600
+    },
+    {
+      "wordKey": "78:21:1",
+      "status": "correct",
+      "startMs": 12400,
+      "endMs": 12800
+    },
+    {
+      "wordKey": "78:21:2",
+      "status": "correct",
+      "startMs": 12800,
+      "endMs": 13200
+    },
+    {
+      "wordKey": "78:21:3",
+      "status": "correct",
+      "startMs": 13200,
+      "endMs": 13600
+    },
+    {
+      "wordKey": "78:21:4",
+      "status": "correct",
+      "startMs": 13600,
+      "endMs": 14000
+    },
+    {
+      "wordKey": "78:22:1",
+      "status": "substituted",
+      "heard": "عم",
+      "startMs": 14800,
+      "endMs": 15200
+    },
+    {
+      "wordKey": "78:22:2",
+      "status": "correct",
+      "startMs": 15200,
+      "endMs": 15600
+    },
+    {
+      "wordKey": "78:23:1",
+      "status": "correct",
+      "startMs": 16400,
+      "endMs": 16800
+    },
+    {
+      "wordKey": "78:23:2",
+      "status": "correct",
+      "startMs": 16800,
+      "endMs": 17200
+    },
+    {
+      "wordKey": "78:23:3",
+      "status": "correct",
+      "startMs": 17200,
+      "endMs": 17600
+    },
+    {
+      "wordKey": "78:24:1",
+      "status": "correct",
+      "startMs": 18400,
+      "endMs": 18800
+    },
+    {
+      "wordKey": "78:24:2",
+      "status": "correct",
+      "startMs": 18800,
+      "endMs": 19200
+    },
+    {
+      "wordKey": "78:24:3",
+      "status": "correct",
+      "startMs": 19200,
+      "endMs": 19600
+    },
+    {
+      "wordKey": "78:24:4",
+      "status": "correct",
+      "startMs": 19600,
+      "endMs": 20000
+    },
+    {
+      "wordKey": "78:24:5",
+      "status": "correct",
+      "startMs": 20000,
+      "endMs": 20400
+    },
+    {
+      "wordKey": "78:24:6",
+      "status": "correct",
+      "startMs": 20400,
+      "endMs": 20800
+    },
+    {
+      "wordKey": "78:25:1",
+      "status": "correct",
+      "startMs": 21600,
+      "endMs": 22000
+    },
+    {
+      "wordKey": "78:25:2",
+      "status": "correct",
+      "startMs": 22000,
+      "endMs": 22400
+    },
+    {
+      "wordKey": "78:25:3",
+      "status": "correct",
+      "startMs": 22400,
+      "endMs": 22800
+    },
+    {
+      "wordKey": "78:26:1",
+      "status": "correct",
+      "startMs": 23600,
+      "endMs": 24000
+    },
+    {
+      "wordKey": "78:26:2",
+      "status": "substituted",
+      "heard": "وءامنوا",
+      "startMs": 24000,
+      "endMs": 24400
+    },
+    {
+      "wordKey": "78:27:1",
+      "status": "correct",
+      "startMs": 25200,
+      "endMs": 25600
+    },
+    {
+      "wordKey": "78:27:2",
+      "status": "correct",
+      "startMs": 25600,
+      "endMs": 26000
+    },
+    {
+      "wordKey": "78:27:3",
+      "status": "correct",
+      "startMs": 26000,
+      "endMs": 26400
+    },
+    {
+      "wordKey": "78:27:4",
+      "status": "correct",
+      "startMs": 26400,
+      "endMs": 26800
+    },
+    {
+      "wordKey": "78:27:5",
+      "status": "correct",
+      "startMs": 26800,
+      "endMs": 27200
+    },
+    {
+      "wordKey": "78:28:1",
+      "status": "correct",
+      "startMs": 28000,
+      "endMs": 28400
+    },
+    {
+      "wordKey": "78:28:2",
+      "status": "correct",
+      "startMs": 28400,
+      "endMs": 28800
+    },
+    {
+      "wordKey": "78:28:3",
+      "status": "correct",
+      "startMs": 28800,
+      "endMs": 29200
+    },
+    {
+      "wordKey": "78:29:1",
+      "status": "correct",
+      "startMs": 30000,
+      "endMs": 30400
+    },
+    {
+      "wordKey": "78:29:2",
+      "status": "correct",
+      "startMs": 30400,
+      "endMs": 30800
+    },
+    {
+      "wordKey": "78:29:3",
+      "status": "correct",
+      "startMs": 30800,
+      "endMs": 31200
+    },
+    {
+      "wordKey": "78:29:4",
+      "status": "correct",
+      "startMs": 31200,
+      "endMs": 31600
+    },
+    {
+      "wordKey": "78:30:1",
+      "status": "correct",
+      "startMs": 32400,
+      "endMs": 32800
+    },
+    {
+      "wordKey": "78:30:2",
+      "status": "correct",
+      "startMs": 32800,
+      "endMs": 33200
+    },
+    {
+      "wordKey": "78:30:3",
+      "status": "correct",
+      "startMs": 33200,
+      "endMs": 33600
+    },
+    {
+      "wordKey": "78:30:4",
+      "status": "correct",
+      "startMs": 33600,
+      "endMs": 34000
+    },
+    {
+      "wordKey": "78:30:5",
+      "status": "correct",
+      "startMs": 34000,
+      "endMs": 34400
+    }
+  ],
+  "insertions": [],
+  "jumps": [],
+  "annotators": [
+    "synthetic"
+  ]
+}

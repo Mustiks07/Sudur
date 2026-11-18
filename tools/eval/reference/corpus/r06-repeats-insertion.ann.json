@@ -1,0 +1,180 @@
+{
+  "recordingId": "r06-repeats-insertion",
+  "speaker": {
+    "id": "p6",
+    "nativeLanguage": "kk",
+    "gender": "m"
+  },
+  "conditions": {
+    "device": "budget-android",
+    "noise": "noisy"
+  },
+  "expected": {
+    "from": "79:1:1",
+    "to": "79:10:5"
+  },
+  "words": [
+    {
+      "wordKey": "79:1:1",
+      "status": "correct",
+      "startMs": 0,
+      "endMs": 400
+    },
+    {
+      "wordKey": "79:1:2",
+      "status": "correct",
+      "startMs": 400,
+      "endMs": 800
+    },
+    {
+      "wordKey": "79:2:1",
+      "status": "correct",
+      "startMs": 1600,
+      "endMs": 2000
+    },
+    {
+      "wordKey": "79:2:2",
+      "status": "correct",
+      "startMs": 2000,
+      "endMs": 2400
+    },
+    {
+      "wordKey": "79:3:1",
+      "status": "correct",
+      "startMs": 3200,
+      "endMs": 3600
+    },
+    {
+      "wordKey": "79:3:2",
+      "status": "repeated",
+      "startMs": 3600,
+      "endMs": 4000
+    },
+    {
+      "wordKey": "79:4:1",
+      "status": "correct",
+      "startMs": 5600,
+      "endMs": 6000
+    },
+    {
+      "wordKey": "79:4:2",
+      "status": "correct",
+      "startMs": 6000,
+      "endMs": 6400
+    },
+    {
+      "wordKey": "79:5:1",
+      "status": "correct",
+      "startMs": 7200,
+      "endMs": 7600
+    },
+    {
+      "wordKey": "79:5:2",
+      "status": "correct",
+      "startMs": 7600,
+      "endMs": 8000
+    },
+    {
+      "wordKey": "79:6:1",
+      "status": "correct",
+      "startMs": 8800,
+      "endMs": 9200
+    },
+    {
+      "wordKey": "79:6:2",
+      "status": "correct",
+      "startMs": 9200,
+      "endMs": 9600
+    },
+    {
+      "wordKey": "79:6:3",
+      "status": "correct",
+      "startMs": 9600,
+      "endMs": 10000
+    },
+    {
+      "wordKey": "79:7:1",
+      "status": "correct",
+      "startMs": 11200,
+      "endMs": 11600
+    },
+    {
+      "wordKey": "79:7:2",
+      "status": "correct",
+      "startMs": 11600,
+      "endMs": 12000
+    },
+    {
+      "wordKey": "79:8:1",
+      "status": "correct",
+      "startMs": 12800,
+      "endMs": 13200
+    },
+    {
+      "wordKey": "79:8:2",
+      "status": "correct",
+      "startMs": 13200,
+      "endMs": 13600
+    },
+    {
+      "wordKey": "79:8:3",
+      "status": "correct",
+      "startMs": 13600,
+      "endMs": 14000
+    },
+    {
+      "wordKey": "79:9:1",
+      "status": "correct",
+      "startMs": 14800,
+      "endMs": 15200
+    },
+    {
+      "wordKey": "79:9:2",
+      "status": "correct",
+      "startMs": 15200,
+      "endMs": 15600
+    },
+    {
+      "wordKey": "79:10:1",
+      "status": "correct",
+      "startMs": 16400,
+      "endMs": 16800
+    },
+    {
+      "wordKey": "79:10:2",
+      "status": "correct",
+      "startMs": 16800,
+      "endMs": 17200
+    },
+    {
+      "wordKey": "79:10:3",
+      "status": "correct",
+      "startMs": 17200,
+      "endMs": 17600
+    },
+    {
+      "wordKey": "79:10:4",
+      "status": "correct",
+      "startMs": 17600,
+      "endMs": 18000
+    },
+    {
+      "wordKey": "79:10:5",
+      "status": "correct",
+      "startMs": 18000,
+      "endMs": 18400
+    }
+  ],
+  "insertions": [
+    {
+      "afterWordKey": "79:6:3",
+      "heard": "عم",
+      "startMs": 10000,
+      "endMs": 10400
+    }
+  ],
+  "jumps": [],
+  "annotators": [
+    "synthetic"
+  ]
+}
