@@ -1,36 +1,25 @@
+import 'package:check/check.dart';
 import 'package:contracts/contracts.dart';
 import 'package:eval/src/annotation.dart';
 import 'package:meta/meta.dart';
 
 /// The self-correction window of check (docs/tz 12.4: `selfCorrectionMs`,
-/// `selfCorrectionWords`), read from the model's `thresholds.json`.
-/// A correction inside it should have made the event `corrected`; a later
-/// one is a new attempt (docs/tz 10.5).
+/// `selfCorrectionWords`). A correction inside it should have made the
+/// event `corrected`; a later one is a new attempt (docs/tz 10.5).
 @immutable
 final class CorrectionWindow {
   /// Creates a window.
   const CorrectionWindow({required this.words, required this.ms});
 
-  /// Reads `selfCorrectionWords` and `selfCorrectionMs`; missing keys keep
-  /// [defaults].
-  factory CorrectionWindow.fromThresholds(Map<String, Object?> json) =>
-      CorrectionWindow(
-        words: switch (json['selfCorrectionWords']) {
-          null => defaults.words,
-          final int v => v,
-          final v => throw FormatException('Bad selfCorrectionWords', v),
-        },
-        ms: switch (json['selfCorrectionMs']) {
-          null => defaults.ms,
-          final int v => v,
-          final v => throw FormatException('Bad selfCorrectionMs', v),
-        },
+  /// The window [params] check runs with.
+  factory CorrectionWindow.of(CheckParams params) => CorrectionWindow(
+        words: params.selfCorrectionWords,
+        ms: params.selfCorrectionMs,
       );
 
-  /// Built-in values of docs/tz 12.4, the same as check's defaults.
-  static const CorrectionWindow defaults = CorrectionWindow(
-    words: 2,
-    ms: 2500,
+  /// The window of check's built-in parameters.
+  static final CorrectionWindow defaults = CorrectionWindow.of(
+    CheckParams.defaults,
   );
 
   /// Words after the mistake within which a correction counts.
@@ -110,8 +99,9 @@ final class Counts {
     RecordingOutcome outcome, {
     required Set<String> normalNoise,
     required int timeToleranceMs,
-    CorrectionWindow window = CorrectionWindow.defaults,
+    CorrectionWindow? window,
   }) {
+    final within = window ?? CorrectionWindow.defaults;
     final words = {
       for (final w in annotation.words)
         if (w.status != WordStatus.unclear) w.key: w,
@@ -166,7 +156,7 @@ final class Counts {
                 // Corrected outside the window: a new attempt, so the
                 // confirmed mistake stands (docs/tz 10.5).
                 final w when w.status == WordStatus.selfCorrected =>
-                  !window.contains(w),
+                  !within.contains(w),
                 final w => w.isMistake,
               },
             ),
@@ -197,7 +187,7 @@ final class Counts {
     // КЧ-07: only corrections inside the window can be caught as such.
     final selfCorrected = withStatus(
       WordStatus.selfCorrected,
-    ).where(window.contains).toList();
+    ).where(within.contains).toList();
 
     return Counts(
       readCleanly: counts.readCleanly,
