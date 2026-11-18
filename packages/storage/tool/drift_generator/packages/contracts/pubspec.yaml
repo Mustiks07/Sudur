@@ -1,0 +1,9 @@
+name: contracts
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  meta: 1.19.0

@@ -19,20 +19,18 @@ void main() {
       estimator.add(quiet, isSpeech: true).single.level,
       SignalQualityLevel.ok,
     );
-    expect(
-      estimator.add(quiet, isSpeech: true).single.level,
-      SignalQualityLevel.tooQuiet,
-    );
+    final bad = estimator.add(quiet, isSpeech: true).single;
+    expect(bad.level, SignalQualityLevel.tooQuiet);
+    expect(bad.sinceSample, 0);
   });
 
   test('reports clipping immediately', () {
     final estimator = SignalQualityEstimator(config);
     final clipped = Float32List(1000)..fillRange(0, 20, 1);
 
-    expect(
-      estimator.add(clipped, isSpeech: true).single.level,
-      SignalQualityLevel.clipping,
-    );
+    final bad = estimator.add(clipped, isSpeech: true).single;
+    expect(bad.level, SignalQualityLevel.clipping);
+    expect(bad.sinceSample, 0);
   });
 
   test('reports persistent non-speech noise', () {
@@ -44,9 +42,21 @@ void main() {
     estimator
       ..add(noise, isSpeech: false)
       ..add(noise, isSpeech: false);
-    expect(
-      estimator.add(noise, isSpeech: false).single.level,
-      SignalQualityLevel.noisy,
-    );
+    final bad = estimator.add(noise, isSpeech: false).single;
+    expect(bad.level, SignalQualityLevel.noisy);
+    expect(bad.sinceSample, 0);
+  });
+
+  test('reports bad-stretch start on the preserved session timeline', () {
+    final estimator = SignalQualityEstimator(config)..reset(startSample: 5000);
+    final quiet = Float32List.fromList(List<double>.filled(1000, 0.001));
+
+    estimator
+      ..add(quiet, isSpeech: true)
+      ..add(quiet, isSpeech: true);
+    final bad = estimator.add(quiet, isSpeech: true).single;
+
+    expect(bad.endSample, 8000);
+    expect(bad.sinceSample, 5000);
   });
 }

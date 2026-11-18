@@ -1,0 +1,20 @@
+diff --git a/packages/lessons/test/lesson_states_test.dart b/packages/lessons/test/lesson_states_test.dart
+index ded6433..0a3ef48 100644
+--- a/packages/lessons/test/lesson_states_test.dart
++++ b/packages/lessons/test/lesson_states_test.dart
+@@ -12,6 +12,15 @@ LessonProgress progress(String id, LessonState state) => LessonProgress(
+     );
+ 
+ void main() {
++  test('review: stored locked lesson unlocks after predecessor passed', () {
++    final p = fixture();
++    final states = lessonStates(p, {
++      'test-stage1-01': progress('test-stage1-01', LessonState.passed),
++      'test-stage1-02': progress('test-stage1-02', LessonState.locked),
++    }, stageOpen: true);
++    expect(states['test-stage1-02'], LessonState.available);
++  });
++
+   late LessonPackage p;
+   setUpAll(() => p = fixture());
+ 
