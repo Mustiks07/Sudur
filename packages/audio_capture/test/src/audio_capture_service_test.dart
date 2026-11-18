@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('does not request microphone before the UI explanation', () async {
-    final service = AudioCaptureService();
+    final service = AudioCaptureService(sessionId: 'permission-test');
     addTearDown(service.dispose);
 
     final result = await service.startMicrophone(
@@ -31,7 +31,7 @@ void main() {
       if (model == null) {
         return;
       }
-      final service = AudioCaptureService();
+      final service = AudioCaptureService(sessionId: 'vad-test');
       addTearDown(service.dispose);
 
       final result = await service.startFile(

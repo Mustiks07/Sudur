@@ -32,6 +32,7 @@ packages/audio_capture/tool/download_silero_vad.sh
 Перед `startMicrophone` экран обязан показать локализованное объяснение
 разрешения и передать `permissionExplanationShown: true`. Отказ возвращается
 как `Result.error(code: micDenied)`, чтобы экран предложил самопроверку.
+`AudioCaptureService` создаётся с идентификатором текущей сессии.
 
 Пакет предоставляет:
 
@@ -40,7 +41,8 @@ packages/audio_capture/tool/download_silero_vad.sh
   абсолютным временем и `SpeechSegmentClosed` для передачи открытого отрезка
   в `SpeechRecognizer` и частичных результатов;
 - сегменты с pre/post-roll и длительностью паузы;
-- `ok`, `tooQuiet`, `clipping`, `noisy` по настраиваемым порогам;
+- общий `contracts.SignalQuality` с уровнями `ok`, `tooQuiet`, `clipping`,
+  `noisy`; для плохого сигнала `sinceMs` указывает начало измеренного отрезка;
 - только явные in-memory фрагменты через `requestSnippet`;
 - системные паузы через `notifyInterruption` и перезапуск при смене устройства;
 - защиту `setPlaybackActive`, при которой микрофон не подаётся в конвейер;
