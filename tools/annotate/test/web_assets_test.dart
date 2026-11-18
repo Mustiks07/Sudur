@@ -16,6 +16,7 @@ void main() {
     expect(html, isNot(contains('http://')));
     expect(html, isNot(contains('https://')));
     expect(html, contains('src="app.js"'));
+    expect(html, contains('src="validation.js"'));
     expect(html, contains('href="styles.css"'));
   });
 
@@ -35,6 +36,17 @@ void main() {
   test('saved JSON does not extend the annotation schema with UI state', () {
     expect(script, isNot(contains('annotationStatus')));
     expect(script, contains('isStoredAnnotationReady'));
+  });
+
+  test('browser rejects negative timing in edits and loaded annotations',
+      () async {
+    final result = await Process.run(
+      'node',
+      <String>['test/web_validation_regression_test.js'],
+    );
+    final output = '${result.stdout}${result.stderr}';
+
+    expect(result.exitCode, 0, reason: output);
   });
 
   test('all required keyboard actions are wired', () {

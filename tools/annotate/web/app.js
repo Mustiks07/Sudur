@@ -9,6 +9,11 @@ const STATUS_LABELS = {
   repeated: "Повтор",
   unclear: "Неразборчиво",
 };
+const {
+  annotationValueErrors,
+  optionalNonNegativeInteger,
+  validSpan,
+} = globalThis.AnnotationValidation;
 
 const state = {
   directoryHandle: null,
@@ -193,11 +198,15 @@ function annotationState(id) {
   const annotation = state.annotations.get(id);
   if (!annotation) return { key: "none", label: "Нет разметки" };
   if (annotation._loadError) return { key: "error", label: "Ошибка JSON" };
+  if (annotationValueErrors(annotation).length > 0) {
+    return { key: "error", label: "Ошибка значений" };
+  }
   if (isStoredAnnotationReady(annotation)) return { key: "ready", label: "Готово" };
   return { key: "draft", label: "Черновик" };
 }
 
 function isStoredAnnotationReady(annotation) {
+  if (annotationValueErrors(annotation).length > 0) return false;
   const hasMetadata =
     typeof annotation.speaker?.id === "string" && annotation.speaker.id.length > 0 &&
     typeof annotation.speaker?.nativeLanguage === "string" && annotation.speaker.nativeLanguage.length > 0 &&
@@ -213,7 +222,7 @@ function isStoredAnnotationReady(annotation) {
     words[words.length - 1].wordKey === annotation.expected.to;
   return hasMetadata && hasRange && words.every((word) => {
     if (word.status === "omitted") return true;
-    const hasTimes = Number.isInteger(word.startMs) && Number.isInteger(word.endMs);
+    const hasTimes = validSpan(word.startMs, word.endMs);
     if (word.status === "substituted") return hasTimes && typeof word.heard === "string" && word.heard.length > 0;
     if (word.status === "selfCorrected") return hasTimes && Number.isInteger(word.correction?.afterMs);
     return hasTimes;
@@ -329,6 +338,10 @@ async function openRecording(recording) {
     applyRange(expected.from, expected.to, true);
   } else {
     renderWords();
+  }
+  const loadedErrors = annotationValueErrors(state.currentAnnotation);
+  if (loadedErrors.length > 0) {
+    showMessage(`В загруженной разметке есть ошибки: ${loadedErrors.join("; ")}.`, "error");
   }
 }
 
@@ -457,7 +470,7 @@ function applyRange(from = ui.rangeFrom.value.trim(), to = ui.rangeTo.value.trim
 function inferredConfirmed(word) {
   if (word._confirmed === true) return true;
   if (word.status === "omitted") return true;
-  return Number.isInteger(word.startMs) && Number.isInteger(word.endMs);
+  return validSpan(word.startMs, word.endMs);
 }
 
 function renderWords() {
@@ -602,18 +615,16 @@ function setWordStatus(status) {
   }
 }
 
-function numberOrNull(input) {
-  if (input.value.trim() === "") return null;
-  const value = Number(input.value);
-  return Number.isInteger(value) ? value : null;
-}
-
 function applyCurrentDetails() {
   const word = currentWord();
   if (!word) return;
   const status = ui.currentStatus.value;
-  const start = numberOrNull(ui.wordStart);
-  const end = numberOrNull(ui.wordEnd);
+  const start = optionalNonNegativeInteger(ui.wordStart.value);
+  const end = optionalNonNegativeInteger(ui.wordEnd.value);
+  if (status !== "omitted" && (Number.isNaN(start) || Number.isNaN(end))) {
+    showMessage("Начало и конец слова должны быть целыми числами не меньше нуля.", "error");
+    return;
+  }
   if (status !== "omitted" && ((start === null) !== (end === null))) {
     showMessage("Начало и конец слова нужно заполнить вместе.", "error");
     return;
@@ -626,9 +637,14 @@ function applyCurrentDetails() {
     showMessage("Для замены укажите, что было услышано.", "error");
     return;
   }
-  const correctionAfterMs = numberOrNull(ui.correctionAfterMs);
-  if (status === "selfCorrected" && correctionAfterMs === null) {
+  const correctionAfterMs = optionalNonNegativeInteger(ui.correctionAfterMs.value);
+  const correctionAfterWords = optionalNonNegativeInteger(ui.correctionAfterWords.value);
+  if (status === "selfCorrected" && (correctionAfterMs === null || Number.isNaN(correctionAfterMs))) {
     showMessage("Для самоисправления укажите время исправления в миллисекундах.", "error");
+    return;
+  }
+  if (status === "selfCorrected" && Number.isNaN(correctionAfterWords)) {
+    showMessage("Число слов после исправления должно быть целым числом не меньше нуля.", "error");
     return;
   }
   pushUndo();
@@ -647,8 +663,7 @@ function applyCurrentDetails() {
   else delete word.heard;
   if (status === "selfCorrected") {
     word.correction = { afterMs: correctionAfterMs };
-    const afterWords = numberOrNull(ui.correctionAfterWords);
-    if (afterWords !== null) word.correction.afterWords = afterWords;
+    if (correctionAfterWords !== null) word.correction.afterWords = correctionAfterWords;
   } else {
     delete word.correction;
   }
@@ -728,10 +743,6 @@ function openJumpDialog() {
   ui.jumpDialog.showModal();
 }
 
-function validSpan(start, end) {
-  return Number.isInteger(start) && Number.isInteger(end) && start >= 0 && end >= start;
-}
-
 function addInsertion(event) {
   event.preventDefault();
   const word = currentWord();
@@ -809,6 +820,7 @@ function saveErrors(requireComplete) {
   if (!annotation.conditions.noise) errors.push("условия записи");
   if (!annotation.expected.from || !annotation.expected.to || annotation.words.length === 0) errors.push("диапазон слов");
   if (!requireComplete) return errors;
+  errors.push(...annotationValueErrors(annotation));
   const pending = annotation.words.filter((word) => !inferredConfirmed(word));
   if (pending.length > 0) errors.push(`не подтверждено слов: ${pending.length}`);
   const badSubstitution = annotation.words.find((word) => word.status === "substituted" && !word.heard?.trim());
