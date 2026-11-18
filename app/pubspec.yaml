@@ -26,6 +26,8 @@ dependencies:
   provider: 6.1.5+1
   quran_text:
     path: ../packages/quran_text
+  session:
+    path: ../packages/session
 
 dev_dependencies:
   flutter_test:

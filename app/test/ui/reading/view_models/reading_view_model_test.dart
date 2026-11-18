@@ -209,26 +209,42 @@ void main() {
         ..beginPageRender(582)
         ..markPageRendered(582);
       await viewModel.start();
-      sessionFactory.session.emit(
-        const CheckEvent(
-          sessionId: 'test',
-          atMs: 500,
-          eventId: 'event-1',
-          kind: CheckKind.substitution,
-          state: CheckState.confirmed,
-          words: <WordKey>[firstWord],
-          expectedText: 'EXPECTED_SECRET',
-          heardText: 'HEARD_SECRET',
-          audioStartMs: 100,
-          audioEndMs: 450,
-          versions: ReadingVersions(
-            modelId: 'model',
-            modelVersion: '1',
-            rulesVersion: '1',
-            textVersion: '1',
+      sessionFactory.session
+        ..emit(
+          const SessionStarted(
+            sessionId: 'test',
+            atMs: 0,
+            fromWordKey: firstWord,
+            toWordKey: secondWord,
+            mode: SessionMode.recall,
+            versions: ReadingVersions(
+              modelId: 'model',
+              modelVersion: '1',
+              rulesVersion: '1',
+              textVersion: '1',
+            ),
           ),
-        ),
-      );
+        )
+        ..emit(
+          const CheckEvent(
+            sessionId: 'test',
+            atMs: 500,
+            eventId: 'event-1',
+            kind: CheckKind.substitution,
+            state: CheckState.confirmed,
+            words: <WordKey>[firstWord],
+            expectedText: 'EXPECTED_SECRET',
+            heardText: 'HEARD_SECRET',
+            audioStartMs: 100,
+            audioEndMs: 450,
+            versions: ReadingVersions(
+              modelId: 'model',
+              modelVersion: '1',
+              rulesVersion: '1',
+              textVersion: '1',
+            ),
+          ),
+        );
       final json = viewModel.measurementJson;
       final decoded = jsonDecode(json) as Map<String, Object?>;
       final events = switch (decoded['events']) {
@@ -240,7 +256,9 @@ void main() {
       expect(json, isNot(contains('HEARD_SECRET')));
       expect(
         events.whereType<Map<String, Object?>>().any(
-          (event) => event['type'] == 'MushafPageRendered',
+          (event) =>
+              event['type'] == 'SessionStarted' &&
+              event.containsKey('uiAtSessionMs'),
         ),
         isTrue,
       );

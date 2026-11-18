@@ -48,6 +48,7 @@ final class ReadingViewModel extends ChangeNotifier {
   final Map<String, List<WordKey>> _checkWords = <String, List<WordKey>>{};
   PrototypeReadingSession? _session;
   StreamSubscription<SessionEvent>? _events;
+  StreamSubscription<Exception>? _failures;
   PrototypeBundle? _bundle;
   PrototypeMeasurementLog? _measurementLog;
   String? _wavPath;
@@ -193,11 +194,16 @@ final class ReadingViewModel extends ChangeNotifier {
     if (session == null) return;
     final wavPath = _wavPath;
     _measurementLog?.start(usesWav: wavPath != null);
-    await session.configureInput(
-      wavPath == null
-          ? const PrototypeMicrophoneInput()
-          : PrototypeWavInput(wavPath),
-    );
+    try {
+      await session.configureInput(
+        wavPath == null
+            ? const PrototypeMicrophoneInput()
+            : PrototypeWavInput(wavPath),
+      );
+    } on Exception catch (error) {
+      _handleSessionError(error);
+      return;
+    }
     final started = await _execute(
       StartSession(
         fromWordKey: bundle.sessionWords.first,
@@ -213,10 +219,12 @@ final class ReadingViewModel extends ChangeNotifier {
 
   Future<void> _replaceSession(PrototypeBundle bundle) async {
     await _events?.cancel();
+    await _failures?.cancel();
     await _session?.dispose();
-    final session = _sessionFactory.create(bundle.sessionWords);
+    final session = _sessionFactory.create(bundle.sessionConfiguration);
     _session = session;
     _events = session.events.listen(_onEvent);
+    _failures = session.failures.listen(_handleSessionError);
   }
 
   /// Pauses the current session.
@@ -361,6 +369,7 @@ final class ReadingViewModel extends ChangeNotifier {
   void dispose() {
     _disposed = true;
     unawaited(_events?.cancel());
+    unawaited(_failures?.cancel());
     unawaited(_session?.dispose());
     super.dispose();
   }
