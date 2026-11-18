@@ -102,6 +102,34 @@ void main() {
     expect(matches.first.meanCost, greaterThan(0));
   });
 
+  test('findSimilar: a 5-letter word with one wrong letter at 0.8 (boundary)',
+      () {
+    // Regression (Astra, #21): the edit bound was floor((1 − 0.8) × 5) = 0
+    // in floating point, so similarity exactly 0.8 was never found.
+    // A 5-letter key of the canon; one letter replaced by a letter taken
+    // from another canonical key.
+    final start = keys.indexWhere(
+      (k) => k.value.runes.length == 5 && k.value.runes.toSet().length == 5,
+    );
+    final runes = keys[start].value.runes.toList();
+    final other =
+        keys.expand((k) => k.value.runes).firstWhere((r) => !runes.contains(r));
+    final wrong = SearchKey(
+      String.fromCharCodes(
+        [...runes.sublist(0, 2), other, ...runes.sublist(3)],
+      ),
+    );
+    expect(similarity(wrong.value, keys[start].value), 0.8);
+    final query = [wrong, ...keys.sublist(start + 1, start + 3)];
+    final matches = quran.findSimilar(
+      query,
+      normalizer: normalizer.id,
+      minSimilarity: 0.8,
+      maxMeanCost: 0.2,
+    );
+    expect(matches.map((m) => m.start), contains(words[start].key));
+  });
+
   test('findSimilar: a repeated ayah gives several places, best first', () {
     // A 4-word window that occurs more than once in surah 55.
     final surah = [

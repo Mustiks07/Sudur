@@ -208,16 +208,17 @@ final class _Vocabulary {
   /// Distinct keys with similarity of at least [minSimilarity] to [key],
   /// with that similarity.
   ///
-  /// similarity = 1 − distance / longer ≥ min means distance ≤
-  /// (1 − min) × longer: lengths further apart than that are skipped, and
-  /// each comparison stops as soon as the distance is known to exceed it.
+  /// similarity = 1 − distance / longer ≥ min bounds the distance by
+  /// [maxEditsFor] (exact at the boundary): lengths further apart than that
+  /// are skipped, and each comparison stops as soon as the distance is
+  /// known to exceed it.
   Map<String, double> similarTo(String key, double minSimilarity) {
     final runes = key.runes.toList();
     final length = runes.length;
     final result = <String, double>{};
     for (final MapEntry(key: other, value: bucket) in _byLength.entries) {
       final longer = other > length ? other : length;
-      final maxDistance = ((1 - minSimilarity) * longer).floor();
+      final maxDistance = maxEditsFor(longer, minSimilarity);
       if ((other - length).abs() > maxDistance) continue;
       for (final (candidate, candidateRunes) in bucket) {
         final d = boundedLevenshtein(runes, candidateRunes, maxDistance);

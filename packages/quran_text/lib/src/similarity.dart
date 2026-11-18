@@ -35,6 +35,26 @@ double similarity(String a, String b) {
   return 1 - levenshtein(a, b) / longest;
 }
 
+/// The most edits two words may differ by when the longer has [longer]
+/// code points and their similarity must be at least [minSimilarity].
+///
+/// It is the largest `d` with `1 − d / longer ≥ minSimilarity` — tested
+/// with the same expression [similarity] uses, so the bound and the
+/// similarity agree exactly at the boundary. `((1 − min) × longer).floor()`
+/// alone is not enough: `(1 − 0.8) × 5` is `0.9999999999999998` in floating
+/// point, which would forbid the one edit a 5-letter word may have at 0.8.
+int maxEditsFor(int longer, double minSimilarity) {
+  if (longer <= 0) return 0;
+  var d = ((1 - minSimilarity) * longer).floor().clamp(0, longer);
+  while (d < longer && 1 - (d + 1) / longer >= minSimilarity) {
+    d++;
+  }
+  while (d > 0 && 1 - d / longer < minSimilarity) {
+    d--;
+  }
+  return d;
+}
+
 /// Levenshtein distance between code point lists [a] and [b] if it is at
 /// most [maxDistance], else `null`. Stops as soon as every cell of a row
 /// exceeds the bound, so dissimilar words cost little.
