@@ -27,8 +27,8 @@
 | [S04 — проверка ошибок v0](S04-check.md) | Opus | `opus/s04-check` | Слита (PR №5) |
 | [M01 — оценка качества на записях](M01-eval.md) | Opus | `opus/m01-eval` | Слита (PR №4) |
 | [ADR 0003 — путь, версии, качество сигнала в `contracts`](../adr/0003-kontrakty-put-versii-signal.md) | Opus | `opus/adr-0003-contracts` | Слита (PR №6) |
-| Подключение `check` к инструменту оценки (M01) | Opus | `opus/m01-eval-check` | PR №11, правки сделаны, ждёт перепроверки Астры |
-| Общий тип качества сигнала в `audio_capture` (ADR 0003) | GPT-B | `gpt-b/p05-signal-quality` | PR №12, ждёт вердикта Астры |
+| Подключение `check` к инструменту оценки (M01) | Opus | `opus/m01-eval-check` | Слита (PR №11) |
+| Общий тип качества сигнала в `audio_capture` (ADR 0003) | GPT-B | `gpt-b/p05-signal-quality` | Слита (PR №12) |
 
 ### Волна 2б — задачи, не зависящие от выбора модели
 
@@ -40,7 +40,7 @@
 | [S03 — следование и поиск по всему Корану](S03-follow-quran.md) | Opus | `opus/s03-follow-quran` | Код готов в ветке; часть `tools/eval` и PR — после слияния №11 и №13 |
 | [PL01 — план повторений и занятие на сегодня](PL01-planner.md) | GPT-A | `gpt-a/pl01-planner` | Ветка доставлена, PR открывает владелец |
 | [K01 — движок уроков](K01-lessons.md) | Opus | `opus/k01-lessons` | В работе |
-| [S05 — сессия чтения v0 (+ ADR 0005)](S05-session.md) | GPT-B | `gpt-b/adr-0005-session-contract`, `gpt-b/s05-session` | Ветки доставлены; ADR 0005 ждёт согласия владельца, PR открывает владелец |
+| [S05 — сессия чтения v0 (+ ADR 0005)](S05-session.md) | GPT-B | `gpt-b/adr-0005-session-contract`, `gpt-b/s05-session` | ADR 0005 слит (PR №18); S05 — PR №19, правки после проверки Астры |
 
 Следующие без задач (распишу, когда освободятся агенты):
 

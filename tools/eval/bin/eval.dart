@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:check/check.dart';
 import 'package:contracts/contracts.dart';
 import 'package:eval/eval.dart';
 import 'package:follow/follow.dart';
@@ -33,6 +34,16 @@ Future<void> main(List<String> arguments) async {
       defaultsTo: 'tools/eval/config/acceptance.json',
     )
     ..addOption('out', help: 'Report folder. Default: build/eval/<model>.')
+    ..addFlag(
+      'check',
+      defaultsTo: true,
+      help: 'Run check after follow (--no-check: following metrics only).',
+    )
+    ..addOption(
+      'rules-version',
+      help: 'Version of the check rules, written into every check event. '
+          'Default: "version" of thresholds.json, or "builtin".',
+    )
     ..addOption('baseline', help: 'Previous report.json to compare with.')
     ..addFlag(
       'ci',
@@ -78,10 +89,23 @@ Future<void> main(List<String> arguments) async {
         ? const <String, Object?>{}
         : _jsonObject(_read(thresholdsPath));
     final params = FollowParams.fromJson(thresholds);
-    final window = CorrectionWindow.fromThresholds(thresholds);
-    final words = _unwrap(
-      ContentJsonSource(_read(args.option('content'))).loadWords(),
-    );
+    final checkParams = CheckParams.fromJson(thresholds);
+    final content = _read(args.option('content'));
+    final words = _unwrap(ContentJsonSource(content).loadWords());
+    final check = args.flag('check')
+        ? CheckSetup(
+            params: checkParams,
+            rulesVersion: args.option('rules-version') ??
+                switch (thresholds['version']) {
+                  final String v => v,
+                  _ => 'builtin',
+                },
+            textVersion: switch (_jsonObject(content)['contentVersion']) {
+              {'version': final String v} => v,
+              _ => 'unknown',
+            },
+          )
+        : null;
     final text = InMemoryQuranText(
       words: words,
       normalizers: [normalizer],
@@ -99,6 +123,7 @@ Future<void> main(List<String> arguments) async {
             text: text,
             normalizer: normalizer,
             params: params,
+            check: check,
           ),
         ),
     ];
@@ -107,7 +132,7 @@ Future<void> main(List<String> arguments) async {
       model: model,
       recordings: evaluated,
       config: config,
-      window: window,
+      window: CorrectionWindow.of(checkParams),
       baseline: baselinePath == null
           ? null
           : baselineValuesFromJson(_jsonObject(_read(baselinePath))),
