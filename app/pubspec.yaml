@@ -8,13 +8,24 @@ environment:
   sdk: ^3.14.0
 
 dependencies:
+  asr_sherpa:
+    path: ../packages/asr_sherpa
+  audio_capture:
+    path: ../packages/audio_capture
+  contracts:
+    path: ../packages/contracts
+  crypto: 3.0.6
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
   go_router: 18.1.4
   material_ui: 1.11.0
+  mushaf_view:
+    path: ../packages/mushaf_view
   provider: 6.1.5+1
+  quran_text:
+    path: ../packages/quran_text
 
 dev_dependencies:
   flutter_test:

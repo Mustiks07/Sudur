@@ -6,5 +6,46 @@
   "learnToRead": "Learn to read",
   "progress": "Progress",
   "more": "More",
-  "sectionComingSoon": "This section is being prepared"
+  "sectionComingSoon": "This section is being prepared",
+  "prototypeTitle": "Surah 78 prototype",
+  "prototypePreparing": "Preparing the verified model, Mushaf pages, and fonts",
+  "prototypeDownloadProgress": "Downloading {resource}: {percent}%",
+  "@prototypeDownloadProgress": {
+    "placeholders": {
+      "resource": {"type": "String"},
+      "percent": {"type": "int"}
+    }
+  },
+  "prototypeRetry": "Try again",
+  "prototypeError": "The prototype could not be prepared. Check the connection and try again.",
+  "prototypeModelSmall": "Small model",
+  "prototypeModelTiny": "Tiny model",
+  "prototypePhoneTest": "Phone test",
+  "prototypePhoneTesting": "Testing…",
+  "prototypePhoneResult": "Speed ratio: {ratio}; decode: {decodeMs} ms",
+  "@prototypePhoneResult": {
+    "placeholders": {
+      "ratio": {"type": "String"},
+      "decodeMs": {"type": "int"}
+    }
+  },
+  "prototypeChooseWav": "Choose WAV",
+  "prototypeUseMicrophone": "Use microphone",
+  "prototypeWavSelected": "Measurement input: {fileName}",
+  "@prototypeWavSelected": {"placeholders": {"fileName": {"type": "String"}}},
+  "prototypeStart": "Start",
+  "prototypePause": "Pause",
+  "prototypeResume": "Resume",
+  "prototypeStop": "Stop",
+  "prototypeHint": "Hint",
+  "prototypeShareLog": "Share log",
+  "prototypeMockNotice": "S05 is not merged yet: the screen uses a scripted session. WAV mode and the real microphone pipeline will connect through ADR 0005.",
+  "mushafAyahSemantics": "Surah {surah}, ayah {ayah}. {text}",
+  "@mushafAyahSemantics": {
+    "placeholders": {
+      "surah": {"type": "int"},
+      "ayah": {"type": "int"},
+      "text": {"type": "String"}
+    }
+  }
 }

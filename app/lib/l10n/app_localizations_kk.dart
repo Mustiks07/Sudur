@@ -29,4 +29,78 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get sectionComingSoon => 'Бұл бөлім әзірленіп жатыр';
+
+  @override
+  String get prototypeTitle => '78-сүре прототипі';
+
+  @override
+  String get prototypePreparing =>
+      'Тексерілген модель, мұсхаф беттері мен қаріптер дайындалуда';
+
+  @override
+  String prototypeDownloadProgress(String resource, int percent) {
+    return '$resource жүктелуде: $percent%';
+  }
+
+  @override
+  String get prototypeRetry => 'Қайталау';
+
+  @override
+  String get prototypeError =>
+      'Прототипті дайындау мүмкін болмады. Интернетті тексеріп, қайталаңыз.';
+
+  @override
+  String get prototypeModelSmall => 'Small моделі';
+
+  @override
+  String get prototypeModelTiny => 'Tiny моделі';
+
+  @override
+  String get prototypePhoneTest => 'Телефонды тексеру';
+
+  @override
+  String get prototypePhoneTesting => 'Тексерілуде…';
+
+  @override
+  String prototypePhoneResult(String ratio, int decodeMs) {
+    return 'Жылдамдық: $ratio; тану: $decodeMs мс';
+  }
+
+  @override
+  String get prototypeChooseWav => 'WAV таңдау';
+
+  @override
+  String get prototypeUseMicrophone => 'Микрофонды пайдалану';
+
+  @override
+  String prototypeWavSelected(String fileName) {
+    return 'Өлшеу көзі: $fileName';
+  }
+
+  @override
+  String get prototypeStart => 'Бастау';
+
+  @override
+  String get prototypePause => 'Кідірту';
+
+  @override
+  String get prototypeResume => 'Жалғастыру';
+
+  @override
+  String get prototypeStop => 'Аяқтау';
+
+  @override
+  String get prototypeHint => 'Көмек';
+
+  @override
+  String get prototypeShareLog => 'Журналды бөлісу';
+
+  @override
+  String get prototypeMockNotice =>
+      'S05 әлі біріктірілмеді: экран сынақ сессиясымен жұмыс істейді. WAV және нақты микрофон ADR 0005 арқылы қосылады.';
+
+  @override
+  String mushafAyahSemantics(int surah, int ayah, String text) {
+    return '$surah-сүре, $ayah-аят. $text';
+  }
 }

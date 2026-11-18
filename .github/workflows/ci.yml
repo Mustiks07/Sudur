@@ -48,3 +48,35 @@ jobs:
       - name: Build Android
         run: flutter build apk --debug --target lib/main_dev.dart
         working-directory: app
+
+  prototype-profile-apk:
+    name: Prototype profile APK (arm64)
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: .fvmrc
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build arm64 profile APK
+        run: >-
+          flutter build apk
+          --profile
+          --target lib/main_dev.dart
+          --target-platform android-arm64
+          --split-per-abi
+        working-directory: app
+
+      - name: Upload prototype APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: sudur-prototype-profile-arm64
+          path: app/build/app/outputs/flutter-apk/app-arm64-v8a-profile.apk
+          if-no-files-found: error
+          retention-days: 14
