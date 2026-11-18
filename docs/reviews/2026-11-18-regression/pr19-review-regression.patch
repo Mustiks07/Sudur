@@ -1,0 +1,31 @@
+diff --git a/packages/session/test/reading_session_test.dart b/packages/session/test/reading_session_test.dart
+index c656c81..9ca0c67 100644
+--- a/packages/session/test/reading_session_test.dart
++++ b/packages/session/test/reading_session_test.dart
+@@ -1,4 +1,5 @@
+ import 'dart:io';
++import 'dart:async';
+ import 'dart:typed_data';
+ 
+ import 'package:contracts/contracts.dart';
+@@ -96,6 +97,20 @@ SessionFinished _finished(_Harness h) =>
+     h.events.whereType<SessionFinished>().single;
+ 
+ void main() {
++  test('review: finishing waits for already closed segment', () async {
++    final words = ayah(78, 1);
++    final h = _harness();
++    addTearDown(h.session.dispose);
++    await h.session.execute(startFor(words));
++    h.audio.emit(const SessionAudioSegmentOpened(atMs: 0, segmentId: 1));
++    h.audio.emit(const SessionAudioSegmentClosed(atMs: 1000, segmentId: 1));
++    final script = RecognitionScript()..segment(heard(words));
++    final timer = Timer(const Duration(milliseconds: 10), () => h.recognizer.emit(script.results.last));
++    addTearDown(timer.cancel);
++    await h.session.execute(const Stop());
++    expect(_finished(h).words.first.outcome, SessionWordOutcome.read);
++  });
++
+   setUpAll(() {
+     final words = switch (
+         ContentJsonSource(File(fixturePath).readAsStringSync()).loadWords()) {
