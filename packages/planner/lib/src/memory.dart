@@ -32,14 +32,20 @@ MemoryState memoryStateFor(
       (hasRatedReview && retrievability < params.memoryLowProbability)) {
     return MemoryState.longUnchecked;
   }
-  if (unit.history.isEmpty) return MemoryState.acquainted;
-  final last = unit.history.last.attempt;
+  final meaningfulHistory = unit.history.where((record) {
+    final result = record.attempt.result;
+    return result != AttemptResult.unableToVerify &&
+        result != AttemptResult.disputed;
+  }).toList();
+  if (meaningfulHistory.isEmpty) return MemoryState.acquainted;
+  final last = meaningfulHistory.last.attempt;
   if (last.mode == AttemptMode.listening) return MemoryState.acquainted;
   if (last.mode == AttemptMode.supported || last.hints > 0) {
     return MemoryState.supported;
   }
+  if (!last.isCleanWithoutHints) return MemoryState.acquainted;
 
-  final clean = unit.history
+  final clean = meaningfulHistory
       .where((record) => record.attempt.isCleanWithoutHints)
       .map((record) => record.attempt)
       .toList();

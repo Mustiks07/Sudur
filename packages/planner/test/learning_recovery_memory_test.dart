@@ -132,6 +132,70 @@ void main() {
   });
 
   group('memory map', () {
+    test('unproven attempts do not become independent', () {
+      for (final result in [
+        AttemptResult.unableToVerify,
+        AttemptResult.confirmedError,
+        AttemptResult.disputed,
+      ]) {
+        final unit = passage(
+          id: result.name,
+          history: [
+            record(
+              attempt: attempt(unitId: result.name, result: result),
+            ),
+          ],
+        );
+
+        expect(
+          _memory(unit),
+          MemoryState.acquainted,
+          reason: '${result.name} is not evidence of clean recall',
+        );
+      }
+    });
+
+    test('no-decision attempts preserve an independently proven state', () {
+      for (final result in [
+        AttemptResult.unableToVerify,
+        AttemptResult.disputed,
+      ]) {
+        final unit = passage(
+          id: result.name,
+          history: [
+            record(attempt: attempt(unitId: result.name)),
+            record(
+              attempt: attempt(
+                unitId: result.name,
+                at: epoch.add(const Duration(hours: 1)),
+                result: result,
+              ),
+            ),
+          ],
+        );
+
+        expect(_memory(unit), MemoryState.independent);
+      }
+    });
+
+    test('confirmed error revokes an independently proven state', () {
+      final unit = passage(
+        id: 'u',
+        history: [
+          record(attempt: attempt(unitId: 'u')),
+          record(
+            attempt: attempt(
+              unitId: 'u',
+              at: epoch.add(const Duration(hours: 1)),
+              result: AttemptResult.confirmedError,
+            ),
+          ),
+        ],
+      );
+
+      expect(_memory(unit), MemoryState.acquainted);
+    });
+
     test('listening and supported attempts derive their states', () {
       final listening = passage(
         id: 'l',
