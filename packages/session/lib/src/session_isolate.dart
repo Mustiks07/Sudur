@@ -378,6 +378,7 @@ Future<void> _sessionIsolateMain(List<Object?> bootstrap) async {
 
   final done = Completer<void>();
   var closing = false;
+  var commandQueue = Future<void>.value();
   final commandSubscription = commands.listen((message) {
     if (message is! List<Object?> || message.isEmpty || closing) return;
     if (message.first == 'dispose') {
@@ -394,7 +395,11 @@ Future<void> _sessionIsolateMain(List<Object?> bootstrap) async {
       return;
     }
     if (message.first == 'execute') {
-      unawaited(_executeWorkerCommand(owner, message, worker));
+      commandQueue = commandQueue.then((_) async {
+        if (closing) return;
+        await _executeWorkerCommand(owner, message, worker);
+      });
+      unawaited(commandQueue);
     }
   });
   await done.future;
