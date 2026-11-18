@@ -17,15 +17,18 @@ enum _InputMode { none, microphone, file }
 final class AudioCaptureService {
   /// Creates an idle audio service.
   AudioCaptureService({
+    required String sessionId,
     AudioCaptureConfig config = const AudioCaptureConfig(),
     AudioRecorder? recorder,
-  })  : _config = config,
+  })  : _sessionId = sessionId,
+        _config = config,
         _recorder = recorder;
 
+  final String _sessionId;
   final AudioCaptureConfig _config;
   AudioRecorder? _recorder;
-  final StreamController<Result<AudioCaptureEvent>> _events =
-      StreamController<Result<AudioCaptureEvent>>.broadcast();
+  final StreamController<Result<Object>> _events =
+      StreamController<Result<Object>>.broadcast();
   final Map<int, Completer<Map<String, Object?>>> _pending =
       <int, Completer<Map<String, Object?>>>{};
   final Completer<SendPort> _workerReady = Completer<SendPort>();
@@ -48,7 +51,7 @@ final class AudioCaptureService {
   var _playbackActive = false;
 
   /// Segments, quality changes, pauses, and explicit operation errors.
-  Stream<Result<AudioCaptureEvent>> get events => _events.stream;
+  Stream<Result<Object>> get events => _events.stream;
 
   AudioRecorder get _activeRecorder => _recorder ??= AudioRecorder();
 
@@ -483,7 +486,11 @@ final class AudioCaptureService {
     }
     if (message['type'] == 'event') {
       try {
-        _events.add(Result.ok(audioEventFromMessage(message)));
+        _events.add(
+          Result.ok(
+            audioEventFromMessage(message, sessionId: _sessionId),
+          ),
+        );
       } on FormatException {
         _events.add(
           const Result.error(

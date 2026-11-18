@@ -1,3 +1,4 @@
+import 'package:check/check.dart';
 import 'package:contracts/contracts.dart';
 import 'package:eval/eval.dart';
 import 'package:test/test.dart';
@@ -251,8 +252,9 @@ void main() {
         ),
         normalNoise: const {'quiet'},
         timeToleranceMs: 0,
-        window:
-            CorrectionWindow.fromThresholds(const {'selfCorrectionWords': 3}),
+        window: CorrectionWindow.of(
+          CheckParams.fromJson(const {'selfCorrectionWords': 3}),
+        ),
       );
       expect(Metric.precision.ratioIn(wide), (0, 1));
     });

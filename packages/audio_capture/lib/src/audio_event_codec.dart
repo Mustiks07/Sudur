@@ -2,9 +2,13 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:audio_capture/src/audio_capture_event.dart';
+import 'package:contracts/contracts.dart';
 
 /// Decodes one validated worker event and materializes transferred audio.
-AudioCaptureEvent audioEventFromMessage(Map<String, Object?> value) {
+Object audioEventFromMessage(
+  Map<String, Object?> value, {
+  required String sessionId,
+}) {
   final kind = _required<String>(value, 'kind');
   final atMs = _required<int>(value, 'atMs');
   switch (kind) {
@@ -52,11 +56,13 @@ AudioCaptureEvent audioEventFromMessage(Map<String, Object?> value) {
         pauseBeforeMs: _required<int>(value, 'pauseBeforeMs'),
       );
     case 'quality':
-      return SignalQualityChanged(
+      return SignalQuality(
+        sessionId: sessionId,
         atMs: atMs,
         level: SignalQualityLevel.values.byName(
           _required<String>(value, 'level'),
         ),
+        sinceMs: _optionalInt(value, 'sinceMs'),
         dbfs: _required<num>(value, 'dbfs').toDouble(),
         clippedRatio: _required<num>(value, 'clippedRatio').toDouble(),
       );
@@ -73,6 +79,17 @@ AudioCaptureEvent audioEventFromMessage(Map<String, Object?> value) {
     default:
       throw FormatException('Unknown worker event $kind.');
   }
+}
+
+int? _optionalInt(Map<String, Object?> value, String key) {
+  final field = value[key];
+  if (field == null) {
+    return null;
+  }
+  if (field is int) {
+    return field;
+  }
+  throw FormatException('$key has an invalid type.');
 }
 
 T _required<T>(Map<String, Object?> value, String key) {

@@ -158,7 +158,15 @@ void main() {
       expect(inPlace.status, Status.pass);
       expect(report.metrics[Metric.precision]!.status, Status.noData);
       expect(report.mode, ReleaseMode.v);
-      expect(report.groups['nativeLanguage']!.keys, ['kk', 'ru']);
+      // Required values are always listed; uz has no recordings here.
+      expect(report.groups['nativeLanguage']!.keys, ['kk', 'ru', 'uz']);
+      expect(report.groupRecordings['nativeLanguage'], {
+        'ru': 1,
+        'kk': 1,
+        'uz': 0,
+      });
+      expect(report.groupStatuses['nativeLanguage']!['uz'], Status.noData);
+      expect(report.missingGroups, contains('nativeLanguage=uz'));
       expect(
         report.groups['nativeLanguage']!['ru']![Metric.followRevealedInPlace]!
             .value,
