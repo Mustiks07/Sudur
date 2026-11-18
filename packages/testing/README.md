@@ -16,6 +16,7 @@
 | `fixtures/content_p582_583.json` | Данные страниц 582–583 (сура 78, 79:1–15) из `tools/content_build`; см. [`fixtures/README.md`](fixtures/README.md) | P03 |
 | `fixtures/lessons_test_stage1.json` | Тестовый пакет уроков: по примеру каждого типа шага (УЧ-03). Только заглушки `TODO_CONTENT`, без настоящего содержания; см. [`fixtures/README.md`](fixtures/README.md) | K01 |
 | `fixtures/manifest/` | Тестовый подписанный манифест, тестовый пакет и тестовые ключи Ed25519 (`TEST-ONLY`) для `content` и `content_build`; см. [`fixtures/README.md`](fixtures/README.md) | O05 |
+| `fixtures/config/` | Тестовый подписанный файл параметров `config` (O11) | O11 |
 | `FakeSpeechRecognizer` | `SpeechRecognizer`, который проигрывает заранее подготовленные результаты (СЛ-07, ПО-12) | P06 |
 | `RecognitionScript` | Строит последовательность результатов как у распознавателя (ТЗ 10.3): растущие частичные, окончательный, заданные частичные, скользящее окно, паузы | P06 |
 | `dropLetter`, `swapLetters` | Искажения букв для наборов результатов | P06 |
