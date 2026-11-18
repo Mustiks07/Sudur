@@ -38,7 +38,7 @@ final class PrototypeMeasurementLog {
     _entries.add(<String, Object?>{
       'type': 'MushafPageRendered',
       'page': pageNumber,
-      'receivedAtMs': elapsedMs,
+      'firstFrameMs': elapsedMs,
     });
   }
 
@@ -75,5 +75,37 @@ Map<String, Object?> _safeEventFields(SessionEvent event) => switch (event) {
   SignalQuality() => <String, Object?>{
     'level': event.level.name,
     'sinceMs': event.sinceMs,
+  },
+  SessionStarted() => <String, Object?>{
+    'fromWordKey': event.fromWordKey.toString(),
+    'toWordKey': event.toWordKey.toString(),
+    'mode': event.mode.name,
+    'modelId': event.versions.modelId,
+    'modelVersion': event.versions.modelVersion,
+    'rulesVersion': event.versions.rulesVersion,
+    'textVersion': event.versions.textVersion,
+  },
+  HintGiven() => <String, Object?>{
+    'kind': event.kind.name,
+    'wordKey': event.wordKey.toString(),
+  },
+  CheckStateChanged() => <String, Object?>{
+    'eventId': event.eventId,
+    'from': event.from.name,
+    'to': event.to.name,
+    'reason': event.reason,
+  },
+  SessionFinished() => <String, Object?>{
+    'words': event.words
+        .map(
+          (word) => <String, Object?>{
+            'wordKey': word.wordKey.toString(),
+            'outcome': word.outcome.name,
+          },
+        )
+        .toList(),
+    'eventIds': event.eventIds,
+    'durationMs': event.durationMs,
+    'audioWasSuitable': event.audioWasSuitable,
   },
 };

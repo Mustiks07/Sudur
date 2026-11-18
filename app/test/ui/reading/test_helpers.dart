@@ -92,6 +92,7 @@ final class ManualPrototypeSession implements PrototypeReadingSession {
   int resumes = 0;
   int stops = 0;
   int hints = 0;
+  final List<SessionCommand> commands = <SessionCommand>[];
 
   @override
   Stream<SessionEvent> get events => _events.stream;
@@ -99,28 +100,28 @@ final class ManualPrototypeSession implements PrototypeReadingSession {
   void emit(SessionEvent event) => _events.add(event);
 
   @override
-  Future<void> start(PrototypeSessionInput input) async {
+  Future<void> configureInput(PrototypeSessionInput input) async {
     this.input = input;
   }
 
   @override
-  Future<void> pause() async {
-    pauses += 1;
-  }
-
-  @override
-  Future<void> resume() async {
-    resumes += 1;
-  }
-
-  @override
-  Future<void> stop() async {
-    stops += 1;
-  }
-
-  @override
-  Future<void> requestHint() async {
-    hints += 1;
+  Future<Result<void>> execute(SessionCommand command) async {
+    commands.add(command);
+    switch (command) {
+      case StartSession():
+        break;
+      case Pause():
+        pauses += 1;
+      case Resume():
+        resumes += 1;
+      case Stop():
+        stops += 1;
+      case RequestHint():
+        hints += 1;
+      case DisputeEvent():
+        break;
+    }
+    return const Result<void>.ok(null);
   }
 
   @override

@@ -22,25 +22,19 @@ final class PrototypeWavInput extends PrototypeSessionInput {
   final String path;
 }
 
-/// Temporary app-side session contract until ADR 0005 lands in `contracts`.
+/// App-side session boundary matching the ADR 0005 command contract.
+///
+/// Input selection remains prototype-specific until S05 provides the real
+/// microphone and WAV adapters through [SessionAudioSource].
 abstract interface class PrototypeReadingSession {
   /// Events consumed by `ReadingViewModel`.
   Stream<SessionEvent> get events;
 
-  /// Starts the session with microphone or WAV input.
-  Future<void> start(PrototypeSessionInput input);
+  /// Selects the source used by the next [StartSession] command.
+  Future<void> configureInput(PrototypeSessionInput input);
 
-  /// Pauses event delivery without losing position.
-  Future<void> pause();
-
-  /// Continues from the preserved position.
-  Future<void> resume();
-
-  /// Finishes the current run.
-  Future<void> stop();
-
-  /// Reveals the next word as a hint.
-  Future<void> requestHint();
+  /// Executes one type-safe session command from `contracts`.
+  Future<Result<void>> execute(SessionCommand command);
 
   /// Releases streams and timers.
   Future<void> dispose();
@@ -71,15 +65,71 @@ final class ScriptedPrototypeReadingSession implements PrototypeReadingSession {
   var _elapsedMs = 0;
   var _paused = false;
   var _disposed = false;
+  var _finished = false;
+  PrototypeSessionInput _input = const PrototypeMicrophoneInput();
+  final Set<WordKey> _hintedWords = <WordKey>{};
 
   @override
   Stream<SessionEvent> get events => _events.stream;
 
   @override
-  Future<void> start(PrototypeSessionInput input) async {
-    if (_disposed || _timer != null || _index >= _words.length) return;
+  Future<void> configureInput(PrototypeSessionInput input) async {
+    _input = input;
+  }
+
+  @override
+  Future<Result<void>> execute(SessionCommand command) async {
+    if (_disposed) {
+      return const Result<void>.error(
+        _PrototypeSessionException('The scripted session is disposed.'),
+      );
+    }
+    return switch (command) {
+      StartSession() => _start(command),
+      Pause() => _pause(),
+      Resume() => _resume(),
+      Stop() => _stop(),
+      RequestHint() => _requestHint(command.kind),
+      DisputeEvent() => const Result<void>.ok(null),
+    };
+  }
+
+  Result<void> _start(StartSession command) {
+    if (_timer != null || _index >= _words.length) {
+      return const Result<void>.error(
+        _PrototypeSessionException('The scripted session cannot start.'),
+      );
+    }
+    if (command.fromWordKey != _words.first ||
+        command.toWordKey != _words.last) {
+      return const Result<void>.error(
+        _PrototypeSessionException('The scripted range does not match.'),
+      );
+    }
+    if (_input case PrototypeWavInput(:final path) when path.isEmpty) {
+      return const Result<void>.error(
+        _PrototypeSessionException('The WAV path is empty.'),
+      );
+    }
     _paused = false;
+    _finished = false;
+    _events.add(
+      SessionStarted(
+        sessionId: 'prototype-scripted',
+        atMs: _elapsedMs,
+        fromWordKey: command.fromWordKey,
+        toWordKey: command.toWordKey,
+        mode: command.mode,
+        versions: const ReadingVersions(
+          modelId: 'prototype-scripted',
+          modelVersion: '1',
+          rulesVersion: '1',
+          textVersion: 'fixture',
+        ),
+      ),
+    );
     _timer = Timer.periodic(eventInterval, (_) => _tick());
+    return const Result<void>.ok(null);
   }
 
   void _tick() {
@@ -107,37 +157,79 @@ final class ScriptedPrototypeReadingSession implements PrototypeReadingSession {
         ),
       );
     _index += 1;
+    if (_index >= _words.length) {
+      _timer?.cancel();
+      _timer = null;
+      _emitFinished();
+    }
   }
 
-  @override
-  Future<void> pause() async {
+  Result<void> _pause() {
     _paused = true;
+    return const Result<void>.ok(null);
   }
 
-  @override
-  Future<void> resume() async {
+  Result<void> _resume() {
     _paused = false;
+    return const Result<void>.ok(null);
   }
 
-  @override
-  Future<void> stop() async {
+  Result<void> _stop() {
     _timer?.cancel();
     _timer = null;
+    _emitFinished();
+    return const Result<void>.ok(null);
   }
 
-  @override
-  Future<void> requestHint() async {
-    if (_disposed || _index >= _words.length) return;
+  Result<void> _requestHint(HintKind kind) {
+    if (_index >= _words.length) return const Result<void>.ok(null);
     final word = _words[_index];
+    _hintedWords.add(word);
+    _events
+      ..add(
+        HintGiven(
+          sessionId: 'prototype-scripted',
+          atMs: _elapsedMs,
+          kind: kind,
+          wordKey: word,
+        ),
+      )
+      ..add(
+        WordRevealed(
+          sessionId: 'prototype-scripted',
+          atMs: _elapsedMs,
+          word: word,
+          reason: RevealReason.hint,
+        ),
+      );
+    _index += 1;
+    if (_index >= _words.length) _emitFinished();
+    return const Result<void>.ok(null);
+  }
+
+  void _emitFinished() {
+    if (_finished || _events.isClosed) return;
+    _finished = true;
     _events.add(
-      WordRevealed(
+      SessionFinished(
         sessionId: 'prototype-scripted',
         atMs: _elapsedMs,
-        word: word,
-        reason: RevealReason.hint,
+        words: <SessionWordResult>[
+          for (var index = 0; index < _words.length; index += 1)
+            SessionWordResult(
+              wordKey: _words[index],
+              outcome: index >= _index
+                  ? SessionWordOutcome.notRead
+                  : _hintedWords.contains(_words[index])
+                  ? SessionWordOutcome.readWithHint
+                  : SessionWordOutcome.read,
+            ),
+        ],
+        eventIds: const <String>[],
+        durationMs: _elapsedMs,
+        audioWasSuitable: true,
       ),
     );
-    _index += 1;
   }
 
   @override
@@ -158,4 +250,13 @@ final class ScriptedPrototypeReadingSessionFactory
   @override
   PrototypeReadingSession create(List<WordKey> words) =>
       ScriptedPrototypeReadingSession(words);
+}
+
+final class _PrototypeSessionException implements Exception {
+  const new(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

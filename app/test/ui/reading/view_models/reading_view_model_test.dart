@@ -51,6 +51,25 @@ void main() {
     await viewModel.resume();
     await viewModel.requestHint();
     await viewModel.stop();
+    sessionFactory.session.emit(
+      const SessionFinished(
+        sessionId: 'test',
+        atMs: 200,
+        words: <SessionWordResult>[
+          SessionWordResult(
+            wordKey: firstWord,
+            outcome: SessionWordOutcome.read,
+          ),
+          SessionWordResult(
+            wordKey: secondWord,
+            outcome: SessionWordOutcome.notRead,
+          ),
+        ],
+        eventIds: <String>[],
+        durationMs: 200,
+        audioWasSuitable: true,
+      ),
+    );
     expect(
       (sessionFactory.session.pauses, sessionFactory.session.resumes),
       (1, 1),
@@ -59,6 +78,110 @@ void main() {
       (sessionFactory.session.hints, sessionFactory.session.stops),
       (1, 1),
     );
+    expect(
+      sessionFactory.session.commands.map((command) => command.runtimeType),
+      <Type>[StartSession, Pause, Resume, RequestHint, Stop],
+    );
+    expect(viewModel.state, ReadingPrototypeState.finished);
+  });
+
+  test('moving position never hides an already revealed word', () {
+    sessionFactory.session
+      ..emit(
+        const WordRevealed(
+          sessionId: 'test',
+          atMs: 100,
+          word: firstWord,
+          reason: RevealReason.heard,
+        ),
+      )
+      ..emit(
+        const PositionUpdate(
+          sessionId: 'test',
+          atMs: 110,
+          word: firstWord,
+          confidence: PositionConfidence.high,
+        ),
+      )
+      ..emit(
+        const PositionUpdate(
+          sessionId: 'test',
+          atMs: 120,
+          word: secondWord,
+          confidence: PositionConfidence.high,
+        ),
+      );
+
+    expect(viewModel.wordStates[firstWord], MushafWordState.correct);
+    expect(viewModel.wordStates[secondWord], MushafWordState.current);
+  });
+
+  test('new ADR 0005 events update checks, hints, and final results', () {
+    sessionFactory.session
+      ..emit(
+        const CheckEvent(
+          sessionId: 'test',
+          atMs: 100,
+          eventId: 'check-1',
+          kind: CheckKind.omission,
+          state: CheckState.preliminary,
+          words: <WordKey>[firstWord],
+          expectedText: '',
+          heardText: '',
+          audioStartMs: 0,
+          audioEndMs: 100,
+          versions: ReadingVersions(
+            modelId: 'model',
+            modelVersion: '1',
+            rulesVersion: '1',
+            textVersion: '1',
+          ),
+        ),
+      )
+      ..emit(
+        const CheckStateChanged(
+          sessionId: 'test',
+          atMs: 110,
+          eventId: 'check-1',
+          from: CheckState.preliminary,
+          to: CheckState.confirmed,
+          reason: 'context',
+        ),
+      )
+      ..emit(
+        const HintGiven(
+          sessionId: 'test',
+          atMs: 120,
+          kind: HintKind.word,
+          wordKey: secondWord,
+        ),
+      );
+
+    expect(viewModel.wordStates[firstWord], MushafWordState.error);
+    expect(viewModel.wordStates[secondWord], MushafWordState.revealedByHint);
+
+    sessionFactory.session.emit(
+      const SessionFinished(
+        sessionId: 'test',
+        atMs: 200,
+        words: <SessionWordResult>[
+          SessionWordResult(
+            wordKey: firstWord,
+            outcome: SessionWordOutcome.corrected,
+          ),
+          SessionWordResult(
+            wordKey: secondWord,
+            outcome: SessionWordOutcome.readWithHint,
+          ),
+        ],
+        eventIds: <String>['check-1'],
+        durationMs: 200,
+        audioWasSuitable: true,
+      ),
+    );
+
+    expect(viewModel.wordStates[firstWord], MushafWordState.corrected);
+    expect(viewModel.wordStates[secondWord], MushafWordState.revealedByHint);
     expect(viewModel.state, ReadingPrototypeState.finished);
   });
 
@@ -82,7 +205,9 @@ void main() {
   test(
     'measurement log contains timing but excludes Quran and heard text',
     () async {
-      viewModel.markPageRendered(582);
+      viewModel
+        ..beginPageRender(582)
+        ..markPageRendered(582);
       await viewModel.start();
       sessionFactory.session.emit(
         const CheckEvent(
@@ -133,6 +258,46 @@ void main() {
     expect(viewModel.isBenchmarking, isFalse);
   });
 
+  test('each page first-frame timer starts with that page request', () async {
+    var nowMs = 100;
+    final timedViewModel = ReadingViewModel(
+      FakePrototypeRepository(),
+      ManualPrototypeSessionFactory(),
+      monotonicMilliseconds: () => nowMs,
+    );
+    await timedViewModel.initialize();
+
+    timedViewModel.beginPageRender(582);
+    nowMs = 400;
+    timedViewModel.markPageRendered(582);
+    nowMs = 900;
+    timedViewModel.beginPageRender(583);
+    nowMs = 920;
+    timedViewModel.markPageRendered(583);
+
+    final decoded =
+        jsonDecode(timedViewModel.measurementJson) as Map<String, Object?>;
+    final events = decoded['events']! as List<Object?>;
+    final pages = events
+        .whereType<Map<String, Object?>>()
+        .where((event) => event['type'] == 'MushafPageRendered')
+        .toList();
+
+    expect(pages, <Map<String, Object?>>[
+      <String, Object?>{
+        'type': 'MushafPageRendered',
+        'page': 582,
+        'firstFrameMs': 300,
+      },
+      <String, Object?>{
+        'type': 'MushafPageRendered',
+        'page': 583,
+        'firstFrameMs': 20,
+      },
+    ]);
+    timedViewModel.dispose();
+  });
+
   test('a finished run starts with a fresh hidden-word session', () async {
     await viewModel.start();
     sessionFactory.session.emit(
@@ -144,6 +309,25 @@ void main() {
       ),
     );
     await viewModel.stop();
+    sessionFactory.session.emit(
+      const SessionFinished(
+        sessionId: 'first',
+        atMs: 200,
+        words: <SessionWordResult>[
+          SessionWordResult(
+            wordKey: firstWord,
+            outcome: SessionWordOutcome.read,
+          ),
+          SessionWordResult(
+            wordKey: secondWord,
+            outcome: SessionWordOutcome.notRead,
+          ),
+        ],
+        eventIds: <String>[],
+        durationMs: 200,
+        audioWasSuitable: true,
+      ),
+    );
 
     await viewModel.start();
 

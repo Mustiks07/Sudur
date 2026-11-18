@@ -33,12 +33,19 @@ enum ReadingPrototypeState {
 /// UI state and commands for the standalone reading prototype.
 final class ReadingViewModel extends ChangeNotifier {
   /// Creates a view model with injected data and session boundaries.
-  new(this._repository, this._sessionFactory);
+  new(
+    this._repository,
+    this._sessionFactory, {
+    int Function()? monotonicMilliseconds,
+  }) : _monotonicMilliseconds =
+           monotonicMilliseconds ?? _createMonotonicMilliseconds();
 
   final PrototypeRepository _repository;
   final PrototypeReadingSessionFactory _sessionFactory;
-  final Stopwatch _pageRenderClock = Stopwatch();
+  final int Function() _monotonicMilliseconds;
   final Set<int> _renderedPages = <int>{};
+  final Map<int, int> _pageRenderStartedAt = <int, int>{};
+  final Map<String, List<WordKey>> _checkWords = <String, List<WordKey>>{};
   PrototypeReadingSession? _session;
   StreamSubscription<SessionEvent>? _events;
   PrototypeBundle? _bundle;
@@ -71,9 +78,18 @@ final class ReadingViewModel extends ChangeNotifier {
       _bundle?.fontFamilies[pageNumber];
 
   /// Immutable per-word visual state consumed by `MushafPage`.
-  Map<WordKey, MushafWordState> get wordStates => Map.unmodifiable(_wordStates);
+  Map<WordKey, MushafWordState> get wordStates {
+    final states = Map<WordKey, MushafWordState>.of(_wordStates);
+    final currentWord = _currentWord;
+    if (currentWord != null && states[currentWord] == MushafWordState.hidden) {
+      states[currentWord] = MushafWordState.current;
+    }
+    return Map.unmodifiable(states);
+  }
+
   final Map<WordKey, MushafWordState> _wordStates =
       <WordKey, MushafWordState>{};
+  WordKey? _currentWord;
 
   /// Selected WAV file name, without exposing its full path in the UI.
   String? get selectedWavName {
@@ -144,9 +160,9 @@ final class ReadingViewModel extends ChangeNotifier {
       await _replaceSession(bundle);
       _measurementLog = PrototypeMeasurementLog(modelId: model.name);
       _renderedPages.clear();
-      _pageRenderClock
-        ..reset()
-        ..start();
+      _pageRenderStartedAt.clear();
+      _checkWords.clear();
+      _currentWord = null;
       _state = ReadingPrototypeState.ready;
       notifyListeners();
     } on Object catch (caught) {
@@ -170,16 +186,27 @@ final class ReadingViewModel extends ChangeNotifier {
       for (final word in _wordStates.keys) {
         _wordStates[word] = MushafWordState.hidden;
       }
+      _currentWord = null;
+      _checkWords.clear();
     }
     final session = _session;
     if (session == null) return;
     final wavPath = _wavPath;
     _measurementLog?.start(usesWav: wavPath != null);
-    await session.start(
+    await session.configureInput(
       wavPath == null
           ? const PrototypeMicrophoneInput()
           : PrototypeWavInput(wavPath),
     );
+    final started = await _execute(
+      StartSession(
+        fromWordKey: bundle.sessionWords.first,
+        toWordKey: bundle.sessionWords.last,
+        mode: SessionMode.recall,
+        behavior: SessionBehavior.gentle,
+      ),
+    );
+    if (!started) return;
     _state = ReadingPrototypeState.running;
     notifyListeners();
   }
@@ -195,7 +222,7 @@ final class ReadingViewModel extends ChangeNotifier {
   /// Pauses the current session.
   Future<void> pause() async {
     if (_state != ReadingPrototypeState.running) return;
-    await _session?.pause();
+    if (!await _execute(const Pause())) return;
     _state = ReadingPrototypeState.paused;
     notifyListeners();
   }
@@ -203,7 +230,7 @@ final class ReadingViewModel extends ChangeNotifier {
   /// Resumes a paused session.
   Future<void> resume() async {
     if (_state != ReadingPrototypeState.paused) return;
-    await _session?.resume();
+    if (!await _execute(const Resume())) return;
     _state = ReadingPrototypeState.running;
     notifyListeners();
   }
@@ -214,13 +241,13 @@ final class ReadingViewModel extends ChangeNotifier {
         _state != ReadingPrototypeState.paused) {
       return;
     }
-    await _session?.stop();
-    _state = ReadingPrototypeState.finished;
-    notifyListeners();
+    await _execute(const Stop());
   }
 
   /// Requests a whole-word hint from the session adapter.
-  Future<void> requestHint() => _session?.requestHint() ?? Future<void>.value();
+  Future<void> requestHint() async {
+    await _execute(const RequestHint(kind: HintKind.word));
+  }
 
   /// Chooses a WAV for the next run through the same session input boundary.
   Future<void> chooseWav() async {
@@ -257,51 +284,75 @@ final class ReadingViewModel extends ChangeNotifier {
   /// Shares the text-free event timing journal.
   Future<void> shareLog() => _repository.shareLog(measurementJson);
 
+  /// Starts first-frame timing when the UI requests [pageNumber].
+  void beginPageRender(int pageNumber) {
+    if (_renderedPages.contains(pageNumber) ||
+        _pageRenderStartedAt.containsKey(pageNumber)) {
+      return;
+    }
+    _pageRenderStartedAt[pageNumber] = _monotonicMilliseconds();
+  }
+
   /// Records the first frame containing [pageNumber].
   void markPageRendered(int pageNumber) {
-    if (!_renderedPages.add(pageNumber)) return;
-    _measurementLog?.addPageRendered(
-      pageNumber,
-      _pageRenderClock.elapsedMilliseconds,
-    );
+    if (_renderedPages.contains(pageNumber)) return;
+    final startedAt = _pageRenderStartedAt.remove(pageNumber);
+    if (startedAt == null) return;
+    _renderedPages.add(pageNumber);
+    final elapsed = _monotonicMilliseconds() - startedAt;
+    _measurementLog?.addPageRendered(pageNumber, elapsed < 0 ? 0 : elapsed);
+  }
+
+  Future<bool> _execute(SessionCommand command) async {
+    final session = _session;
+    if (session == null) return false;
+    final result = await session.execute(command);
+    return switch (result) {
+      Ok<void>() => true,
+      Error<void>(:final error) => _handleSessionError(error),
+    };
+  }
+
+  bool _handleSessionError(Exception error) {
+    _error = error;
+    _state = ReadingPrototypeState.error;
+    notifyListeners();
+    return false;
   }
 
   void _onEvent(SessionEvent event) {
     _measurementLog?.addSessionEvent(event);
     switch (event) {
       case PositionUpdate():
-        for (final entry in _wordStates.entries.toList()) {
-          if (entry.value == MushafWordState.current) {
-            _wordStates[entry.key] = MushafWordState.hidden;
-          }
-        }
-        _wordStates[event.word] = MushafWordState.current;
+        _currentWord = event.word;
       case WordRevealed():
         _wordStates[event.word] = event.reason == RevealReason.hint
             ? MushafWordState.revealedByHint
             : MushafWordState.correct;
-        final bundle = _bundle;
-        if (bundle != null &&
-            bundle.sessionWords.every(
-              (word) =>
-                  _wordStates[word] != MushafWordState.hidden &&
-                  _wordStates[word] != MushafWordState.current,
-            )) {
-          _state = ReadingPrototypeState.finished;
-        }
       case CheckEvent():
-        final state = switch (event.state) {
-          CheckState.preliminary => MushafWordState.possibleError,
-          CheckState.confirmed => MushafWordState.error,
-          CheckState.corrected => MushafWordState.corrected,
-          CheckState.unverified => MushafWordState.notHeard,
-          CheckState.disputed => MushafWordState.possibleError,
-        };
+        _checkWords[event.eventId] = List<WordKey>.unmodifiable(event.words);
+        final state = _wordStateForCheck(event.state);
         for (final word in event.words) {
           _wordStates[word] = state;
         }
-      case PositionLost() || SignalQuality():
+      case PositionLost():
+        _currentWord = null;
+      case SignalQuality() || SessionStarted():
         break;
+      case HintGiven():
+        _wordStates[event.wordKey] = MushafWordState.revealedByHint;
+      case CheckStateChanged():
+        final words = _checkWords[event.eventId] ?? const <WordKey>[];
+        final state = _wordStateForCheck(event.to);
+        for (final word in words) {
+          _wordStates[word] = state;
+        }
+      case SessionFinished():
+        _currentWord = null;
+        for (final result in event.words) {
+          _wordStates[result.wordKey] = _wordStateForOutcome(result.outcome);
+        }
+        _state = ReadingPrototypeState.finished;
     }
     notifyListeners();
   }
@@ -313,4 +364,27 @@ final class ReadingViewModel extends ChangeNotifier {
     unawaited(_session?.dispose());
     super.dispose();
   }
+}
+
+MushafWordState _wordStateForCheck(CheckState state) => switch (state) {
+  CheckState.preliminary => MushafWordState.possibleError,
+  CheckState.confirmed => MushafWordState.error,
+  CheckState.corrected => MushafWordState.corrected,
+  CheckState.unverified => MushafWordState.notHeard,
+  CheckState.disputed => MushafWordState.possibleError,
+};
+
+MushafWordState _wordStateForOutcome(SessionWordOutcome outcome) =>
+    switch (outcome) {
+      SessionWordOutcome.read => MushafWordState.correct,
+      SessionWordOutcome.readWithHint => MushafWordState.revealedByHint,
+      SessionWordOutcome.error => MushafWordState.error,
+      SessionWordOutcome.corrected => MushafWordState.corrected,
+      SessionWordOutcome.unverified => MushafWordState.notHeard,
+      SessionWordOutcome.notRead => MushafWordState.hidden,
+    };
+
+int Function() _createMonotonicMilliseconds() {
+  final stopwatch = Stopwatch()..start();
+  return () => stopwatch.elapsedMilliseconds;
 }

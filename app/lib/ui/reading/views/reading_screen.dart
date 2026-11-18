@@ -214,6 +214,7 @@ final class _ReadyBody extends StatelessWidget {
                 page.pageNumber,
                 MushafPageController.new,
               );
+              viewModel.beginPageRender(page.pageNumber);
               SchedulerBinding.instance.addPostFrameCallback(
                 (_) => viewModel.markPageRendered(page.pageNumber),
               );
