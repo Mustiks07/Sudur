@@ -1,0 +1,21 @@
+{
+  "manifestVersion": 1,
+  "issuedAt": "2026-11-18T00:00:00.000Z",
+  "packages": [
+    {
+      "id": "test-hello",
+      "kind": "config",
+      "version": "1.0.0",
+      "url": "https://cdn.example.invalid/test-hello-1.0.0.zip",
+      "size": 278,
+      "sha256": "58d63c30cc6572e5b885ea006f5d03883f9bbab83558fa097843945840668a67",
+      "license": "TEST-ONLY",
+      "minAppVersion": "1.0.0",
+      "dependsOn": []
+    }
+  ],
+  "signature": {
+    "keyId": "test-main",
+    "ed25519": "FqXp0rKYoZ6mkWdEv8HALn6Sd3ESRPExZPD1zv5N/0if3m3ZPrU+eNv5vkj0i8TkWR7mtZBPtmrNF7aYJcYYBQ=="
+  }
+}
