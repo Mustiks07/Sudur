@@ -1,0 +1,10 @@
+{
+  "passageMaxAyahs": 5,
+  "halfPageWords": 64,
+  "pageFraction": 0.5,
+  "similar": {
+    "minPhraseWords": 5,
+    "minAyahWords": 2,
+    "wordSimilarity": 0.8
+  }
+}

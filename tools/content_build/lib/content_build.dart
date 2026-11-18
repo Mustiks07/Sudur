@@ -10,6 +10,7 @@ export 'src/content_build_exception.dart';
 export 'src/content_builder.dart';
 export 'src/content_checks.dart';
 export 'src/content_model.dart';
+export 'src/derived_content.dart';
 export 'src/layout_parser.dart';
 export 'src/source_fetcher.dart';
 export 'src/sqlite_writer.dart' show contentSchema, writeContentSqlite;
