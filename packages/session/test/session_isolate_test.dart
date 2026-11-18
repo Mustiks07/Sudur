@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:check/check.dart';
 import 'package:contracts/contracts.dart';
 import 'package:session/session.dart';
 import 'package:test/test.dart';
+import 'package:testing/testing.dart';
 
 const _versions = ReadingVersions(
   modelId: 'isolate-test',
@@ -12,10 +15,23 @@ const _versions = ReadingVersions(
   textVersion: '0',
 );
 
-FutureOr<SessionIsolateWorker> _createTestWorker(Object? _) => _TestWorker();
+FutureOr<SessionIsolateWorker> _createTestWorker(
+  SessionAudioSource _,
+  Object? configuration,
+) =>
+    _TestWorker();
 
-FutureOr<SessionIsolateWorker> _failToCreateWorker(Object? _) =>
+FutureOr<SessionIsolateWorker> _failToCreateWorker(
+  SessionAudioSource _,
+  Object? configuration,
+) =>
     throw StateError('deliberate startup failure');
+
+FutureOr<SessionIsolateWorker> _createBridgeWorker(
+  SessionAudioSource audioSource,
+  Object? configuration,
+) =>
+    _BridgeWorker(audioSource);
 
 final class _TestWorker implements SessionIsolateWorker {
   final StreamController<SessionEvent> _events =
@@ -65,7 +81,11 @@ final class _TestWorker implements SessionIsolateWorker {
         return const Result<void>.error(
           ReadingSessionException('testFailure', 'Deliberate failure.'),
         );
-      case Resume() || Stop() || DisputeEvent():
+      case Resume():
+        Isolate.exit();
+      case Stop():
+        return await Completer<Result<void>>().future;
+      case DisputeEvent():
         return const Result<void>.ok(null);
     }
   }
@@ -78,31 +98,106 @@ final class _TestWorker implements SessionIsolateWorker {
   }
 }
 
+final class _BridgeWorker implements SessionIsolateWorker {
+  _BridgeWorker(this._audioSource);
+
+  final SessionAudioSource _audioSource;
+  final StreamController<SessionEvent> _events =
+      StreamController<SessionEvent>.broadcast(sync: true);
+  final StreamController<ReadingSessionState> _states =
+      StreamController<ReadingSessionState>.broadcast(sync: true);
+  final StreamController<StrictSignal> _strict =
+      StreamController<StrictSignal>.broadcast(sync: true);
+  StreamSubscription<Result<SessionAudioEvent>>? _audioSubscription;
+
+  @override
+  Stream<SessionEvent> get events => _events.stream;
+
+  @override
+  Stream<ReadingSessionState> get states => _states.stream;
+
+  @override
+  Stream<StrictSignal> get strictSignals => _strict.stream;
+
+  @override
+  ReadingSessionState get state => ReadingSessionState.idle;
+
+  @override
+  Future<Result<void>> execute(SessionCommand command) {
+    return switch (command) {
+      StartSession() => _start(),
+      Pause() => _audioSource.pause(),
+      Resume() => _audioSource.resume(),
+      Stop() => _audioSource.stop(),
+      RequestHint() ||
+      DisputeEvent() =>
+        Future<Result<void>>.value(const Result<void>.ok(null)),
+    };
+  }
+
+  Future<Result<void>> _start() {
+    _audioSubscription ??= _audioSource.events.listen(_onAudio);
+    return _audioSource.start('bridge-session');
+  }
+
+  void _onAudio(Result<SessionAudioEvent> result) {
+    switch (result) {
+      case Ok<SessionAudioEvent>(value: final SessionAudioFrame frame):
+        _events.add(
+          SignalQuality(
+            sessionId: 'bridge-session',
+            atMs: frame.atMs,
+            level: SignalQualityLevel.ok,
+            dbfs: frame.samples.first,
+            clippedRatio: frame.samples.last,
+          ),
+        );
+      case Ok<SessionAudioEvent>(value: final SignalQuality quality):
+        _events.add(quality);
+      default:
+        break;
+    }
+  }
+
+  @override
+  Future<void> dispose() async {
+    await _audioSubscription?.cancel();
+    await _audioSource.dispose();
+    await _events.close();
+    await _states.close();
+    await _strict.close();
+  }
+}
+
+StartSession get _startCommand => const StartSession(
+      fromWordKey: WordKey(78, 1, 1),
+      toWordKey: WordKey(78, 1, 2),
+      mode: SessionMode.recall,
+      behavior: SessionBehavior.gentle,
+    );
+
+Future<ReadingSessionIsolate> _spawnTestWorker(
+  FakeSessionAudioSource audio,
+) async {
+  final spawned = await ReadingSessionIsolate.spawn(
+    factory: _createTestWorker,
+    audioSource: audio,
+  );
+  return switch (spawned) {
+    Ok(:final value) => value,
+    Error(:final error) => throw error,
+  };
+}
+
 void main() {
   test('long-lived isolate forwards commands, events, states and errors',
       () async {
-    final spawned = await ReadingSessionIsolate.spawn(
-      factory: _createTestWorker,
-    );
-    final isolate = switch (spawned) {
-      Ok(:final value) => value,
-      Error(:final error) => throw error,
-    };
+    final isolate = await _spawnTestWorker(FakeSessionAudioSource());
     addTearDown(isolate.dispose);
 
     final event = isolate.events.first;
     final state = isolate.states.first;
-    expect(
-      await isolate.execute(
-        const StartSession(
-          fromWordKey: WordKey(78, 1, 1),
-          toWordKey: WordKey(78, 1, 2),
-          mode: SessionMode.recall,
-          behavior: SessionBehavior.gentle,
-        ),
-      ),
-      isA<Ok<void>>(),
-    );
+    expect(await isolate.execute(_startCommand), isA<Ok<void>>());
     expect(await event, isA<SessionStarted>());
     expect((await state).phase, ReadingSessionPhase.ready);
 
@@ -112,10 +207,99 @@ void main() {
     expect(await isolate.execute(const Pause()), isA<Error<void>>());
   });
 
-  test('worker startup failures are explicit Result errors', () async {
+  test('commands after worker exit fail instead of hanging', () async {
+    final isolate = await _spawnTestWorker(FakeSessionAudioSource());
+    addTearDown(isolate.dispose);
+    final failure = isolate.failures.first;
+
+    expect(
+      await isolate.execute(const Resume()).timeout(const Duration(seconds: 1)),
+      isA<Error<void>>(),
+    );
+    await failure;
+    expect(
+      await isolate
+          .execute(const Pause())
+          .timeout(const Duration(milliseconds: 100)),
+      isA<Error<void>>(),
+    );
+  });
+
+  test('dispose completes commands that the worker has not finished', () async {
+    final isolate = await _spawnTestWorker(FakeSessionAudioSource());
+    final pending = isolate.execute(const Stop());
+
+    final disposing = isolate.dispose();
+    expect(
+      await pending.timeout(const Duration(milliseconds: 100)),
+      isA<Error<void>>(),
+    );
+    await disposing.timeout(const Duration(seconds: 1));
+  });
+
+  test('platform audio stays in root and frames cross the transferable bridge',
+      () async {
+    final audio = FakeSessionAudioSource();
+    final spawned = await ReadingSessionIsolate.spawn(
+      factory: _createBridgeWorker,
+      audioSource: audio,
+    );
+    final isolate = switch (spawned) {
+      Ok(:final value) => value,
+      Error(:final error) => throw error,
+    };
+    addTearDown(isolate.dispose);
+
+    expect(await isolate.execute(_startCommand), isA<Ok<void>>());
+    expect(audio.sessionId, 'bridge-session');
+    expect(await isolate.execute(const Pause()), isA<Ok<void>>());
+    expect(await isolate.execute(const Resume()), isA<Ok<void>>());
+    expect(audio.pauseCalls, 1);
+    expect(audio.resumeCalls, 1);
+    final bridgedFrame =
+        isolate.events.where((event) => event is SignalQuality).first;
+    audio.emit(
+      SessionAudioFrame(
+        atMs: 120,
+        segmentId: 7,
+        samples: Float32List.fromList(<double>[0.25, -0.75]),
+        sampleRateHz: 16000,
+        startMs: 100,
+        endMs: 120,
+      ),
+    );
+
+    final frameEcho = await bridgedFrame as SignalQuality;
+    expect(frameEcho.atMs, 120);
+    expect(frameEcho.dbfs, 0.25);
+    expect(frameEcho.clippedRatio, -0.75);
+
+    final bridgedQuality = isolate.events
+        .where((event) => event is SignalQuality && event.atMs == 200)
+        .first;
+    audio.emit(
+      const SignalQuality(
+        sessionId: 'bridge-session',
+        atMs: 200,
+        level: SignalQualityLevel.noisy,
+        sinceMs: 150,
+      ),
+    );
+    final qualityEcho = await bridgedQuality as SignalQuality;
+    expect(qualityEcho.level, SignalQualityLevel.noisy);
+    expect(qualityEcho.sinceMs, 150);
+
+    expect(await isolate.execute(const Stop()), isA<Ok<void>>());
+    expect(audio.stopCalls, 1);
+  });
+
+  test('worker startup failures are explicit and dispose root audio', () async {
+    final audio = FakeSessionAudioSource();
     final spawned = await ReadingSessionIsolate.spawn(
       factory: _failToCreateWorker,
+      audioSource: audio,
     );
     expect(spawned, isA<Error<ReadingSessionIsolate>>());
+    expect(audio.disposed, isTrue);
   });
 }
