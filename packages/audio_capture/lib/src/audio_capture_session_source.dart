@@ -23,7 +23,7 @@ final class AudioCaptureSessionSource implements SessionAudioSource {
   final AudioCaptureSessionEventMapper _mapper =
       AudioCaptureSessionEventMapper();
 
-  StreamSubscription<Result<capture.AudioCaptureEvent>>? _subscription;
+  StreamSubscription<Result<Object>>? _subscription;
   String? _sessionId;
   var _disposed = false;
 
@@ -62,20 +62,18 @@ final class AudioCaptureSessionSource implements SessionAudioSource {
     return result;
   }
 
-  void _forward(Result<capture.AudioCaptureEvent> result) {
+  void _forward(Result<Object> result) {
     switch (result) {
-      case Error<capture.AudioCaptureEvent>(:final error):
+      case Error<Object>(:final error):
         _events.add(Result<SessionAudioEvent>.error(error));
-      case Ok<capture.AudioCaptureEvent>(:final value):
+      case Ok<Object>(:final value):
         final mapped = _map(value);
         if (mapped != null) _events.add(Result.ok(mapped));
     }
   }
 
-  SessionAudioEvent? _map(capture.AudioCaptureEvent event) {
-    final sessionId = _sessionId;
-    return sessionId == null ? null : _mapper.map(event, sessionId);
-  }
+  SessionAudioEvent? _map(Object event) =>
+      _sessionId == null ? null : _mapper.map(event);
 
   @override
   Future<Result<void>> pause() =>
@@ -102,8 +100,7 @@ final class AudioCaptureSessionEventMapper {
   int? _previousSpeechEndMs;
 
   /// Converts one capture event; internal-only events return `null`.
-  SessionAudioEvent? map(capture.AudioCaptureEvent event, String sessionId) =>
-      switch (event) {
+  SessionAudioEvent? map(Object event) => switch (event) {
         capture.SpeechSegmentOpened() => SessionAudioSegmentOpened(
             atMs: event.atMs,
             segmentId: event.segmentId,
@@ -121,15 +118,10 @@ final class AudioCaptureSessionEventMapper {
             atMs: event.atMs,
             segmentId: event.segmentId,
           ),
-        capture.SignalQualityChanged() => SignalQuality(
-            sessionId: sessionId,
-            atMs: event.atMs,
-            level: _quality(event.level),
-            dbfs: event.dbfs,
-            clippedRatio: event.clippedRatio,
-          ),
+        SignalQuality() => event,
         capture.SpeechSegmentReady() => _rememberSpeechEnd(event),
         capture.CapturePaused() || capture.FileInputFinished() => null,
+        _ => null,
       };
 
   int _pauseBefore(int speechStartMs) {
@@ -142,9 +134,6 @@ final class AudioCaptureSessionEventMapper {
     _previousSpeechEndMs = event.speechEndMs;
     return null;
   }
-
-  SignalQualityLevel _quality(capture.SignalQualityLevel level) =>
-      SignalQualityLevel.values.byName(level.name);
 }
 
 /// Configuration or lifecycle error in [AudioCaptureSessionSource].

@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:check/check.dart';
 import 'package:contracts/contracts.dart';
 import 'package:quran_text/quran_text.dart';
 import 'package:session/session.dart';
@@ -37,6 +39,7 @@ final class _Harness {
     required this.recognizer,
     required this.events,
     required this.states,
+    required this.strictSignals,
   });
 
   final ReadingSession session;
@@ -44,14 +47,18 @@ final class _Harness {
   final FakeSpeechRecognizer recognizer;
   final List<SessionEvent> events;
   final List<ReadingSessionState> states;
+  final List<StrictSignal> strictSignals;
 }
 
 _Harness _harness({
   Result<void> loadResult = const Result<void>.ok(null),
   SessionCheckpointStore? checkpointStore,
   void Function(int segmentId)? onCloseSegment,
+  CheckParams checkParams = CheckParams.defaults,
+  Duration strictTickInterval = const Duration(milliseconds: 250),
+  void Function(FakeSessionAudioSource source)? onAudioStop,
 }) {
-  final audio = FakeSessionAudioSource();
+  final audio = FakeSessionAudioSource(onStop: onAudioStop);
   final recognizer = FakeSpeechRecognizer(
     const [],
     info: scriptedRecognizerInfo,
@@ -60,6 +67,7 @@ _Harness _harness({
   );
   final events = <SessionEvent>[];
   final states = <ReadingSessionState>[];
+  final strictSignals = <StrictSignal>[];
   final session = ReadingSession(
     recognizer: recognizer,
     audioSource: audio,
@@ -69,16 +77,20 @@ _Harness _harness({
     modelDirectory: '/in-memory-model',
     createSessionId: () => 'test-session',
     checkpointStore: checkpointStore,
+    checkParams: checkParams,
     finishingTimeout: const Duration(milliseconds: 50),
+    strictTickInterval: strictTickInterval,
   );
   session.events.listen(events.add);
   session.states.listen(states.add);
+  session.strictSignals.listen(strictSignals.add);
   return _Harness(
     session: session,
     audio: audio,
     recognizer: recognizer,
     events: events,
     states: states,
+    strictSignals: strictSignals,
   );
 }
 
@@ -87,6 +99,13 @@ StartSession startFor(List<Word> words) => StartSession(
       toWordKey: words.last.key,
       mode: SessionMode.recall,
       behavior: SessionBehavior.gentle,
+    );
+
+StartSession strictFor(List<Word> words) => StartSession(
+      fromWordKey: words.first.key,
+      toWordKey: words.last.key,
+      mode: SessionMode.recall,
+      behavior: SessionBehavior.strict,
     );
 
 void _emitScript(_Harness h, RecognitionScript script) =>
@@ -375,6 +394,145 @@ void main() {
       events.whereType<SessionFinished>().single.words.first.outcome,
       SessionWordOutcome.read,
     );
+  });
+
+  test('finishing waits for a final result from an already closed segment',
+      () async {
+    final words = ayah(78, 1);
+    final h = _harness();
+    addTearDown(h.session.dispose);
+    await h.session.execute(startFor(words));
+    h.audio
+      ..emit(const SessionAudioSegmentOpened(atMs: 0, segmentId: 1))
+      ..emit(const SessionAudioSegmentClosed(atMs: 1000, segmentId: 1));
+    final finalResult =
+        (RecognitionScript()..segment(heard(words))).results.last;
+    Timer(
+      const Duration(milliseconds: 10),
+      () => h.recognizer.emit(finalResult),
+    );
+
+    expect(await h.session.execute(const Stop()), isA<Ok<void>>());
+    expect(_finished(h).words.first.outcome, SessionWordOutcome.read);
+  });
+
+  test('stop drains source tail frames and closure before finishing', () async {
+    final words = ayah(78, 1);
+    late FakeSpeechRecognizer recognizer;
+    final finalResult =
+        (RecognitionScript()..segment(heard(words))).results.last;
+    final audio = FakeSessionAudioSource(
+      onStop: (source) {
+        source
+          ..emit(
+            SessionAudioFrame(
+              atMs: 1000,
+              segmentId: 1,
+              samples: Float32List(320),
+              sampleRateHz: 16000,
+              startMs: 980,
+              endMs: 1000,
+            ),
+          )
+          ..emit(
+            const SessionAudioSegmentClosed(atMs: 1000, segmentId: 1),
+          );
+      },
+    );
+    recognizer = FakeSpeechRecognizer(
+      const [],
+      info: scriptedRecognizerInfo,
+      onCloseSegment: (_) => recognizer.emit(finalResult),
+    );
+    final events = <SessionEvent>[];
+    final session = ReadingSession(
+      recognizer: recognizer,
+      audioSource: audio,
+      text: quran,
+      normalizer: normalizer,
+      versions: versions,
+      modelDirectory: '/in-memory-model',
+      createSessionId: () => 'test-session',
+      finishingTimeout: const Duration(milliseconds: 50),
+    );
+    session.events.listen(events.add);
+    addTearDown(session.dispose);
+    await session.execute(startFor(words));
+    audio.emit(const SessionAudioSegmentOpened(atMs: 0, segmentId: 1));
+
+    expect(await session.execute(const Stop()), isA<Ok<void>>());
+    expect(recognizer.acceptedAudio, hasLength(1));
+    expect(
+      events.whereType<SessionFinished>().single.words.first.outcome,
+      SessionWordOutcome.read,
+    );
+  });
+
+  test('strict mode forwards wait, offer and stop signals', () async {
+    final words = ayahs(78, 12, 16);
+    final skipped = words[4];
+    final h = _harness();
+    addTearDown(h.session.dispose);
+    await h.session.execute(strictFor(words));
+    _emitScript(
+      h,
+      RecognitionScript()
+        ..segment([
+          ...heard(words.take(4)),
+          ...heard(words.skip(5).take(7)),
+          quran.searchKey(skipped.key, normalizer.id).value,
+        ]),
+    );
+    expect(h.strictSignals.whereType<OfferHint>(), hasLength(1));
+    final revealsBeforeHint = h.events.whereType<WordRevealed>().length;
+    expect(
+      await h.session.execute(const RequestHint(kind: HintKind.word)),
+      isA<Ok<void>>(),
+    );
+
+    expect(
+      h.strictSignals.map((signal) => signal.runtimeType),
+      containsAllInOrder([WaitForWord, OfferHint, StopWaiting]),
+    );
+    expect(
+      h.strictSignals.every((signal) => signal.word == skipped.key),
+      isTrue,
+    );
+    expect((h.strictSignals.last as StopWaiting).how, WaitEnd.hint);
+    expect(
+      h.events.whereType<WordRevealed>().length,
+      greaterThan(revealsBeforeHint),
+    );
+  });
+
+  test('strict tick offers a hint after the configured wait', () async {
+    final words = ayahs(78, 12, 16);
+    final h = _harness(
+      checkParams: const CheckParams(
+        strongMatch: 0.85,
+        substitutionMax: 0.6,
+        confirmContextWords: 2,
+        jumpMinWords: 3,
+        selfCorrectionMs: 1,
+        selfCorrectionWords: 0,
+        hesitationPauseMs: 2500,
+        hesitationTempoFactor: 3,
+        strictMaxFails: 100,
+        strictMaxWaitMs: 4,
+      ),
+      strictTickInterval: const Duration(milliseconds: 1),
+    );
+    addTearDown(h.session.dispose);
+    await h.session.execute(strictFor(words));
+    _emitScript(
+      h,
+      RecognitionScript()
+        ..segment(heard([...words.take(4), ...words.skip(5).take(4)])),
+    );
+    expect(h.strictSignals.whereType<WaitForWord>(), isNotEmpty);
+
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    expect(h.strictSignals.whereType<OfferHint>(), hasLength(1));
   });
 }
 

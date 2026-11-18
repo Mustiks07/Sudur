@@ -10,6 +10,7 @@ final class FakeSessionAudioSource implements SessionAudioSource {
     this.pauseResult = const Result<void>.ok(null),
     this.resumeResult = const Result<void>.ok(null),
     this.stopResult = const Result<void>.ok(null),
+    this.onStop,
   });
 
   final StreamController<Result<SessionAudioEvent>> _events =
@@ -26,6 +27,10 @@ final class FakeSessionAudioSource implements SessionAudioSource {
 
   /// Result returned by [stop].
   final Result<void> stopResult;
+
+  /// Optional hook for emitting the final buffered frames before [stop]
+  /// completes.
+  final void Function(FakeSessionAudioSource source)? onStop;
 
   /// Session id most recently passed to [start].
   String? sessionId;
@@ -66,6 +71,7 @@ final class FakeSessionAudioSource implements SessionAudioSource {
   @override
   Future<Result<void>> stop() async {
     stopCalls++;
+    onStop?.call(this);
     return stopResult;
   }
 

@@ -5,13 +5,14 @@ import 'package:contracts/contracts.dart';
 import 'package:follow/follow.dart';
 import 'package:quran_text/quran_text.dart';
 import 'package:session/src/session_checkpoint.dart';
+import 'package:session/src/session_isolate.dart';
 import 'package:session/src/session_state.dart';
 
 /// Creates a unique id for a new reading session.
 typedef SessionIdFactory = String Function();
 
 /// Coordinates audio, recognition, following and checking (docs/tz 10.6).
-final class ReadingSession {
+final class ReadingSession implements SessionIsolateWorker {
   /// Creates an idle session.
   ReadingSession({
     required SpeechRecognizer recognizer,
@@ -26,6 +27,7 @@ final class ReadingSession {
     SessionCheckpointStore? checkpointStore,
     Duration checkpointInterval = const Duration(seconds: 30),
     Duration finishingTimeout = const Duration(seconds: 3),
+    Duration strictTickInterval = const Duration(milliseconds: 250),
     double maximumDecodeRatio = 3,
   })  : _recognizer = recognizer,
         _audioSource = audioSource,
@@ -39,6 +41,7 @@ final class ReadingSession {
         _checkpointStore = checkpointStore,
         _checkpointInterval = checkpointInterval,
         _finishingTimeout = finishingTimeout,
+        _strictTickInterval = strictTickInterval,
         _maximumDecodeRatio = maximumDecodeRatio;
 
   final SpeechRecognizer _recognizer;
@@ -53,17 +56,21 @@ final class ReadingSession {
   final SessionCheckpointStore? _checkpointStore;
   final Duration _checkpointInterval;
   final Duration _finishingTimeout;
+  final Duration _strictTickInterval;
   final double _maximumDecodeRatio;
 
   final StreamController<SessionEvent> _events =
       StreamController<SessionEvent>.broadcast(sync: true);
   final StreamController<ReadingSessionState> _states =
       StreamController<ReadingSessionState>.broadcast(sync: true);
+  final StreamController<StrictSignal> _strictSignals =
+      StreamController<StrictSignal>.broadcast(sync: true);
 
   ReadingSessionState _state = ReadingSessionState.idle;
   StreamSubscription<Result<SessionAudioEvent>>? _audioSubscription;
   StreamSubscription<RecognitionResult>? _recognitionSubscription;
   Timer? _checkpointTimer;
+  Timer? _strictTickTimer;
   Follower? _follower;
   Checker? _checker;
   StartSession? _start;
@@ -73,23 +80,35 @@ final class ReadingSession {
   final Set<WordKey> _hinted = <WordKey>{};
   final Map<String, CheckEvent> _checks = <String, CheckEvent>{};
   final Set<int> _closedSegments = <int>{};
+  final Set<int> _finalSegments = <int>{};
   final Map<int, Completer<void>> _finalWaiters = <int, Completer<void>>{};
+  final Map<int, _SegmentRange> _segmentRanges = <int, _SegmentRange>{};
+  final Map<WordKey, WordRevealed> _heldReveals = <WordKey, WordRevealed>{};
   int? _openSegmentId;
+  WordKey? _strictWaitWord;
   WordKey? _lastPosition;
   var _atMs = 0;
   var _audioWasSuitable = true;
   var _disposed = false;
 
   /// Events consumed by the reading screen and persistence layer.
+  @override
   Stream<SessionEvent> get events => _events.stream;
 
   /// Lifecycle state changes, excluding the initial [state] value.
+  @override
   Stream<ReadingSessionState> get states => _states.stream;
 
+  /// Strict-mode wait, hint-offer and wait-end signals for the screen.
+  @override
+  Stream<StrictSignal> get strictSignals => _strictSignals.stream;
+
   /// Current lifecycle state.
+  @override
   ReadingSessionState get state => _state;
 
   /// Executes one screen command.
+  @override
   Future<Result<void>> execute(SessionCommand command) {
     if (_disposed) {
       return Future<Result<void>>.value(
@@ -178,6 +197,12 @@ final class ReadingSession {
       _checkpointInterval,
       (_) => unawaited(_saveCheckpoint()),
     );
+    if (command.behavior == SessionBehavior.strict) {
+      _strictTickTimer = Timer.periodic(
+        _strictTickInterval,
+        (_) => _tickStrict(),
+      );
+    }
     return const Result<void>.ok(null);
   }
 
@@ -213,24 +238,36 @@ final class ReadingSession {
     if (!stoppable.contains(_state.phase) || _follower == null) {
       return _invalidState('stop');
     }
-    _setState(const ReadingSessionState(ReadingSessionPhase.finishing));
     _checkpointTimer?.cancel();
-    final segmentId = _openSegmentId;
+    _strictTickTimer?.cancel();
     final stopped = await _audioSource.stop();
     if (stopped case Error<void>()) return stopped;
-    if (segmentId != null) {
-      _closeSegment(segmentId);
-      final waiter = _finalWaiters[segmentId];
-      if (waiter != null && !waiter.isCompleted) {
-        try {
-          await waiter.future.timeout(_finishingTimeout);
-        } on TimeoutException {
-          _audioWasSuitable = false;
+    // A source may enqueue its last frames and close event while stop is in
+    // flight. Keep accepting them through one event-loop turn before the
+    // session enters finishing.
+    await Future<void>.delayed(Duration.zero);
+    final openSegmentId = _openSegmentId;
+    if (openSegmentId != null) _closeSegment(openSegmentId);
+    _setState(const ReadingSessionState(ReadingSessionPhase.finishing));
+
+    final pending = <int, Future<void>>{
+      for (final entry in _finalWaiters.entries)
+        if (!entry.value.isCompleted) entry.key: entry.value.future,
+    };
+    if (pending.isNotEmpty) {
+      try {
+        await Future.wait(pending.values).timeout(_finishingTimeout);
+      } on TimeoutException {
+        _audioWasSuitable = false;
+        for (final segmentId in pending.keys) {
+          final waiter = _finalWaiters[segmentId];
+          if (waiter == null || waiter.isCompleted) continue;
+          final range = _segmentRanges[segmentId];
           _processCheck(
             _checker!.markUnreliable(
               UnreliableSpan(
-                startMs: _atMs,
-                endMs: _atMs,
+                startMs: range?.startMs ?? _atMs,
+                endMs: range?.endMs ?? _atMs,
                 reason: UnreliableReason.deviceTooSlow,
               ),
             ),
@@ -284,6 +321,10 @@ final class ReadingSession {
         wordKey: target,
       ),
     );
+    _processCheck(
+      _checker!.onHint(target, _atMs),
+      reason: 'hintTaken',
+    );
     if (kind != HintKind.firstLetter) {
       for (final word in affected) {
         if (_revealed.add(word)) {
@@ -298,10 +339,6 @@ final class ReadingSession {
         }
       }
     }
-    _processCheck(
-      _checker!.onHint(target, _atMs),
-      reason: 'hintTaken',
-    );
     return const Result<void>.ok(null);
   }
 
@@ -335,6 +372,7 @@ final class ReadingSession {
     switch (event) {
       case SessionAudioSegmentOpened():
         _openSegmentId = event.segmentId;
+        _segmentRanges[event.segmentId] = _SegmentRange(event.atMs);
         if (event.pauseBeforeMs > 0) {
           _processCheck(
             _checker!.onPause(
@@ -348,6 +386,9 @@ final class ReadingSession {
         }
         _beginListening();
       case SessionAudioFrame():
+        _segmentRanges
+            .putIfAbsent(event.segmentId, () => _SegmentRange(event.startMs))
+            .include(event.startMs, event.endMs);
         _recognizer.acceptAudio(
           event.samples,
           event.sampleRateHz,
@@ -355,6 +396,9 @@ final class ReadingSession {
         );
         _beginListening();
       case SessionAudioSegmentClosed():
+        _segmentRanges
+            .putIfAbsent(event.segmentId, () => _SegmentRange(event.atMs))
+            .include(event.atMs, event.atMs);
         _closeSegment(event.segmentId);
       case SignalQuality():
         _audioWasSuitable =
@@ -393,12 +437,17 @@ final class ReadingSession {
     }
     _processFollow(_follower!.accept(result));
     if (result.isFinal) {
+      _finalSegments.add(result.segmentId);
       final waiter = _finalWaiters[result.segmentId];
       if (waiter != null && !waiter.isCompleted) waiter.complete();
     }
   }
 
   void _processFollow(FollowUpdate update) {
+    _processCheck(
+      _checker!.accept(path: update.path, jumps: update.jumps),
+      reason: 'checkUpdated',
+    );
     for (final event in update.events) {
       if (event case PositionUpdate(:final word)) {
         _lastPosition = word;
@@ -406,13 +455,14 @@ final class ReadingSession {
       if (event case WordRevealed(:final word)) {
         _revealed.add(word);
         if (_start?.mode == SessionMode.test) continue;
+        final wait = _strictWaitWord;
+        if (wait != null && word.compareTo(wait) > 0) {
+          _heldReveals.putIfAbsent(word, () => event);
+          continue;
+        }
       }
       _emit(event);
     }
-    _processCheck(
-      _checker!.accept(path: update.path, jumps: update.jumps),
-      reason: 'checkUpdated',
-    );
   }
 
   void _processCheck(CheckUpdate update, {required String reason}) {
@@ -432,6 +482,20 @@ final class ReadingSession {
           ),
         );
       }
+    }
+    for (final signal in update.strict) {
+      switch (signal) {
+        case WaitForWord(:final word):
+          _strictWaitWord = word;
+        case OfferHint():
+          break;
+        case StopWaiting(:final word):
+          if (_strictWaitWord == word) {
+            _strictWaitWord = null;
+            _releaseHeldReveals(signal.atMs);
+          }
+      }
+      if (!_strictSignals.isClosed) _strictSignals.add(signal);
     }
   }
 
@@ -485,6 +549,8 @@ final class ReadingSession {
       };
 
   WordKey? _hintTarget(HintKind kind) {
+    final strictWaitWord = _strictWaitWord;
+    if (strictWaitWord != null) return strictWaitWord;
     var next = 0;
     final position = _lastPosition;
     if (position != null) {
@@ -509,8 +575,36 @@ final class ReadingSession {
   void _closeSegment(int segmentId) {
     if (!_closedSegments.add(segmentId)) return;
     _openSegmentId = _openSegmentId == segmentId ? null : _openSegmentId;
-    _finalWaiters.putIfAbsent(segmentId, Completer<void>.new);
+    if (!_finalSegments.contains(segmentId)) {
+      _finalWaiters.putIfAbsent(segmentId, Completer<void>.new);
+    }
     _recognizer.closeSegment(segmentId);
+  }
+
+  void _tickStrict() {
+    if (_checker == null ||
+        (_state.phase != ReadingSessionPhase.ready &&
+            _state.phase != ReadingSessionPhase.listening)) {
+      return;
+    }
+    _atMs += _strictTickInterval.inMilliseconds;
+    _processCheck(_checker!.tick(_atMs), reason: 'strictTick');
+  }
+
+  void _releaseHeldReveals(int atMs) {
+    final sessionId = _sessionId;
+    if (sessionId == null) return;
+    for (final reveal in _heldReveals.values) {
+      _emit(
+        WordRevealed(
+          sessionId: sessionId,
+          atMs: atMs,
+          word: reveal.word,
+          reason: reveal.reason,
+        ),
+      );
+    }
+    _heldReveals.clear();
   }
 
   void _beginListening() {
@@ -568,10 +662,12 @@ final class ReadingSession {
   }
 
   /// Stops active resources and closes public streams.
+  @override
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
     _checkpointTimer?.cancel();
+    _strictTickTimer?.cancel();
     if (_state.phase != ReadingSessionPhase.idle &&
         _state.phase != ReadingSessionPhase.finished) {
       await _audioSource.stop();
@@ -581,5 +677,18 @@ final class ReadingSession {
     await _audioSource.dispose();
     await _events.close();
     await _states.close();
+    await _strictSignals.close();
+  }
+}
+
+final class _SegmentRange {
+  _SegmentRange(this.startMs) : endMs = startMs;
+
+  int startMs;
+  int endMs;
+
+  void include(int start, int end) {
+    if (start < startMs) startMs = start;
+    if (end > endMs) endMs = end;
   }
 }

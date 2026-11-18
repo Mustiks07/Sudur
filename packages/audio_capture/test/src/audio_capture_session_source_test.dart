@@ -10,7 +10,6 @@ void main() {
     final mapper = AudioCaptureSessionEventMapper();
     final opened = mapper.map(
       const capture.SpeechSegmentOpened(atMs: 100, segmentId: 2),
-      'session',
     );
     final frame = mapper.map(
       capture.SpeechSegmentAudioFrame(
@@ -21,16 +20,16 @@ void main() {
         startMs: 100,
         endMs: 120,
       ),
-      'session',
     );
     final quality = mapper.map(
-      const capture.SignalQualityChanged(
+      const SignalQuality(
+        sessionId: 'source-session',
         atMs: 120,
-        level: capture.SignalQualityLevel.tooQuiet,
+        level: SignalQualityLevel.tooQuiet,
+        sinceMs: 80,
         dbfs: -50,
         clippedRatio: 0,
       ),
-      'session',
     );
 
     expect(opened, isA<SessionAudioSegmentOpened>());
@@ -42,8 +41,9 @@ void main() {
     }
     switch (quality) {
       case SignalQuality():
-        expect(quality.sessionId, 'session');
+        expect(quality.sessionId, 'source-session');
         expect(quality.level, SignalQualityLevel.tooQuiet);
+        expect(quality.sinceMs, 80);
       default:
         fail('Expected shared signal quality.');
     }
@@ -64,13 +64,11 @@ void main() {
           speechEndMs: 300,
           pauseBeforeMs: 0,
         ),
-        'session',
       ),
       isNull,
     );
     final mapped = mapper.map(
       const capture.SpeechSegmentOpened(atMs: 800, segmentId: 2),
-      'session',
     );
     switch (mapped) {
       case SessionAudioSegmentOpened():
