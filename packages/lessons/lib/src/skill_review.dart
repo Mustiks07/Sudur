@@ -28,16 +28,42 @@ SkillGrade gradeSkillReview(int mistakes) => switch (mistakes) {
       _ => SkillGrade.again,
     };
 
-/// No question of the review types is marked with the skill.
-final class NoReviewQuestions implements Exception {
+/// The packages do not hold enough review questions marked with the skill:
+/// lesson content is missing. No review and no grade: a shorter review is
+/// not a full one (docs/tz 11.2 asks `skillReviewQuestions` questions).
+final class NotEnoughReviewQuestions implements Exception {
   /// Creates the error.
-  const NoReviewQuestions(this.skill);
+  const NotEnoughReviewQuestions(
+    this.skill, {
+    required this.found,
+    required this.needed,
+  });
+
+  /// The skill.
+  final String skill;
+
+  /// Marked questions of the review types in the packages.
+  final int found;
+
+  /// Questions a review needs.
+  final int needed;
+
+  @override
+  String toString() =>
+      'Not enough lesson content to review $skill: $found of $needed '
+      'questions';
+}
+
+/// The review is over: no more answers are taken.
+final class SkillReviewOver implements Exception {
+  /// Creates the error.
+  const SkillReviewOver(this.skill);
 
   /// The skill.
   final String skill;
 
   @override
-  String toString() => 'No review questions for $skill';
+  String toString() => 'The review of $skill is over';
 }
 
 /// One review of a skill: questions, answers so far.
@@ -85,7 +111,8 @@ final class SkillReviewer {
   final Random random;
 
   /// Picks questions for [skill] from [packages]. With fewer marked
-  /// questions than needed, asks all of them.
+  /// questions than `skillReviewQuestions` it returns
+  /// [NotEnoughReviewQuestions] and no review: never a shorter one.
   Result<SkillReviewRun> start(String skill, Iterable<LessonPackage> packages) {
     final pool = [
       for (final p in packages)
@@ -93,12 +120,17 @@ final class SkillReviewer {
           for (final s in l.steps)
             if (s.type.isSkillReviewQuestion && s.skills.contains(skill)) s,
     ];
-    if (pool.isEmpty) return Result.error(NoReviewQuestions(skill));
+    final needed = params.skillReviewQuestions;
+    if (pool.length < needed) {
+      return Result.error(
+        NotEnoughReviewQuestions(skill, found: pool.length, needed: needed),
+      );
+    }
     pool.shuffle(random);
     return Result.ok(
       SkillReviewRun._(
         skill,
-        List.unmodifiable(pool.take(params.skillReviewQuestions)),
+        List.unmodifiable(pool.take(needed)),
         0,
         0,
       ),
@@ -109,7 +141,7 @@ final class SkillReviewer {
   Result<SkillReviewRun> answer(SkillReviewRun run, StepAnswer answer) {
     final step = run.current;
     if (step == null) {
-      return Result.error(NoReviewQuestions(run.skill));
+      return Result.error(SkillReviewOver(run.skill));
     }
     return switch (scoreStep(step, answer)) {
       Ok(:final value) => Result.ok(

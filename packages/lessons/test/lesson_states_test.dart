@@ -12,6 +12,19 @@ LessonProgress progress(String id, LessonState state) => LessonProgress(
     );
 
 void main() {
+  test('review: stored locked lesson unlocks after predecessor passed', () {
+    final p = fixture();
+    final states = lessonStates(
+      p,
+      {
+        'test-stage1-01': progress('test-stage1-01', LessonState.passed),
+        'test-stage1-02': progress('test-stage1-02', LessonState.locked),
+      },
+      stageOpen: true,
+    );
+    expect(states['test-stage1-02'], LessonState.available);
+  });
+
   late LessonPackage p;
   setUpAll(() => p = fixture());
 
@@ -57,6 +70,52 @@ void main() {
       placementStart: 'test-stage1-02',
     );
     expect(states.values, everyElement(LessonState.available));
+  });
+
+  test('stored locked lesson opens by the entry exercise too', () {
+    final states = lessonStates(
+      p,
+      {
+        'test-stage1-01': progress('test-stage1-01', LessonState.locked),
+        'test-stage1-02': progress('test-stage1-02', LessonState.locked),
+      },
+      stageOpen: false,
+      placementStart: 'test-stage1-02',
+    );
+    expect(states.values, everyElement(LessonState.available));
+  });
+
+  test('stored locked stays locked while nothing opens it', () {
+    final states = lessonStates(
+      p,
+      {
+        'test-stage1-01': progress('test-stage1-01', LessonState.failed),
+        'test-stage1-02': progress('test-stage1-02', LessonState.locked),
+      },
+      stageOpen: true,
+    );
+    expect(states.values, [LessonState.failed, LessonState.locked]);
+  });
+
+  test('learning progress is never overwritten by unlock rules', () {
+    final states = lessonStates(
+      p,
+      {
+        'test-stage1-01': progress('test-stage1-01', LessonState.quiz),
+        'test-stage1-02': progress('test-stage1-02', LessonState.inProgress),
+      },
+      stageOpen: false,
+    );
+    expect(states.values, [LessonState.quiz, LessonState.inProgress]);
+  });
+
+  test('a lesson once stored as available stays open', () {
+    final states = lessonStates(
+      p,
+      {'test-stage1-02': progress('test-stage1-02', LessonState.available)},
+      stageOpen: true,
+    );
+    expect(states['test-stage1-02'], LessonState.available);
   });
 
   test('placement in another stage is ignored here', () {

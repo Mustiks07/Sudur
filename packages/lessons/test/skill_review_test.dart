@@ -39,21 +39,39 @@ void main() {
   });
 
   test('the pick depends only on the injected random', () {
-    List<String> ids(int seed) => ok(reviewer(seed).start('letter:alif', [p]))
+    List<String> ids(int seed) => ok(reviewer(seed).start('letter:ba', [p]))
         .questions
         .map((q) => q.id)
         .toList();
     expect(ids(7), ids(7));
   });
 
-  test('fewer marked questions than 3: all of them', () {
-    final run = ok(reviewer().start('rule:placeholder', [p]));
-    expect(run.questions.map((q) => q.id), ['rule-78']);
+  test('fewer marked questions than needed: not enough content, no grade', () {
+    // rule:placeholder marks one review question; letter:alif one too.
+    for (final skill in ['rule:placeholder', 'letter:alif']) {
+      final r = reviewer().start(skill, [p]);
+      final error = (r as Error).error as NotEnoughReviewQuestions;
+      expect(error.skill, skill);
+      expect(error.found, 1);
+      expect(error.needed, LessonParams.defaults.skillReviewQuestions);
+      expect(error.toString(), contains('Not enough lesson content'));
+    }
   });
 
-  test('no marked question: an error, not an empty review', () {
+  test('no marked question: not enough content', () {
     final r = reviewer().start('letter:zay', [p]);
-    expect((r as Error).error, isA<NoReviewQuestions>());
+    expect(
+      ((r as Error).error as NotEnoughReviewQuestions).found,
+      0,
+    );
+  });
+
+  test('a smaller review size from config is honoured', () {
+    final two = SkillReviewer(
+      params: const LessonParams(quizPassPercent: 80, skillReviewQuestions: 1),
+      random: Random(1),
+    );
+    expect(ok(two.start('rule:placeholder', [p])).questions, hasLength(1));
   });
 
   for (final (mistakes, grade) in [
@@ -76,11 +94,11 @@ void main() {
 
   test('an answer after the end is refused', () {
     final reviewer0 = reviewer();
-    var run = ok(reviewer0.start('rule:placeholder', [p]));
-    run = ok(reviewer0.answer(run, right(run.current!))); // One question.
-    expect(
-      reviewer0.answer(run, const Acknowledged()),
-      isA<Error<SkillReviewRun>>(),
-    );
+    var run = ok(reviewer0.start('letter:ba', [p]));
+    for (var q = run.current; q != null; q = run.current) {
+      run = ok(reviewer0.answer(run, right(q)));
+    }
+    final r = reviewer0.answer(run, const Acknowledged());
+    expect((r as Error).error, isA<SkillReviewOver>());
   });
 }
