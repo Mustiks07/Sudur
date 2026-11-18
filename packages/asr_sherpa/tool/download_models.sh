@@ -5,6 +5,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPOSITORY_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
 CACHE_ROOT="$REPOSITORY_ROOT/third_party_cache/asr_sherpa"
 MODEL_CHOICE="${1:-all}"
+EVAL_ROOT="${SUDUR_ASR_EVAL_DIR:-}"
+
+if [[ -z "$EVAL_ROOT" ]]; then
+  echo "Set SUDUR_ASR_EVAL_DIR to reviewed small.json and tiny.json reports." >&2
+  exit 64
+fi
 
 mkdir -p "$CACHE_ROOT"
 
@@ -13,12 +19,17 @@ download_model() {
   local revision="$2"
   local min_ram_mb="$3"
   local repository="Abdou/quran-asr-$name"
+  local evaluation="$EVAL_ROOT/$name.json"
   local target="$CACHE_ROOT/quran-asr-$name"
   local temporary
 
   if [[ -e "$target" ]]; then
     echo "Target already exists: $target" >&2
     echo "Remove it explicitly before downloading a different revision." >&2
+    return 1
+  fi
+  if [[ ! -f "$evaluation" ]]; then
+    echo "Evaluation report is missing: $evaluation" >&2
     return 1
   fi
 
@@ -28,6 +39,7 @@ download_model() {
   for file in model.int8.onnx tokens.txt spelling.json LICENSE; do
     curl --fail --location --retry 3 --silent --show-error "https://huggingface.co/$repository/resolve/$revision/$file" --output "$temporary/$file"
   done
+  cp "$evaluation" "$temporary/eval.json"
 
   local model_sha256
   local tokens_sha256
@@ -87,6 +99,8 @@ thresholds = {
     "ambiguityMargin": 0.15,
     "ngramSize": 3,
     "stableConfirmations": 2,
+    "openDelayWords": 2,
+    "lostWindowWords": 4,
     "strongMatch": 0.85,
     "substitutionMax": 0.60,
     "confirmContextWords": 2,

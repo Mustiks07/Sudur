@@ -30,6 +30,16 @@ void main() {
     expect(result, isA<Error<AsrModelPackage>>());
   });
 
+  test('rejects a package without evaluation metadata', () async {
+    final directory = await _createPackage();
+    addTearDown(() => directory.delete(recursive: true));
+    await File('${directory.path}${Platform.pathSeparator}eval.json').delete();
+
+    final result = await AsrModelPackage.load(directory.path);
+
+    expect(result, isA<Error<AsrModelPackage>>());
+  });
+
   test('rejects an unordered normalizer replacement object', () async {
     final directory = await _createPackage();
     addTearDown(() => directory.delete(recursive: true));
@@ -108,6 +118,8 @@ Future<Directory> _createPackage() async {
       'ambiguityMargin': 0.15,
       'ngramSize': 3,
       'stableConfirmations': 2,
+      'openDelayWords': 2,
+      'lostWindowWords': 4,
       'strongMatch': 0.85,
       'substitutionMax': 0.6,
       'confirmContextWords': 2,
@@ -119,6 +131,14 @@ Future<Directory> _createPackage() async {
       'strictMaxFails': 3,
       'strictMaxWaitMs': 15000,
       'stuckWordTries': 3,
+    },
+  );
+  await _writeJson(
+    directory,
+    'eval.json',
+    <String, Object?>{
+      'dataset': 'synthetic-test-fixture',
+      'wer': 0.0,
     },
   );
   return directory;

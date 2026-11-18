@@ -13,15 +13,23 @@
 ## Модели
 
 ```sh
-packages/asr_sherpa/tool/download_models.sh all
+SUDUR_ASR_EVAL_DIR=/path/to/reviewed-eval \
+  packages/asr_sherpa/tool/download_models.sh all
 ```
 
 Скрипт скачивает закреплённые ревизии `Abdou/quran-asr-small` и
 `Abdou/quran-asr-tiny` в игнорируемый `third_party_cache/asr_sherpa/`,
 проверяемый пакет содержит `model.json`, `model.int8.onnx`, `tokens.txt`,
-`normalizer.json`, `thresholds.json` и лицензию MIT. Модели в git не
-добавляются. Таблица `replace` записывается упорядоченным списком объектов и
-проверена реализацией `Normalizer` из P02.
+`normalizer.json`, `thresholds.json`, `eval.json` и лицензию MIT. Проверенные
+отчёты подаются как `small.json` и `tiny.json` через `SUDUR_ASR_EVAL_DIR`,
+чтобы скрипт не выдумывал показатели модели. Модели и отчёты в git не
+добавляются. Таблица `replace` записывается упорядоченным списком объектов.
+
+Установку и атомарное переключение версии выполняет пакет `content`. ASR
+получает активный каталог только через `AsrModelPackageSource`; прямой
+download/activation из распознавателя невозможен. `AsrDeviceModelSelector`
+прогоняет встроенный 10-секундный образец, выбирает small/tiny/самопроверку и
+при явном повторе запускает измерения заново.
 
 Тест скорости декодирует 10 секунд детерминированного ненулевого шума с
 фиксированным seed. Падение worker-isolate переводит распознаватель в

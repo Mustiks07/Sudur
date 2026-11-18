@@ -6,8 +6,10 @@ import 'package:audio_capture/src/audio_capture_config.dart';
 import 'package:audio_capture/src/audio_capture_event.dart';
 import 'package:audio_capture/src/audio_capture_exception.dart';
 import 'package:audio_capture/src/audio_event_codec.dart';
+import 'package:audio_capture/src/audio_recorder_port.dart';
 import 'package:audio_capture/src/audio_snippet.dart';
 import 'package:audio_capture/src/audio_worker.dart';
+import 'package:audio_capture/src/review_snippet_store.dart';
 import 'package:contracts/contracts.dart';
 import 'package:record/record.dart';
 
@@ -20,13 +22,21 @@ final class AudioCaptureService {
     required String sessionId,
     AudioCaptureConfig config = const AudioCaptureConfig(),
     AudioRecorder? recorder,
+    AudioRecorderPort? recorderPort,
+    void Function(SendPort) workerEntrypoint = runAudioWorker,
   })  : _sessionId = sessionId,
         _config = config,
-        _recorder = recorder;
+        _recorder = recorderPort ?? RecordAudioRecorderPort(recorder),
+        _workerEntrypoint = workerEntrypoint,
+        _reviewSnippets = ReviewSnippetStore(
+          maxBytes: config.maxReviewSnippetBytes,
+        );
 
   final String _sessionId;
   final AudioCaptureConfig _config;
-  AudioRecorder? _recorder;
+  final AudioRecorderPort _recorder;
+  final void Function(SendPort) _workerEntrypoint;
+  final ReviewSnippetStore _reviewSnippets;
   final StreamController<Result<Object>> _events =
       StreamController<Result<Object>>.broadcast();
   final Map<int, Completer<Map<String, Object?>>> _pending =
@@ -49,11 +59,10 @@ final class AudioCaptureService {
   var _disposed = false;
   var _expectedRecorderPause = false;
   var _playbackActive = false;
+  AudioCaptureException? _workerFailure;
 
   /// Segments, quality changes, pauses, and explicit operation errors.
   Stream<Result<Object>> get events => _events.stream;
-
-  AudioRecorder get _activeRecorder => _recorder ??= AudioRecorder();
 
   /// Starts PCM16, 16 kHz, mono microphone capture.
   ///
@@ -76,7 +85,7 @@ final class AudioCaptureService {
       );
     }
     try {
-      if (!await _activeRecorder.hasPermission()) {
+      if (!await _recorder.hasPermission()) {
         return _failure(
           'micDenied',
           'Microphone permission was denied; use self-check mode.',
@@ -88,6 +97,21 @@ final class AudioCaptureService {
       }
       _mode = _InputMode.microphone;
       await _startRecorderStream();
+      if (_playbackActive) {
+        _expectedRecorderPause = true;
+        await _recorder.pause();
+        final playback = _voidResult(
+          await _sendAndWait(
+            'playback',
+            const <String, Object?>{'active': true},
+          ),
+        );
+        if (playback case Error<void>()) {
+          await _stopRecorder();
+          _mode = _InputMode.none;
+          return playback;
+        }
+      }
       return const Result<void>.ok(null);
     } on Object {
       await _stopRecorder();
@@ -126,8 +150,7 @@ final class AudioCaptureService {
     return const Result<void>.ok(null);
   }
 
-  /// Returns a padded fragment from the in-memory ring only.
-  Future<Result<AudioSnippet>> requestSnippet({
+  Future<Result<AudioSnippet>> _requestSnippet({
     required int startMs,
     required int endMs,
   }) async {
@@ -172,6 +195,42 @@ final class AudioCaptureService {
     }
   }
 
+  /// Retains one event-centred snippet until its review is closed.
+  ///
+  /// Call this after the configured post-roll is available. No audio is
+  /// written to disk; oldest snippets are evicted at the memory limit.
+  Future<Result<AudioSnippet>> retainReviewSnippet({
+    required String eventId,
+    required int startMs,
+    required int endMs,
+  }) async {
+    final result = await _requestSnippet(startMs: startMs, endMs: endMs);
+    switch (result) {
+      case Error<AudioSnippet>():
+        return result;
+      case Ok<AudioSnippet>(:final value):
+        if (!_reviewSnippets.retain(eventId, value)) {
+          return _snippetFailure(
+            'snippetTooLarge',
+            'The review snippet exceeds the in-memory budget.',
+          );
+        }
+        return Result.ok(value);
+    }
+  }
+
+  /// Returns an event's retained in-memory snippet.
+  AudioSnippet? reviewSnippet(String eventId) => _reviewSnippets[eventId];
+
+  /// Releases one event after it leaves review.
+  void releaseReviewSnippet(String eventId) => _reviewSnippets.release(eventId);
+
+  /// Releases all event snippets when review closes.
+  void closeReview() => _reviewSnippets.closeReview();
+
+  /// Current retained review memory, exposed for diagnostics and tests.
+  int get reviewSnippetBytes => _reviewSnippets.retainedBytes;
+
   /// Pauses capture after a system lifecycle or permission event.
   Future<Result<void>> notifyInterruption(
     CapturePauseReason reason, {
@@ -184,7 +243,7 @@ final class AudioCaptureService {
         reason != CapturePauseReason.permissionRevoked) {
       _expectedRecorderPause = true;
       try {
-        await _activeRecorder.pause();
+        await _recorder.pause();
       } on Object {
         // The worker still transitions to paused with an explicit reason.
       }
@@ -243,13 +302,13 @@ final class AudioCaptureService {
       return _failure('notMicrophone', 'Microphone capture is not active.');
     }
     try {
-      if (!await _activeRecorder.hasPermission()) {
+      if (!await _recorder.hasPermission()) {
         return await notifyInterruption(
           CapturePauseReason.permissionRevoked,
         );
       }
       _expectedRecorderPause = true;
-      await _activeRecorder.resume();
+      await _recorder.resume();
       return const Result<void>.ok(null);
     } on Object {
       return _failure(
@@ -270,9 +329,9 @@ final class AudioCaptureService {
       try {
         _expectedRecorderPause = true;
         if (active) {
-          await _activeRecorder.pause();
-        } else if (await _activeRecorder.hasPermission()) {
-          await _activeRecorder.resume();
+          await _recorder.pause();
+        } else if (await _recorder.hasPermission()) {
+          await _recorder.resume();
         }
       } on Object {
         return _failure(
@@ -307,6 +366,7 @@ final class AudioCaptureService {
       return;
     }
     await stop();
+    closeReview();
     _disposed = true;
     final worker = _workerPort;
     if (worker != null) {
@@ -319,7 +379,7 @@ final class AudioCaptureService {
       }
     }
     await _recordStateSubscription?.cancel();
-    await _recorder?.dispose();
+    await _recorder.dispose();
     _isolate?.kill(priority: Isolate.immediate);
     await _responseSubscription?.cancel();
     await _errorSubscription?.cancel();
@@ -359,7 +419,7 @@ final class AudioCaptureService {
       _errorSubscription = errors.listen(_handleWorkerFailure);
       _exitSubscription = exit.listen(_handleWorkerExit);
       _isolate = await Isolate.spawn<SendPort>(
-        runAudioWorker,
+        _workerEntrypoint,
         responses.sendPort,
         onError: errors.sendPort,
         onExit: exit.sendPort,
@@ -389,11 +449,11 @@ final class AudioCaptureService {
 
   Future<void> _startRecorderStream() async {
     await _recordStateSubscription?.cancel();
-    _recordStateSubscription = _activeRecorder.onStateChanged().listen(
+    _recordStateSubscription = _recorder.onStateChanged().listen(
           _handleRecordState,
           onError: _handleRecordError,
         );
-    final stream = await _activeRecorder.startStream(
+    final stream = await _recorder.startStream(
       RecordConfig(
         encoder: AudioEncoder.pcm16bits,
         sampleRate: _config.sampleRate,
@@ -442,7 +502,7 @@ final class AudioCaptureService {
   Future<void> _stopRecorder() async {
     _expectedRecorderPause = true;
     try {
-      await _activeRecorder.stop();
+      await _recorder.stop();
     } on Object {
       // The stream subscription is still cancelled and worker state is reset.
     }
@@ -454,6 +514,12 @@ final class AudioCaptureService {
     String operation,
     Map<String, Object?> fields,
   ) {
+    final failure = _workerFailure;
+    if (failure != null) {
+      return Future<Map<String, Object?>>.value(
+        _failedResponse(failure.code, failure.message),
+      );
+    }
     final worker = _workerPort;
     if (worker == null) {
       return Future<Map<String, Object?>>.value(
@@ -529,9 +595,17 @@ final class AudioCaptureService {
   }
 
   void _completeAfterWorkerFailure() {
-    final response = _failedResponse(
+    if (_workerFailure != null) return;
+    const failure = AudioCaptureException(
       'workerStopped',
       'The audio worker isolate stopped unexpectedly.',
+    );
+    _workerFailure = failure;
+    _workerPort = null;
+    _isolate = null;
+    final response = _failedResponse(
+      failure.code,
+      failure.message,
     );
     for (final completer in _pending.values) {
       if (!completer.isCompleted) {
@@ -541,12 +615,7 @@ final class AudioCaptureService {
     _pending.clear();
     if (!_events.isClosed) {
       _events.add(
-        const Result.error(
-          AudioCaptureException(
-            'workerStopped',
-            'The audio worker isolate stopped unexpectedly.',
-          ),
-        ),
+        const Result.error(failure),
       );
     }
   }
