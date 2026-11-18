@@ -11,8 +11,10 @@ import 'package:content_build/src/layout_parser.dart';
 import 'package:content_build/src/source_fetcher.dart';
 import 'package:content_build/src/sqlite_writer.dart';
 import 'package:content_build/src/tanzil_parser.dart';
+import 'package:content_build/src/text_model.dart';
 import 'package:contracts/contracts.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 /// First four bytes of a TrueType font file.
@@ -33,8 +35,9 @@ final class ContentBuilder {
   final SourceFetcher _fetcher;
   final Logger _logger;
 
-  /// Downloads and checks the sources and assembles the tables.
-  Future<Result<ContentData>> build() async {
+  /// Downloads and checks the sources and assembles the text of the whole
+  /// Quran and the layout of the build scope (ADR 0004).
+  Future<Result<ContentBuild>> build() async {
     try {
       return Result.ok(await _build());
     } on ContentBuildException catch (e) {
@@ -69,7 +72,7 @@ final class ContentBuilder {
     }
   }
 
-  Future<ContentData> _build() async {
+  Future<ContentBuild> _build() async {
     final textBytes = await _fetcher.fetch(
       Uri.parse(_config.text.url),
       'tanzil/quran-uthmani.xml',
@@ -109,12 +112,26 @@ final class ContentBuilder {
     );
     _logger.info('layout ok: ${verses.length} ayahs on pages ${_config.pages}');
 
-    return assembleContent(
-      config: _config,
+    final version = _version(quran, textBytes);
+    final text = assembleText(
       quran: quran,
       verses: verses,
       chapters: chapters,
-      version: _version(quran, textBytes),
+      version: version,
+    );
+    _logger.info(
+      'text ok: ${text.ayahs.length} ayahs, ${text.wordCount} words',
+    );
+    return ContentBuild(
+      text: text,
+      layout: assembleContent(
+        config: _config,
+        quran: quran,
+        verses: verses,
+        chapters: chapters,
+        version: version,
+      ),
+      layoutId: _config.layoutId,
     );
   }
 
@@ -157,7 +174,8 @@ bool _startsWith(List<int> bytes, List<int> prefix) {
   return true;
 }
 
-/// Writes [data] as indented JSON to [path].
+/// Writes the pages of the build scope as indented JSON to [path] — the
+/// prototype fixture, kept by ADR 0004 for page layout.
 void writeContentJson(ContentData data, String path) {
   File(path)
     ..parent.createSync(recursive: true)
@@ -166,8 +184,36 @@ void writeContentJson(ContentData data, String path) {
     );
 }
 
-/// Writes [data] as a SQLite database to [path].
-void writeContentDatabase(ContentData data, String path) {
+/// Writes the content database (docs/tz 12.2, ADR 0004) to [path].
+void writeContentDatabase(ContentBuild build, String path) {
   File(path).parent.createSync(recursive: true);
-  writeContentSqlite(data, path);
+  writeContentSqlite(build.text, build.layout, build.layoutId, path);
+}
+
+/// Writes the text of the whole Quran as the text fixture (ADR 0004).
+void writeTextJson(QuranTextData text, String path) {
+  File(path)
+    ..parent.createSync(recursive: true)
+    ..writeAsStringSync(text.toJson());
+}
+
+/// What a build produces.
+@immutable
+final class ContentBuild {
+  /// Creates a build result.
+  const ContentBuild({
+    required this.text,
+    required this.layout,
+    required this.layoutId,
+  });
+
+  /// Text of the whole Quran (text package).
+  final QuranTextData text;
+
+  /// Layout of the pages in the build scope, in the prototype table form
+  /// (`content_p582_583.json`, kept by ADR 0004).
+  final ContentData layout;
+
+  /// Identifier of the layout.
+  final String layoutId;
 }

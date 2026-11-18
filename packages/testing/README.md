@@ -12,6 +12,7 @@
 
 | Что | Зачем | Добавлено |
 |---|---|---|
+| `fixtures/quran_text.json` | Текст всего Корана из Tanzil без изменений (ADR 0004); см. [`fixtures/README.md`](fixtures/README.md) | S03 |
 | `fixtures/content_p582_583.json` | Данные страниц 582–583 (сура 78, 79:1–15) из `tools/content_build`; см. [`fixtures/README.md`](fixtures/README.md) | P03 |
 | `fixtures/lessons_test_stage1.json` | Тестовый пакет уроков: по примеру каждого типа шага (УЧ-03). Только заглушки `TODO_CONTENT`, без настоящего содержания; см. [`fixtures/README.md`](fixtures/README.md) | K01 |
 | `FakeSpeechRecognizer` | `SpeechRecognizer`, который проигрывает заранее подготовленные результаты (СЛ-07, ПО-12) | P06 |

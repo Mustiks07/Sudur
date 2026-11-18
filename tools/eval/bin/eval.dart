@@ -23,8 +23,9 @@ Future<void> main(List<String> arguments) async {
     ..addOption('model', help: 'Model id in the .asr.jsonl file names.')
     ..addOption(
       'content',
-      help: 'Content JSON from tools/content_build.',
-      defaultsTo: 'packages/testing/fixtures/content_p582_583.json',
+      help:
+          'Whole-Quran text.json or pages content.json from tools/content_build.',
+      defaultsTo: 'packages/testing/fixtures/quran_text.json',
     )
     ..addOption('normalizer', help: 'normalizer.json of the model package.')
     ..addOption('thresholds', help: 'thresholds.json of the model package.')
@@ -91,7 +92,7 @@ Future<void> main(List<String> arguments) async {
     final params = FollowParams.fromJson(thresholds);
     final checkParams = CheckParams.fromJson(thresholds);
     final content = _read(args.option('content'));
-    final words = _unwrap(ContentJsonSource(content).loadWords());
+    final words = _unwrap(loadContentWords(content));
     final check = args.flag('check')
         ? CheckSetup(
             params: checkParams,
@@ -100,10 +101,7 @@ Future<void> main(List<String> arguments) async {
                   final String v => v,
                   _ => 'builtin',
                 },
-            textVersion: switch (_jsonObject(content)['contentVersion']) {
-              {'version': final String v} => v,
-              _ => 'unknown',
-            },
+            textVersion: contentTextVersion(content),
           )
         : null;
     final text = InMemoryQuranText(

@@ -33,7 +33,6 @@ void main() {
       expect(words, hasLength(218));
       expect(words.first.key, const WordKey(78, 1, 1));
       expect(words.where((w) => w.key.surah == 78), hasLength(173));
-      expect(words.first.page, 582);
     });
 
     test('rejects other formats and malformed rows', () {

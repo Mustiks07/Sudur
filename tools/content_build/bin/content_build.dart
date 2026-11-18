@@ -25,7 +25,11 @@ Future<void> main(List<String> arguments) async {
     )
     ..addOption(
       'fixture-out',
-      help: 'Also write the JSON copy here (for packages/testing/fixtures).',
+      help: 'Also write the pages JSON here (packages/testing/fixtures).',
+    )
+    ..addOption(
+      'text-fixture-out',
+      help: 'Also write the whole-Quran text JSON here (ADR 0004).',
     )
     ..addFlag('refresh', help: 'Download sources again.', negatable: false)
     ..addFlag('fonts', help: 'Download page fonts.', defaultsTo: true)
@@ -87,17 +91,25 @@ Future<void> main(List<String> arguments) async {
   );
 
   switch (await builder.build()) {
-    case Ok(value: final data):
-      writeContentDatabase(data, p.join(out, 'content.sqlite'));
-      writeContentJson(data, p.join(out, 'content.json'));
+    case Ok(value: final build):
+      writeContentDatabase(build, p.join(out, 'content.sqlite'));
+      writeTextJson(build.text, p.join(out, 'text.json'));
+      writeContentJson(build.layout, p.join(out, 'content.json'));
       File(
         p.join(root, 'tools', 'content_build', 'ATTRIBUTION.md'),
       ).copySync(p.join(out, 'ATTRIBUTION.md'));
       final fixture = args.option('fixture-out');
-      if (fixture != null) writeContentJson(data, p.join(root, fixture));
+      if (fixture != null) {
+        writeContentJson(build.layout, p.join(root, fixture));
+      }
+      final textFixture = args.option('text-fixture-out');
+      if (textFixture != null) {
+        writeTextJson(build.text, p.join(root, textFixture));
+      }
       logger.info(
-        'wrote ${data.words.length} words, ${data.ayahs.length} ayahs, '
-        '${data.lines.length} lines to $out',
+        'wrote ${build.text.wordCount} words of text, '
+        '${build.layout.words.length} words with layout, '
+        '${build.layout.lines.length} lines to $out',
       );
     case Error(:final error):
       logger.severe('build failed: $error');

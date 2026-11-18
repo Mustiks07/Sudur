@@ -14,4 +14,5 @@ export 'src/layout_parser.dart';
 export 'src/source_fetcher.dart';
 export 'src/sqlite_writer.dart' show contentSchema, writeContentSqlite;
 export 'src/tanzil_parser.dart';
+export 'src/text_model.dart';
 export 'src/word_segmenter.dart';

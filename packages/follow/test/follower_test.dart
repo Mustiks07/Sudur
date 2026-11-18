@@ -301,8 +301,6 @@ void main() {
               key: WordKey(1, 1, i + 1),
               index: i + 1,
               text: tokens[i],
-              page: 1,
-              line: 1,
             ),
         ],
         normalizers: [normalizer],

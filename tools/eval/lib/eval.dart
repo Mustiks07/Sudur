@@ -7,6 +7,7 @@ export 'src/acceptance.dart';
 export 'src/annotation.dart';
 export 'src/asr_jsonl.dart';
 export 'src/bootstrap.dart';
+export 'src/content.dart';
 export 'src/counts.dart';
 export 'src/metrics.dart';
 export 'src/report.dart';

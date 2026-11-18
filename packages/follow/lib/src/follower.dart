@@ -394,26 +394,50 @@ final class Follower {
     final window = pending.sublist(pending.length - p.ngramSize);
 
     final places = _scanPassage(window);
-    if (places.isNotEmpty) {
-      _anchor(pending, window, places);
-      _searching = false;
-      _afterStep(out);
-      return;
-    }
-
-    final matches = _text.findSequence(
+    // Search the whole Quran too, allowing misheard letters (docs/tz 10.4,
+    // СЛ-04); limits are the follow parameters. The passage places are in
+    // the results as well, so ask for that many more.
+    final matches = _text.findSimilar(
       [for (final w in window) w.key],
       normalizer: _normalizer.id,
-      maxResults: p.beamSize,
+      minSimilarity: p.simFloor,
+      maxMeanCost: p.lostCostThreshold,
+      maxResults: p.beamSize + places.length,
     );
-    final outside = matches.where(
-      (m) =>
-          m.start.compareTo(_passage.first.key) < 0 ||
-          m.start.compareTo(_passage.last.key) > 0,
-    );
+    final outside = [
+      for (final m in matches)
+        if (m.start.compareTo(_passage.first.key) < 0 ||
+            m.start.compareTo(_passage.last.key) > 0)
+          m,
+    ];
+
+    if (places.isNotEmpty) {
+      final inside = places.first.$2;
+      final elsewhere = outside.isEmpty ? null : outside.first.meanCost;
+      // The passage comes first (docs/tz 10.4). A similar ayah elsewhere is
+      // the classic slip, so only a place elsewhere that fits clearly
+      // better (by ambiguityMargin) makes a jump candidate; several places
+      // inside the passage are held by the beam as an ambiguity (СЛ-05).
+      if (elsewhere == null || elsewhere + p.ambiguityMargin > inside) {
+        _anchor(pending, window, places);
+        _searching = false;
+        _afterStep(out);
+        return;
+      }
+      // Elsewhere fits clearly better: a jump candidate, nothing revealed.
+    }
+
     if (outside.isEmpty) return;
     final jump = outside.first;
     final wordIndex = _text.word(jump.start).index;
+    // Several other places fit almost as well: hold until a word tells
+    // them apart (docs/tz СЛ-05) instead of reporting a guess.
+    final ambiguous = outside.skip(1).any(
+          (m) =>
+              m.meanCost - jump.meanCost < p.ambiguityMargin &&
+              (_text.word(m.start).index - wordIndex).abs() >= window.length,
+        );
+    if (ambiguous) return;
     final last = _lastJump;
     _lastJump = (wordIndex: wordIndex, heardIndex: window.first.index);
     if (last != null &&
@@ -425,9 +449,24 @@ final class Follower {
         from: _lastConfident,
         to: jump.start,
         heard: window,
-        matchedNgrams: jump.matchedNgrams,
+        matchedNgrams: _strongNgrams(jump.similarities),
       ),
     );
+  }
+
+  /// N-grams of a match in which every word matched with similarity of at
+  /// least `openThreshold` — the words a jump can rest on.
+  int _strongNgrams(List<double> similarities) {
+    final n = _params.ngramSize;
+    var count = 0;
+    for (var i = 0; i + n <= similarities.length; i++) {
+      if (similarities
+          .sublist(i, i + n)
+          .every((s) => s >= _params.openThreshold)) {
+        count++;
+      }
+    }
+    return count;
   }
 
   /// Passage places where [window] fits word by word: (start, mean cost).
