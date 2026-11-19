@@ -51,7 +51,7 @@ final class DerivedParams {
   /// Half a page in words, for the text without page layout: 77 433 words
   /// on 604 pages of the Madinah mushaf ≈ 128 words a page. A passage has
   /// at most this many words; an ayah with more is a passage of its own
-  /// («длинный аят»). Proposed, to be confirmed by the owner.
+  /// («длинный аят»). Agreed by the owner on 19.11.2026.
   final int halfPageWords;
 
   /// Share of a page a passage may take where the layout is known
