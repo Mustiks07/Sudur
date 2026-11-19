@@ -37,13 +37,13 @@ cp "$storage_dir/lib/src/database.dart" "$storage_dir/lib/src/json_types.dart" \
 )
 
 generated_database="$work_dir/packages/storage/lib/src/database.g.dart"
-generated_schema="$work_dir/packages/storage/drift_schemas/drift_schema_v1.json"
+generated_schema="$work_dir/packages/storage/drift_schemas/drift_schema_v2.json"
 
 if [ "$mode" = "--write" ]; then
   cp "$generated_database" "$storage_dir/lib/src/database.g.dart"
-  cp "$generated_schema" "$storage_dir/drift_schemas/drift_schema_v1.json"
+  cp "$generated_schema" "$storage_dir/drift_schemas/drift_schema_v2.json"
   exit 0
 fi
 
 cmp "$generated_database" "$storage_dir/lib/src/database.g.dart"
-cmp "$generated_schema" "$storage_dir/drift_schemas/drift_schema_v1.json"
+cmp "$generated_schema" "$storage_dir/drift_schemas/drift_schema_v2.json"

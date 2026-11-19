@@ -2,18 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:contracts/contracts.dart';
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:meta/meta.dart';
 import 'package:storage/src/database.dart';
 import 'package:storage/storage.dart';
 
 void main() {
-  test('schema-v1 snapshot fully matches a database created from scratch',
+  test('schema-v2 snapshot fully matches a database created from scratch',
       () async {
     final database = SudurDatabase.memory();
     addTearDown(database.close);
 
-    final snapshot = _decodeSnapshot(await _schemaSnapshot().readAsString());
+    final snapshot = _decodeSnapshot(await _schemaSnapshot(2).readAsString());
     final tables = _tables(snapshot);
     final indexes = _indexes(snapshot, tables);
     final liveObjects = await database.customSelect(
@@ -98,9 +99,69 @@ WHERE name NOT LIKE 'sqlite_%' ORDER BY type, name
     final version =
         await database.customSelect('PRAGMA user_version').getSingle();
     expect(version.read<int>('user_version'), database.schemaVersion);
-    expect(database.schemaVersion, 1);
+    expect(database.schemaVersion, 2);
     expect(tables.values.map((table) => table.name), schemaV1TableNames);
     expect(await database.select(database.outboxEntries).get(), isEmpty);
+  });
+
+  test('v1 migration changes pending downloads to queued and preserves data',
+      () async {
+    final snapshot = _decodeSnapshot(await _schemaSnapshot(1).readAsString());
+    final executor = NativeDatabase.memory(
+      setup: (database) {
+        _schemaSql(snapshot).forEach(database.execute);
+        database
+          ..execute(
+            '''
+INSERT INTO download (
+  package_id, kind, active_version, pending_version, state,
+  bytes_total, bytes_done, updated_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+''',
+            <Object?>[
+              'model-1',
+              'model',
+              '1.0.0',
+              '1.1.0',
+              'pending',
+              100,
+              25,
+              2000,
+            ],
+          )
+          ..execute('PRAGMA user_version = 1');
+      },
+    );
+
+    final database = SudurDatabase(executor);
+    addTearDown(database.close);
+    final migrated = await database.select(database.downloads).getSingle();
+
+    expect(migrated.packageId, 'model-1');
+    expect(migrated.kind, DownloadKind.model);
+    expect(migrated.activeVersion, '1.0.0');
+    expect(migrated.pendingVersion, '1.1.0');
+    expect(migrated.state, DownloadState.queued);
+    expect(migrated.bytesTotal, 100);
+    expect(migrated.bytesDone, 25);
+    expect(migrated.updatedAt, 2000);
+    final version =
+        await database.customSelect('PRAGMA user_version').getSingle();
+    expect(version.read<int>('user_version'), 2);
+  });
+
+  test('download stores only the lifecycle states from section 11.4', () {
+    expect(
+      DownloadState.values.map((state) => state.name),
+      <String>[
+        'queued',
+        'downloading',
+        'verifying',
+        'installing',
+        'installed',
+        'failed',
+      ],
+    );
   });
 
   test('file database is opened through the background executor', () async {
@@ -250,13 +311,29 @@ T _required<T>(Map<String, Object?> value, String key) {
 String _normalizedSql(String value) =>
     value.replaceAll(RegExp(r'\s+'), ' ').trim().toUpperCase();
 
-File _schemaSnapshot() {
+List<String> _schemaSql(Map<String, Object?> snapshot) {
+  final schema = snapshot['fixed_sql'];
+  if (schema is! List<Object?>) fail('Schema snapshot must contain SQL.');
+  return [
+    for (final entity in schema)
+      if (entity is Map<String, Object?>)
+        for (final dialect in _required<List<Object?>>(entity, 'sql'))
+          if (dialect is Map<String, Object?>)
+            _required<String>(dialect, 'sql')
+          else
+            fail('Schema SQL dialect must be an object.')
+      else
+        fail('Schema SQL entity must be an object.'),
+  ];
+}
+
+File _schemaSnapshot(int version) {
   final fromRoot = File(
-    'packages/storage/drift_schemas/drift_schema_v1.json',
+    'packages/storage/drift_schemas/drift_schema_v$version.json',
   );
   return fromRoot.existsSync()
       ? fromRoot
-      : File('drift_schemas/drift_schema_v1.json');
+      : File('drift_schemas/drift_schema_v$version.json');
 }
 
 final class _SnapshotTable {

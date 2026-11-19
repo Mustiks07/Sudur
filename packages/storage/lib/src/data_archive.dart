@@ -379,8 +379,10 @@ const _downloadKinds = <String>{
   'config',
 };
 const _downloadStates = <String>{
-  'pending',
+  'queued',
   'downloading',
+  'verifying',
+  'installing',
   'installed',
   'failed',
 };

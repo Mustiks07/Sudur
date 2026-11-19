@@ -1,6 +1,6 @@
 # storage
 
-Пользовательская база Sudur на drift/SQLite. Схема v1 соответствует ТЗ 12.1:
+Пользовательская база Sudur на drift/SQLite. Схема v2 соответствует ТЗ 12.1:
 17 таблиц и 5 обязательных индексов, время хранится в миллисекундах UTC,
 идентификаторы принимаются только в формате UUID v4. `outbox` создаётся пустым.
 
@@ -20,7 +20,7 @@
 
 ## Миграции
 
-Эталон v1 лежит в `drift_schemas/drift_schema_v1.json`, сгенерированный
+Эталоны лежат в `drift_schemas/drift_schema_v*.json`, сгенерированный
 `database.g.dart` коммитится. Для каждой следующей версии нужно:
 
 1. изменить таблицы и увеличить `schemaVersion` ровно на один;
@@ -42,7 +42,7 @@
 packages/storage/tool/drift_generator/generate.sh --check
 git diff --exit-code -- \
   packages/storage/lib/src/database.g.dart \
-  packages/storage/drift_schemas/drift_schema_v1.json
+  packages/storage/drift_schemas/drift_schema_v2.json
 ```
 
 Генератор изолирован, чтобы его analyzer/build-зависимости не меняли версии
