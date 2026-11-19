@@ -13,11 +13,13 @@ final class PrototypeMeasurementLog {
   final Stopwatch _clock = Stopwatch();
   final List<Map<String, Object?>> _entries = <Map<String, Object?>>[];
   String _input = 'microphone';
+  int? _sessionClockOffsetMs;
 
   /// Starts a fresh measurement run.
   void start({required bool usesWav}) {
     _entries.removeWhere((entry) => entry['type'] != 'MushafPageRendered');
     _input = usesWav ? 'wav' : 'microphone';
+    _sessionClockOffsetMs = null;
     _clock
       ..reset()
       ..start();
@@ -25,10 +27,17 @@ final class PrototypeMeasurementLog {
 
   /// Adds one session event without expected or recognized text.
   void addSessionEvent(SessionEvent event) {
+    final receivedAtMs = _clock.elapsedMilliseconds;
+    if (event is SessionStarted) {
+      _sessionClockOffsetMs = receivedAtMs - event.atMs;
+    }
+    final sessionClockOffsetMs = _sessionClockOffsetMs;
     _entries.add(<String, Object?>{
       'type': event.runtimeType.toString(),
       'sessionAtMs': event.atMs,
-      'receivedAtMs': _clock.elapsedMilliseconds,
+      'receivedAtMs': receivedAtMs,
+      if (sessionClockOffsetMs != null)
+        'uiAtSessionMs': receivedAtMs - sessionClockOffsetMs,
       ..._safeEventFields(event),
     });
   }

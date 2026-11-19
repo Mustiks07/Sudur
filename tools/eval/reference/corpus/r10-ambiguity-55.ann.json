@@ -1,0 +1,761 @@
+{
+  "recordingId": "r10-ambiguity-55",
+  "speaker": {
+    "id": "p4",
+    "nativeLanguage": "ru",
+    "gender": "f"
+  },
+  "conditions": {
+    "device": "budget-android",
+    "noise": "noisy"
+  },
+  "expected": {
+    "from": "55:1:1",
+    "to": "55:30:4"
+  },
+  "words": [
+    {
+      "wordKey": "55:1:1",
+      "status": "correct",
+      "startMs": 0,
+      "endMs": 400
+    },
+    {
+      "wordKey": "55:2:1",
+      "status": "correct",
+      "startMs": 1200,
+      "endMs": 1600
+    },
+    {
+      "wordKey": "55:2:2",
+      "status": "correct",
+      "startMs": 1600,
+      "endMs": 2000
+    },
+    {
+      "wordKey": "55:3:1",
+      "status": "correct",
+      "startMs": 2800,
+      "endMs": 3200
+    },
+    {
+      "wordKey": "55:3:2",
+      "status": "correct",
+      "startMs": 3200,
+      "endMs": 3600
+    },
+    {
+      "wordKey": "55:4:1",
+      "status": "correct",
+      "startMs": 4400,
+      "endMs": 4800
+    },
+    {
+      "wordKey": "55:4:2",
+      "status": "correct",
+      "startMs": 4800,
+      "endMs": 5200
+    },
+    {
+      "wordKey": "55:5:1",
+      "status": "correct",
+      "startMs": 6000,
+      "endMs": 6400
+    },
+    {
+      "wordKey": "55:5:2",
+      "status": "correct",
+      "startMs": 6400,
+      "endMs": 6800
+    },
+    {
+      "wordKey": "55:5:3",
+      "status": "correct",
+      "startMs": 6800,
+      "endMs": 7200
+    },
+    {
+      "wordKey": "55:6:1",
+      "status": "correct",
+      "startMs": 8000,
+      "endMs": 8400
+    },
+    {
+      "wordKey": "55:6:2",
+      "status": "correct",
+      "startMs": 8400,
+      "endMs": 8800
+    },
+    {
+      "wordKey": "55:6:3",
+      "status": "correct",
+      "startMs": 8800,
+      "endMs": 9200
+    },
+    {
+      "wordKey": "55:7:1",
+      "status": "correct",
+      "startMs": 10000,
+      "endMs": 10400
+    },
+    {
+      "wordKey": "55:7:2",
+      "status": "correct",
+      "startMs": 10400,
+      "endMs": 10800
+    },
+    {
+      "wordKey": "55:7:3",
+      "status": "correct",
+      "startMs": 10800,
+      "endMs": 11200
+    },
+    {
+      "wordKey": "55:7:4",
+      "status": "correct",
+      "startMs": 11200,
+      "endMs": 11600
+    },
+    {
+      "wordKey": "55:8:1",
+      "status": "correct",
+      "startMs": 12400,
+      "endMs": 12800
+    },
+    {
+      "wordKey": "55:8:2",
+      "status": "correct",
+      "startMs": 12800,
+      "endMs": 13200
+    },
+    {
+      "wordKey": "55:8:3",
+      "status": "correct",
+      "startMs": 13200,
+      "endMs": 13600
+    },
+    {
+      "wordKey": "55:8:4",
+      "status": "correct",
+      "startMs": 13600,
+      "endMs": 14000
+    },
+    {
+      "wordKey": "55:9:1",
+      "status": "correct",
+      "startMs": 14800,
+      "endMs": 15200
+    },
+    {
+      "wordKey": "55:9:2",
+      "status": "correct",
+      "startMs": 15200,
+      "endMs": 15600
+    },
+    {
+      "wordKey": "55:9:3",
+      "status": "correct",
+      "startMs": 15600,
+      "endMs": 16000
+    },
+    {
+      "wordKey": "55:9:4",
+      "status": "correct",
+      "startMs": 16000,
+      "endMs": 16400
+    },
+    {
+      "wordKey": "55:9:5",
+      "status": "correct",
+      "startMs": 16400,
+      "endMs": 16800
+    },
+    {
+      "wordKey": "55:9:6",
+      "status": "correct",
+      "startMs": 16800,
+      "endMs": 17200
+    },
+    {
+      "wordKey": "55:10:1",
+      "status": "correct",
+      "startMs": 18000,
+      "endMs": 18400
+    },
+    {
+      "wordKey": "55:10:2",
+      "status": "correct",
+      "startMs": 18400,
+      "endMs": 18800
+    },
+    {
+      "wordKey": "55:10:3",
+      "status": "correct",
+      "startMs": 18800,
+      "endMs": 19200
+    },
+    {
+      "wordKey": "55:11:1",
+      "status": "correct",
+      "startMs": 20000,
+      "endMs": 20400
+    },
+    {
+      "wordKey": "55:11:2",
+      "status": "correct",
+      "startMs": 20400,
+      "endMs": 20800
+    },
+    {
+      "wordKey": "55:11:3",
+      "status": "correct",
+      "startMs": 20800,
+      "endMs": 21200
+    },
+    {
+      "wordKey": "55:11:4",
+      "status": "correct",
+      "startMs": 21200,
+      "endMs": 21600
+    },
+    {
+      "wordKey": "55:11:5",
+      "status": "correct",
+      "startMs": 21600,
+      "endMs": 22000
+    },
+    {
+      "wordKey": "55:12:1",
+      "status": "correct",
+      "startMs": 22800,
+      "endMs": 23200
+    },
+    {
+      "wordKey": "55:12:2",
+      "status": "correct",
+      "startMs": 23200,
+      "endMs": 23600
+    },
+    {
+      "wordKey": "55:12:3",
+      "status": "correct",
+      "startMs": 23600,
+      "endMs": 24000
+    },
+    {
+      "wordKey": "55:12:4",
+      "status": "correct",
+      "startMs": 24000,
+      "endMs": 24400
+    },
+    {
+      "wordKey": "55:13:1",
+      "status": "correct",
+      "startMs": 25200,
+      "endMs": 25600
+    },
+    {
+      "wordKey": "55:13:2",
+      "status": "correct",
+      "startMs": 25600,
+      "endMs": 26000
+    },
+    {
+      "wordKey": "55:13:3",
+      "status": "correct",
+      "startMs": 26000,
+      "endMs": 26400
+    },
+    {
+      "wordKey": "55:13:4",
+      "status": "correct",
+      "startMs": 26400,
+      "endMs": 26800
+    },
+    {
+      "wordKey": "55:14:1",
+      "status": "correct",
+      "startMs": 27600,
+      "endMs": 28000
+    },
+    {
+      "wordKey": "55:14:2",
+      "status": "correct",
+      "startMs": 28000,
+      "endMs": 28400
+    },
+    {
+      "wordKey": "55:14:3",
+      "status": "correct",
+      "startMs": 28400,
+      "endMs": 28800
+    },
+    {
+      "wordKey": "55:14:4",
+      "status": "correct",
+      "startMs": 28800,
+      "endMs": 29200
+    },
+    {
+      "wordKey": "55:14:5",
+      "status": "correct",
+      "startMs": 29200,
+      "endMs": 29600
+    },
+    {
+      "wordKey": "55:15:1",
+      "status": "correct",
+      "startMs": 30400,
+      "endMs": 30800
+    },
+    {
+      "wordKey": "55:15:2",
+      "status": "correct",
+      "startMs": 30800,
+      "endMs": 31200
+    },
+    {
+      "wordKey": "55:15:3",
+      "status": "correct",
+      "startMs": 31200,
+      "endMs": 31600
+    },
+    {
+      "wordKey": "55:15:4",
+      "status": "correct",
+      "startMs": 31600,
+      "endMs": 32000
+    },
+    {
+      "wordKey": "55:15:5",
+      "status": "correct",
+      "startMs": 32000,
+      "endMs": 32400
+    },
+    {
+      "wordKey": "55:15:6",
+      "status": "correct",
+      "startMs": 32400,
+      "endMs": 32800
+    },
+    {
+      "wordKey": "55:16:1",
+      "status": "correct",
+      "startMs": 33600,
+      "endMs": 34000
+    },
+    {
+      "wordKey": "55:16:2",
+      "status": "correct",
+      "startMs": 34000,
+      "endMs": 34400
+    },
+    {
+      "wordKey": "55:16:3",
+      "status": "correct",
+      "startMs": 34400,
+      "endMs": 34800
+    },
+    {
+      "wordKey": "55:16:4",
+      "status": "correct",
+      "startMs": 34800,
+      "endMs": 35200
+    },
+    {
+      "wordKey": "55:17:1",
+      "status": "correct",
+      "startMs": 36000,
+      "endMs": 36400
+    },
+    {
+      "wordKey": "55:17:2",
+      "status": "correct",
+      "startMs": 36400,
+      "endMs": 36800
+    },
+    {
+      "wordKey": "55:17:3",
+      "status": "correct",
+      "startMs": 36800,
+      "endMs": 37200
+    },
+    {
+      "wordKey": "55:17:4",
+      "status": "correct",
+      "startMs": 37200,
+      "endMs": 37600
+    },
+    {
+      "wordKey": "55:18:1",
+      "status": "correct",
+      "startMs": 38400,
+      "endMs": 38800
+    },
+    {
+      "wordKey": "55:18:2",
+      "status": "correct",
+      "startMs": 38800,
+      "endMs": 39200
+    },
+    {
+      "wordKey": "55:18:3",
+      "status": "correct",
+      "startMs": 39200,
+      "endMs": 39600
+    },
+    {
+      "wordKey": "55:18:4",
+      "status": "correct",
+      "startMs": 39600,
+      "endMs": 40000
+    },
+    {
+      "wordKey": "55:19:1",
+      "status": "correct",
+      "startMs": 40800,
+      "endMs": 41200
+    },
+    {
+      "wordKey": "55:19:2",
+      "status": "correct",
+      "startMs": 41200,
+      "endMs": 41600
+    },
+    {
+      "wordKey": "55:19:3",
+      "status": "correct",
+      "startMs": 41600,
+      "endMs": 42000
+    },
+    {
+      "wordKey": "55:20:1",
+      "status": "correct",
+      "startMs": 42800,
+      "endMs": 43200
+    },
+    {
+      "wordKey": "55:20:2",
+      "status": "correct",
+      "startMs": 43200,
+      "endMs": 43600
+    },
+    {
+      "wordKey": "55:20:3",
+      "status": "correct",
+      "startMs": 43600,
+      "endMs": 44000
+    },
+    {
+      "wordKey": "55:20:4",
+      "status": "correct",
+      "startMs": 44000,
+      "endMs": 44400
+    },
+    {
+      "wordKey": "55:21:1",
+      "status": "correct",
+      "startMs": 45200,
+      "endMs": 45600
+    },
+    {
+      "wordKey": "55:21:2",
+      "status": "correct",
+      "startMs": 45600,
+      "endMs": 46000
+    },
+    {
+      "wordKey": "55:21:3",
+      "status": "correct",
+      "startMs": 46000,
+      "endMs": 46400
+    },
+    {
+      "wordKey": "55:21:4",
+      "status": "correct",
+      "startMs": 46400,
+      "endMs": 46800
+    },
+    {
+      "wordKey": "55:22:1",
+      "status": "correct",
+      "startMs": 47600,
+      "endMs": 48000
+    },
+    {
+      "wordKey": "55:22:2",
+      "status": "correct",
+      "startMs": 48000,
+      "endMs": 48400
+    },
+    {
+      "wordKey": "55:22:3",
+      "status": "correct",
+      "startMs": 48400,
+      "endMs": 48800
+    },
+    {
+      "wordKey": "55:22:4",
+      "status": "correct",
+      "startMs": 48800,
+      "endMs": 49200
+    },
+    {
+      "wordKey": "55:23:1",
+      "status": "correct",
+      "startMs": 50000,
+      "endMs": 50400
+    },
+    {
+      "wordKey": "55:23:2",
+      "status": "correct",
+      "startMs": 50400,
+      "endMs": 50800
+    },
+    {
+      "wordKey": "55:23:3",
+      "status": "correct",
+      "startMs": 50800,
+      "endMs": 51200
+    },
+    {
+      "wordKey": "55:23:4",
+      "status": "correct",
+      "startMs": 51200,
+      "endMs": 51600
+    },
+    {
+      "wordKey": "55:24:1",
+      "status": "correct",
+      "startMs": 52400,
+      "endMs": 52800
+    },
+    {
+      "wordKey": "55:24:2",
+      "status": "correct",
+      "startMs": 52800,
+      "endMs": 53200
+    },
+    {
+      "wordKey": "55:24:3",
+      "status": "correct",
+      "startMs": 53200,
+      "endMs": 53600
+    },
+    {
+      "wordKey": "55:24:4",
+      "status": "correct",
+      "startMs": 53600,
+      "endMs": 54000
+    },
+    {
+      "wordKey": "55:24:5",
+      "status": "correct",
+      "startMs": 54000,
+      "endMs": 54400
+    },
+    {
+      "wordKey": "55:24:6",
+      "status": "correct",
+      "startMs": 54400,
+      "endMs": 54800
+    },
+    {
+      "wordKey": "55:25:1",
+      "status": "correct",
+      "startMs": 55600,
+      "endMs": 56000
+    },
+    {
+      "wordKey": "55:25:2",
+      "status": "correct",
+      "startMs": 56000,
+      "endMs": 56400
+    },
+    {
+      "wordKey": "55:25:3",
+      "status": "correct",
+      "startMs": 56400,
+      "endMs": 56800
+    },
+    {
+      "wordKey": "55:25:4",
+      "status": "correct",
+      "startMs": 56800,
+      "endMs": 57200
+    },
+    {
+      "wordKey": "55:26:1",
+      "status": "correct",
+      "startMs": 58000,
+      "endMs": 58400
+    },
+    {
+      "wordKey": "55:26:2",
+      "status": "correct",
+      "startMs": 58400,
+      "endMs": 58800
+    },
+    {
+      "wordKey": "55:26:3",
+      "status": "correct",
+      "startMs": 58800,
+      "endMs": 59200
+    },
+    {
+      "wordKey": "55:26:4",
+      "status": "correct",
+      "startMs": 59200,
+      "endMs": 59600
+    },
+    {
+      "wordKey": "55:27:1",
+      "status": "correct",
+      "startMs": 60400,
+      "endMs": 60800
+    },
+    {
+      "wordKey": "55:27:2",
+      "status": "correct",
+      "startMs": 60800,
+      "endMs": 61200
+    },
+    {
+      "wordKey": "55:27:3",
+      "status": "correct",
+      "startMs": 61200,
+      "endMs": 61600
+    },
+    {
+      "wordKey": "55:27:4",
+      "status": "correct",
+      "startMs": 61600,
+      "endMs": 62000
+    },
+    {
+      "wordKey": "55:27:5",
+      "status": "correct",
+      "startMs": 62000,
+      "endMs": 62400
+    },
+    {
+      "wordKey": "55:27:6",
+      "status": "correct",
+      "startMs": 62400,
+      "endMs": 62800
+    },
+    {
+      "wordKey": "55:28:1",
+      "status": "correct",
+      "startMs": 63600,
+      "endMs": 64000
+    },
+    {
+      "wordKey": "55:28:2",
+      "status": "correct",
+      "startMs": 64000,
+      "endMs": 64400
+    },
+    {
+      "wordKey": "55:28:3",
+      "status": "correct",
+      "startMs": 64400,
+      "endMs": 64800
+    },
+    {
+      "wordKey": "55:28:4",
+      "status": "correct",
+      "startMs": 64800,
+      "endMs": 65200
+    },
+    {
+      "wordKey": "55:29:1",
+      "status": "correct",
+      "startMs": 66000,
+      "endMs": 66400
+    },
+    {
+      "wordKey": "55:29:2",
+      "status": "correct",
+      "startMs": 66400,
+      "endMs": 66800
+    },
+    {
+      "wordKey": "55:29:3",
+      "status": "correct",
+      "startMs": 66800,
+      "endMs": 67200
+    },
+    {
+      "wordKey": "55:29:4",
+      "status": "correct",
+      "startMs": 67200,
+      "endMs": 67600
+    },
+    {
+      "wordKey": "55:29:5",
+      "status": "correct",
+      "startMs": 67600,
+      "endMs": 68000
+    },
+    {
+      "wordKey": "55:29:6",
+      "status": "correct",
+      "startMs": 68000,
+      "endMs": 68400
+    },
+    {
+      "wordKey": "55:29:7",
+      "status": "correct",
+      "startMs": 68400,
+      "endMs": 68800
+    },
+    {
+      "wordKey": "55:29:8",
+      "status": "correct",
+      "startMs": 68800,
+      "endMs": 69200
+    },
+    {
+      "wordKey": "55:29:9",
+      "status": "correct",
+      "startMs": 69200,
+      "endMs": 69600
+    },
+    {
+      "wordKey": "55:29:10",
+      "status": "correct",
+      "startMs": 69600,
+      "endMs": 70000
+    },
+    {
+      "wordKey": "55:30:1",
+      "status": "correct",
+      "startMs": 70800,
+      "endMs": 71200
+    },
+    {
+      "wordKey": "55:30:2",
+      "status": "correct",
+      "startMs": 71200,
+      "endMs": 71600
+    },
+    {
+      "wordKey": "55:30:3",
+      "status": "correct",
+      "startMs": 71600,
+      "endMs": 72000
+    },
+    {
+      "wordKey": "55:30:4",
+      "status": "correct",
+      "startMs": 72000,
+      "endMs": 72400
+    }
+  ],
+  "insertions": [],
+  "jumps": [],
+  "annotators": [
+    "synthetic"
+  ]
+}

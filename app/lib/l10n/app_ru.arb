@@ -26,6 +26,6 @@
   "prototypeStop": "Завершить",
   "prototypeHint": "Подсказка",
   "prototypeShareLog": "Поделиться журналом",
-  "prototypeMockNotice": "S05 ещё не слита: экран работает на подставной сессии. WAV и настоящий микрофон подключатся через ADR 0005.",
+  "prototypeMockNotice": "Звук обрабатывается только на телефоне и не сохраняется. После нажатия «Начать» Android запросит доступ к микрофону.",
   "mushafAyahSemantics": "Сура {surah}, аят {ayah}. {text}"
 }

@@ -6,6 +6,7 @@ import 'package:mushaf_view/mushaf_view.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_content_parser.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
+import 'package:sudur/data/services/prototype_session.dart';
 
 /// Data needed by the prototype reading screen.
 final class PrototypeBundle {
@@ -15,6 +16,7 @@ final class PrototypeBundle {
     required this.fontFamilies,
     required this.sessionWords,
     required this.modelDirectory,
+    required this.sessionConfiguration,
   });
 
   /// Pages 582–583.
@@ -28,6 +30,9 @@ final class PrototypeBundle {
 
   /// Verified ASR package path for the selected model.
   final String modelDirectory;
+
+  /// Verified resources used to build the real session in its worker.
+  final PrototypeSessionConfiguration sessionConfiguration;
 }
 
 /// Repository boundary used by `ReadingViewModel`.
@@ -68,6 +73,9 @@ final class LocalPrototypeRepository implements PrototypeRepository {
   }) async {
     final resources = await _installer.install(model, onProgress: onProgress);
     final json = await File(resources.contentPath).readAsString();
+    final normalizerJson = await File(
+      '${resources.modelDirectory}/normalizer.json',
+    ).readAsString();
     final content = _parser.parse(json);
     final fontLoader = PageFontLoader(
       fontDirectoryPath: resources.fontDirectory,
@@ -85,6 +93,15 @@ final class LocalPrototypeRepository implements PrototypeRepository {
       },
       sessionWords: content.sessionWords,
       modelDirectory: resources.modelDirectory,
+      sessionConfiguration: PrototypeSessionConfiguration(
+        words: content.sessionWords,
+        contentJson: json,
+        normalizerJson: normalizerJson,
+        modelDirectory: resources.modelDirectory,
+        vadModelPath: resources.vadModelPath,
+        textVersion: 'content-p582-583-928326595eea',
+        rulesVersion: 'tz-12.4-v1',
+      ),
     );
   }
 

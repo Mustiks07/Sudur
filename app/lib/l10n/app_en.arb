@@ -39,7 +39,7 @@
   "prototypeStop": "Stop",
   "prototypeHint": "Hint",
   "prototypeShareLog": "Share log",
-  "prototypeMockNotice": "S05 is not merged yet: the screen uses a scripted session. WAV mode and the real microphone pipeline will connect through ADR 0005.",
+  "prototypeMockNotice": "Audio is processed only on this phone and is not saved. Android will request microphone access after you tap Start.",
   "mushafAyahSemantics": "Surah {surah}, ayah {ayah}. {text}",
   "@mushafAyahSemantics": {
     "placeholders": {

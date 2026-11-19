@@ -1,0 +1,719 @@
+{
+  "format": 1,
+  "model": "synthetic",
+  "recordings": 11,
+  "people": 6,
+  "releaseMode": "Б",
+  "thresholds": {
+    "followRevealedInPlace": {
+      "min": 0.98
+    },
+    "followRevealedNotRead": {
+      "max": 0.01
+    },
+    "precision": {
+      "min": 0.95
+    },
+    "omissionRecall": {
+      "min": 0.85
+    },
+    "substitutionRecall": {
+      "min": 0.85
+    },
+    "falseAlarmsPer1000": {
+      "max": 1.0
+    },
+    "refusalRate": {
+      "max": 0.1
+    },
+    "selfCorrectionRecall": {
+      "min": 0.9
+    }
+  },
+  "passed": false,
+  "metrics": {
+    "followRevealedInPlace": {
+      "code": "КЧ-01",
+      "value": 1.0,
+      "numerator": 589,
+      "denominator": 589,
+      "ciLow": 1.0,
+      "ciHigh": 1.0,
+      "status": "pass"
+    },
+    "followRevealedNotRead": {
+      "code": "КЧ-02",
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 592,
+      "ciLow": 0.0,
+      "ciHigh": 0.0,
+      "status": "pass"
+    },
+    "precision": {
+      "code": "КЧ-03",
+      "value": 1.0,
+      "numerator": 10,
+      "denominator": 10,
+      "ciLow": 1.0,
+      "ciHigh": 1.0,
+      "status": "pass"
+    },
+    "omissionRecall": {
+      "code": "КЧ-04",
+      "value": 1.0,
+      "numerator": 3,
+      "denominator": 3,
+      "ciLow": 1.0,
+      "ciHigh": 1.0,
+      "status": "pass"
+    },
+    "substitutionRecall": {
+      "code": "КЧ-04",
+      "value": 1.0,
+      "numerator": 3,
+      "denominator": 3,
+      "ciLow": 1.0,
+      "ciHigh": 1.0,
+      "status": "pass"
+    },
+    "falseAlarmsPer1000": {
+      "code": "КЧ-05",
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 589,
+      "ciLow": 0.0,
+      "ciHigh": 0.0,
+      "status": "pass"
+    },
+    "refusalRate": {
+      "code": "КЧ-06",
+      "value": 0.017857142857142856,
+      "numerator": 7,
+      "denominator": 392,
+      "ciLow": 0.0,
+      "ciHigh": 0.05384615384615385,
+      "status": "pass"
+    },
+    "selfCorrectionRecall": {
+      "code": "КЧ-07",
+      "value": 1.0,
+      "numerator": 2,
+      "denominator": 2,
+      "ciLow": 1.0,
+      "ciHigh": 1.0,
+      "status": "pass"
+    }
+  },
+  "missingGroups": [],
+  "groups": {
+    "nativeLanguage": {
+      "kk": {
+        "recordings": 6,
+        "precisionStatus": "pass",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 224,
+          "denominator": 224,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 224,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": 1.0,
+          "numerator": 5,
+          "denominator": 5,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 224,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": 0.04861111111111111,
+          "numerator": 7,
+          "denominator": 144,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      },
+      "ru": {
+        "recordings": 3,
+        "precisionStatus": "pass",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 293,
+          "denominator": 293,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 296,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": 1.0,
+          "numerator": 1,
+          "denominator": 1,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 293,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 173,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": 1.0,
+          "numerator": 2,
+          "denominator": 2,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      },
+      "uz": {
+        "recordings": 2,
+        "precisionStatus": "pass",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 72,
+          "denominator": 72,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 72,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": 1.0,
+          "numerator": 4,
+          "denominator": 4,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 72,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 75,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      }
+    },
+    "gender": {
+      "f": {
+        "recordings": 6,
+        "precisionStatus": "pass",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 341,
+          "denominator": 341,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 344,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": 1.0,
+          "numerator": 5,
+          "denominator": 5,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 341,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 224,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": 1.0,
+          "numerator": 2,
+          "denominator": 2,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      },
+      "m": {
+        "recordings": 5,
+        "precisionStatus": "pass",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 248,
+          "denominator": 248,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 248,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": 1.0,
+          "numerator": 5,
+          "denominator": 5,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 248,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": 0.041666666666666664,
+          "numerator": 7,
+          "denominator": 168,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      }
+    },
+    "device": {
+      "budget-android": {
+        "recordings": 6,
+        "precisionStatus": "pass",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 327,
+          "denominator": 327,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 327,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": 1.0,
+          "numerator": 6,
+          "denominator": 6,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 327,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 124,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      },
+      "iphone": {
+        "recordings": 2,
+        "precisionStatus": "pass",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 109,
+          "denominator": 109,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 112,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": 1.0,
+          "numerator": 4,
+          "denominator": 4,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 109,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 115,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": 1.0,
+          "numerator": 2,
+          "denominator": 2,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      },
+      "mid-android": {
+        "recordings": 3,
+        "precisionStatus": "noData",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 153,
+          "denominator": 153,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 153,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 153,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": 0.0457516339869281,
+          "numerator": 7,
+          "denominator": 153,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      }
+    },
+    "noise": {
+      "noisy": {
+        "recordings": 3,
+        "precisionStatus": "pass",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 203,
+          "denominator": 203,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 203,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": 1.0,
+          "numerator": 4,
+          "denominator": 4,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 203,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      },
+      "quiet": {
+        "recordings": 8,
+        "precisionStatus": "pass",
+        "followRevealedInPlace": {
+          "value": 1.0,
+          "numerator": 386,
+          "denominator": 386,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "followRevealedNotRead": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 389,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "precision": {
+          "value": 1.0,
+          "numerator": 6,
+          "denominator": 6,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "omissionRecall": {
+          "value": 1.0,
+          "numerator": 3,
+          "denominator": 3,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "substitutionRecall": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "falseAlarmsPer1000": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 386,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "refusalRate": {
+          "value": 0.017857142857142856,
+          "numerator": 7,
+          "denominator": 392,
+          "ciLow": null,
+          "ciHigh": null
+        },
+        "selfCorrectionRecall": {
+          "value": 1.0,
+          "numerator": 2,
+          "denominator": 2,
+          "ciLow": null,
+          "ciHigh": null
+        }
+      }
+    }
+  }
+}
