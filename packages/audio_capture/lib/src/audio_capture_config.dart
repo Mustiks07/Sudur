@@ -6,7 +6,7 @@ final class AudioCaptureConfig {
     this.ringBufferSec = 30,
     this.preRollMs = 300,
     this.postRollMs = 300,
-    this.segmentEndPauseMs = 700,
+    this.segmentEndPauseMs = 300,
     this.maxSegmentMs = 15000,
     this.reviewSnippetPadMs = 3000,
     this.quietDbfs = -42,
