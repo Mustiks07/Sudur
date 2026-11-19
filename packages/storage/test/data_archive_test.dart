@@ -77,7 +77,7 @@ void main() {
           'manifest.json',
           jsonEncode(<String, Object?>{
             'format': 'sudur-user-data',
-            'schemaVersion': 2,
+            'schemaVersion': 3,
           }),
         ),
       );

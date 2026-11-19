@@ -33,7 +33,34 @@ void main() {
     expect(saved.map((progress) => progress.state).toSet(), LessonState.values);
   });
 
-  test('all repositories persist and read their schema-v1 entities', () async {
+  test('download repository round-trips every stored state from spec 11.4',
+      () async {
+    for (final (index, state) in DownloadState.values.indexed) {
+      unwrap(
+        await storage.downloads.put(
+          (
+            packageId: 'package-$index',
+            kind: DownloadKind.model,
+            activeVersion: state == DownloadState.installed ? '1.0.0' : null,
+            pendingVersion: state == DownloadState.installed ? null : '1.0.0',
+            state: state,
+            bytesTotal: 100,
+            bytesDone: state == DownloadState.installed ? 100 : index,
+            updatedAt: 1000 + index,
+          ),
+        ),
+      );
+    }
+
+    final saved = unwrap(await storage.downloads.list());
+    expect(
+      saved.map((download) => download.state).toSet(),
+      DownloadState.values,
+    );
+  });
+
+  test('all repositories persist and read their current-schema entities',
+      () async {
     final profiles = storage.profiles;
     final units = storage.units;
     final attempts = storage.attempts;

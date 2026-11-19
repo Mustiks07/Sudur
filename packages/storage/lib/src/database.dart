@@ -106,8 +106,18 @@ enum DownloadKind {
   config,
 }
 
-/// Download lifecycle state.
-enum DownloadState { pending, downloading, installed, failed }
+/// Persisted download lifecycle state (docs/tz section 11.4).
+///
+/// `notInstalled` and `updateAvailable` are derived from installed versions
+/// and the current manifest, so they are intentionally not stored.
+enum DownloadState {
+  queued,
+  downloading,
+  verifying,
+  installing,
+  installed,
+  failed,
+}
 
 /// Recording upload lifecycle state.
 enum UploadState { queued, uploading, uploaded, failed }
@@ -548,10 +558,17 @@ final class SudurDatabase extends _$SudurDatabase {
   factory SudurDatabase.memory() => SudurDatabase(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (migrator) => migrator.createAll(),
+        onUpgrade: (migrator, from, to) async {
+          if (from == 1) {
+            await customStatement(
+              "UPDATE download SET state = 'queued' WHERE state = 'pending'",
+            );
+          }
+        },
       );
 }
