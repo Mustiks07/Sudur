@@ -50,6 +50,7 @@ jobs:
           dart run tools/eval/bin/eval.dart
           --corpus tools/eval/reference/corpus
           --model synthetic
+          --normalizer packages/testing/fixtures/models/normalizer.abdou.json
           --baseline tools/eval/reference/report.json
           --out build/eval/reference
           --ci

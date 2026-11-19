@@ -1,6 +1,7 @@
 import 'package:check/check.dart';
 import 'package:contracts/contracts.dart';
 import 'package:follow/follow.dart';
+import 'package:quran_text/quran_text.dart';
 import 'package:test/test.dart';
 import 'package:testing/testing.dart';
 
@@ -242,6 +243,94 @@ void main() {
       expect(jump, hasLength(1));
       expect(jump.single.jumpTo?.surah, 79);
       expect(jump.single.words, [ayah(78, 3).last.key]);
+    });
+
+    test(
+        'words heard just before a jump are part of it, not extra words '
+        '(model output)', () {
+      // follow sees an extra word, then a few unaligned words, then the
+      // jump: an extra-word candidate there would report the place twice.
+      final checker = Checker(
+        text: quran,
+        normalizer: normalizer.id,
+        from: surah78.first.key,
+        to: surah78.last.key,
+        params: CheckParams.defaults,
+        sessionId: 's',
+        versions: versions,
+      );
+      var index = 0;
+      HeardWord word(String text) {
+        final i = index++;
+        return HeardWord(
+          index: i,
+          text: text,
+          key: SearchKey(text),
+          segmentId: 1,
+          atMs: i * 400,
+        );
+      }
+
+      AlignmentStep match(Word w) => AlignmentStep(
+            kind: AlignmentStepKind.match,
+            heard: word(heard(w)),
+            expected: w.key,
+            similarity: 1,
+            cost: 0,
+          );
+      final read = ayahs(78, 1, 2);
+      final elsewhere = ayahs(79, 1, 3);
+      final events = <CheckEvent>[
+        ...checker.accept(path: [for (final w in read) match(w)]).events,
+        ...checker.accept(
+          path: [
+            AlignmentStep(
+              kind: AlignmentStepKind.insert,
+              heard: word(heard(elsewhere[0])),
+              cost: 1,
+            ),
+            AlignmentStep(
+              kind: AlignmentStepKind.unaligned,
+              heard: word(heard(elsewhere[1])),
+              cost: 1,
+            ),
+          ],
+        ).events,
+      ];
+      final jumpWords = [for (final w in elsewhere.skip(2)) word(heard(w))];
+      events
+        ..addAll(
+          checker.accept(
+            path: const [],
+            jumps: [
+              JumpCandidate(
+                from: read.last.key,
+                to: elsewhere[2].key,
+                heard: jumpWords,
+                matchedNgrams: 1,
+              ),
+            ],
+          ).events,
+        )
+        // The reader comes back to the passage: on the old rule this
+        // context confirmed the extra-word candidate.
+        ..addAll(
+          checker
+              .accept(path: [for (final w in ayahs(78, 3, 4)) match(w)]).events,
+        )
+        ..addAll(checker.finish(index * 400 + 10000).events);
+      final last = <String, CheckEvent>{for (final e in events) e.eventId: e};
+      expect(
+        last.values.where((e) => e.kind == CheckKind.jump).single.state,
+        CheckState.confirmed,
+      );
+      expect(
+        last.values.where(
+          (e) =>
+              e.kind == CheckKind.insertion && e.state == CheckState.confirmed,
+        ),
+        isEmpty,
+      );
     });
 
     test('a jump on bad audio → unverified, not confirmed', () {
