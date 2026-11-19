@@ -102,13 +102,17 @@ final class Report {
       };
 
   /// Regression check against [baseline] (docs/tz 5.5): returns a message
-  /// for every metric that dropped more than allowed by [config].
+  /// for every metric that dropped more than allowed by [config], and for
+  /// every checked metric that had data in the baseline and has none now —
+  /// otherwise breaking a metric entirely would pass silently.
   List<String> regressions(AcceptanceConfig config) {
     final c = changes;
     return [
       for (final MapEntry(key: m, value: limit) in config.maxDropPp.entries)
         if (c[m] case final change? when -change > limit)
-          _dropMessage(m, -change, limit),
+          _dropMessage(m, -change, limit)
+        else if (baseline?[m] != null && metrics[m]?.value.value == null)
+          '${m.code} ${m.title}: в эталоне есть значение, сейчас нет данных',
     ];
   }
 

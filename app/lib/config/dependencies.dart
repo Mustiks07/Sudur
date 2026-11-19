@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/config/app_config.dart';
+import 'package:sudur/config/prototype_real_session.dart';
 import 'package:sudur/data/repositories/prototype_repository.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
@@ -39,7 +40,7 @@ class AppDependencies extends StatelessWidget {
         ),
         Provider<PrototypeRepository>.value(value: repository),
         Provider<PrototypeReadingSessionFactory>.value(
-          value: const ScriptedPrototypeReadingSessionFactory(),
+          value: RealPrototypeReadingSessionFactory(),
         ),
         ChangeNotifierProvider<HomeViewModel>(create: (_) => HomeViewModel()),
         ChangeNotifierProvider<ReadingViewModel>(

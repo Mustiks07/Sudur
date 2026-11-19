@@ -208,6 +208,19 @@ void main() {
       );
       expect(worse.regressions(config).single, contains('КЧ-01'));
       expect(worse.toMarkdown(), contains('-3.00 п. п.'));
+
+      // A metric with data in the baseline and none now is a regression:
+      // precision had a value, and check did not run this time.
+      final lost = buildReport(
+        model: 'm',
+        recordings: [recording('p1', correct: 100, revealed: 100)],
+        config: config,
+        baseline: {...baseline, Metric.precision: 1.0},
+      );
+      expect(
+        lost.regressions(config).single,
+        allOf(contains('КЧ-03'), contains('нет данных')),
+      );
     });
 
     test('config rejects a threshold without bounds', () {
