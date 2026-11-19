@@ -59,6 +59,7 @@ final class AudioCaptureService {
   var _disposed = false;
   var _expectedRecorderPause = false;
   var _playbackActive = false;
+  final Set<CapturePauseReason> _recorderPauseReasons = <CapturePauseReason>{};
   AudioCaptureException? _workerFailure;
 
   /// Segments, quality changes, pauses, and explicit operation errors.
@@ -95,9 +96,13 @@ final class AudioCaptureService {
       if (loaded case Error<void>()) {
         return loaded;
       }
+      _recorderPauseReasons.removeWhere(
+        (reason) => reason != CapturePauseReason.playback,
+      );
       _mode = _InputMode.microphone;
       await _startRecorderStream();
       if (_playbackActive) {
+        _recorderPauseReasons.add(CapturePauseReason.playback);
         _expectedRecorderPause = true;
         await _recorder.pause();
         final playback = _voidResult(
@@ -239,6 +244,7 @@ final class AudioCaptureService {
     if (_workerPort == null) {
       return _failure('notCapturing', 'No audio pipeline is active.');
     }
+    _recorderPauseReasons.add(reason);
     if (_mode == _InputMode.microphone &&
         reason != CapturePauseReason.permissionRevoked) {
       _expectedRecorderPause = true;
@@ -287,6 +293,11 @@ final class AudioCaptureService {
       await _stopRecorder();
       _mode = _InputMode.microphone;
       await _startRecorderStream();
+      _recorderPauseReasons.remove(CapturePauseReason.deviceChanged);
+      if (_recorderPauseReasons.isNotEmpty) {
+        _expectedRecorderPause = true;
+        await _recorder.pause();
+      }
       return const Result<void>.ok(null);
     } on Object {
       return _failure(
@@ -307,8 +318,13 @@ final class AudioCaptureService {
           CapturePauseReason.permissionRevoked,
         );
       }
-      _expectedRecorderPause = true;
-      await _recorder.resume();
+      _recorderPauseReasons.removeWhere(
+        (reason) => reason != CapturePauseReason.playback,
+      );
+      if (_recorderPauseReasons.isEmpty) {
+        _expectedRecorderPause = true;
+        await _recorder.resume();
+      }
       return const Result<void>.ok(null);
     } on Object {
       return _failure(
@@ -322,15 +338,27 @@ final class AudioCaptureService {
   Future<Result<void>> setPlaybackActive(bool active) async {
     if (_workerPort == null) {
       _playbackActive = active;
+      if (active) {
+        _recorderPauseReasons.add(CapturePauseReason.playback);
+      } else {
+        _recorderPauseReasons.remove(CapturePauseReason.playback);
+      }
       return const Result<void>.ok(null);
     }
     _playbackActive = active;
+    if (active) {
+      _recorderPauseReasons.add(CapturePauseReason.playback);
+    } else {
+      _recorderPauseReasons.remove(CapturePauseReason.playback);
+    }
     if (_mode == _InputMode.microphone) {
       try {
-        _expectedRecorderPause = true;
         if (active) {
+          _expectedRecorderPause = true;
           await _recorder.pause();
-        } else if (await _recorder.hasPermission()) {
+        } else if (_recorderPauseReasons.isEmpty &&
+            await _recorder.hasPermission()) {
+          _expectedRecorderPause = true;
           await _recorder.resume();
         }
       } on Object {
@@ -349,12 +377,18 @@ final class AudioCaptureService {
   Future<Result<void>> stop() async {
     if (_workerPort == null) {
       _mode = _InputMode.none;
+      _recorderPauseReasons.removeWhere(
+        (reason) => reason != CapturePauseReason.playback,
+      );
       return const Result<void>.ok(null);
     }
     if (_mode == _InputMode.microphone) {
       await _stopRecorder();
     }
     _mode = _InputMode.none;
+    _recorderPauseReasons.removeWhere(
+      (reason) => reason != CapturePauseReason.playback,
+    );
     return _voidResult(
       await _sendAndWait('stop', const <String, Object?>{}),
     );
@@ -470,7 +504,7 @@ final class AudioCaptureService {
 
   void _forwardPcm(Uint8List pcm16) {
     final worker = _workerPort;
-    if (worker == null || _playbackActive) {
+    if (worker == null || _recorderPauseReasons.isNotEmpty) {
       return;
     }
     final requestId = _nextRequestId++;

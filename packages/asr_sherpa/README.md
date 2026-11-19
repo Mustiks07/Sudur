@@ -19,11 +19,44 @@ SUDUR_ASR_EVAL_DIR=/path/to/reviewed-eval \
 
 Скрипт скачивает закреплённые ревизии `Abdou/quran-asr-small` и
 `Abdou/quran-asr-tiny` в игнорируемый `third_party_cache/asr_sherpa/`,
-проверяемый пакет содержит `model.json`, `model.int8.onnx`, `tokens.txt`,
-`normalizer.json`, `thresholds.json`, `eval.json` и лицензию MIT. Проверенные
-отчёты подаются как `small.json` и `tiny.json` через `SUDUR_ASR_EVAL_DIR`,
-чтобы скрипт не выдумывал показатели модели. Модели и отчёты в git не
-добавляются. Таблица `replace` записывается упорядоченным списком объектов.
+проверяемый пакет содержит модель и её метаданные. Проверенные отчёты подаются
+как `small.json` и `tiny.json` через `SUDUR_ASR_EVAL_DIR`, чтобы скрипт не
+выдумывал показатели модели. Модели и отчёты в git не добавляются.
+
+`AsrModelPackage.load` требует следующие файлы (дополнительный `LICENSE`
+у пакета допустим, но валидатор его не требует):
+
+- `model.int8.onnx` и `tokens.txt`;
+- `model.json`;
+- `normalizer.json`;
+- `thresholds.json`;
+- `eval.json`.
+
+Обязательные поля `model.json`: непустые строки `modelId`, `version`,
+`normalizerId`; `output` со значением `uthmaniLettersNoDiacritics` или
+`phonemes`; `isStreaming: false`; boolean `hasTokenTimes`; положительный integer
+`sampleRate`; integer `minRamMb`; `license: "MIT"`; integer
+`modelSizeBytes` и `tokensSizeBytes`, точно равные размерам файлов; lowercase
+SHA-256 `modelSha256` и `tokensSha256`, точно совпадающие с файлами.
+
+Обязательные поля `normalizer.json`: непустые строки `id` и `wordSeparator`,
+список `removeRanges`, а также упорядоченный список `replace`. Каждый элемент
+`replace` — объект с непустой строкой `from` и строкой `to`; замены применяются
+по порядку.
+
+Все поля `thresholds.json` обязательны и должны быть числами:
+`beamSize`, `maxSkip`, `maxBack`, `costSkip`, `costBack`, `costInsert`,
+`simFloor`, `openThreshold`, `lostCostThreshold`, `ambiguityMargin`,
+`ngramSize`, `stableConfirmations`, `openDelayWords`, `lostWindowWords`,
+`strongMatch`, `substitutionMax`, `confirmContextWords`, `jumpMinWords`,
+`selfCorrectionMs`, `selfCorrectionWords`, `hesitationPauseMs`,
+`hesitationTempoFactor`, `strictMaxFails`, `strictMaxWaitMs`,
+`stuckWordTries`. `eval.json` должен быть непустым JSON-объектом; конкретных
+обязательных полей в нём нет.
+
+Минимальный синтетический пример, совместимый с этим валидатором, создаёт
+`createMinimalAsrModelPackage` из `packages/testing`. Его ONNX состоит из трёх
+нерабочих тестовых байтов и предназначен только для тестов установки пакета.
 
 Установку и атомарное переключение версии выполняет пакет `content`. ASR
 получает активный каталог только через `AsrModelPackageSource`; прямой

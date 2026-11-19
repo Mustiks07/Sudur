@@ -106,6 +106,92 @@ void main() {
     expect(recorder.pauseCalls, 1);
   });
 
+  for (final reason in <CapturePauseReason>[
+    CapturePauseReason.background,
+    CapturePauseReason.interrupted,
+  ]) {
+    test('ending playback preserves the ${reason.name} recorder pause',
+        () async {
+      final recorder = _FakeRecorder();
+      final service = AudioCaptureService(
+        sessionId: 'playback-${reason.name}',
+        recorderPort: recorder,
+        workerEntrypoint: _runFakeWorker,
+      );
+      addTearDown(service.dispose);
+      expect(
+        await service.startMicrophone(
+          vadModelPath: 'unused',
+          permissionExplanationShown: true,
+        ),
+        isA<Ok<void>>(),
+      );
+
+      expect(await service.setPlaybackActive(true), isA<Ok<void>>());
+      expect(await service.notifyInterruption(reason), isA<Ok<void>>());
+      expect(await service.setPlaybackActive(false), isA<Ok<void>>());
+
+      expect(recorder.resumeCalls, 0);
+      expect(await service.resumeMicrophone(), isA<Ok<void>>());
+      expect(recorder.resumeCalls, 1);
+    });
+  }
+
+  test('ending playback preserves an explicit session pause', () async {
+    final recorder = _FakeRecorder();
+    final service = AudioCaptureService(
+      sessionId: 'explicit-pause-during-playback',
+      recorderPort: recorder,
+      workerEntrypoint: _runFakeWorker,
+    );
+    final source = AudioCaptureSessionSource(
+      capture: service,
+      vadModelPath: 'unused',
+      permissionExplanationShown: true,
+    );
+    addTearDown(source.dispose);
+    expect(
+      await source.start('explicit-pause-during-playback'),
+      isA<Ok<void>>(),
+    );
+
+    expect(await source.setPlaybackActive(true), isA<Ok<void>>());
+    expect(await source.pause(), isA<Ok<void>>());
+    expect(await source.setPlaybackActive(false), isA<Ok<void>>());
+
+    expect(recorder.resumeCalls, 0);
+    expect(await source.resume(), isA<Ok<void>>());
+    expect(recorder.resumeCalls, 1);
+  });
+
+  test('resuming an interruption preserves the playback pause', () async {
+    final recorder = _FakeRecorder();
+    final service = AudioCaptureService(
+      sessionId: 'resume-during-playback',
+      recorderPort: recorder,
+      workerEntrypoint: _runFakeWorker,
+    );
+    addTearDown(service.dispose);
+    expect(
+      await service.startMicrophone(
+        vadModelPath: 'unused',
+        permissionExplanationShown: true,
+      ),
+      isA<Ok<void>>(),
+    );
+
+    expect(await service.setPlaybackActive(true), isA<Ok<void>>());
+    expect(
+      await service.notifyInterruption(CapturePauseReason.interrupted),
+      isA<Ok<void>>(),
+    );
+    expect(await service.resumeMicrophone(), isA<Ok<void>>());
+    expect(recorder.resumeCalls, 0);
+
+    expect(await service.setPlaybackActive(false), isA<Ok<void>>());
+    expect(recorder.resumeCalls, 1);
+  });
+
   test('system interruption reaches coordinator once with Bluetooth warning',
       () async {
     final recorder = _FakeRecorder();
@@ -176,6 +262,7 @@ final class _FakeRecorder implements AudioRecorderPort {
       StreamController<RecordState>.broadcast();
   int startCalls = 0;
   int pauseCalls = 0;
+  int resumeCalls = 0;
 
   void addPcm(Uint8List value) => _pcm.add(value);
 
@@ -197,7 +284,9 @@ final class _FakeRecorder implements AudioRecorderPort {
   }
 
   @override
-  Future<void> resume() async {}
+  Future<void> resume() async {
+    resumeCalls++;
+  }
 
   @override
   Future<Stream<Uint8List>> startStream(RecordConfig config) async {
