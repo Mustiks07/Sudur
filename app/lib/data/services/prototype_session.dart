@@ -30,6 +30,9 @@ abstract interface class PrototypeReadingSession {
   /// Events consumed by `ReadingViewModel`.
   Stream<SessionEvent> get events;
 
+  /// Terminal worker failures that are not tied to one command.
+  Stream<Exception> get failures;
+
   /// Selects the source used by the next [StartSession] command.
   Future<void> configureInput(PrototypeSessionInput input);
 
@@ -43,7 +46,42 @@ abstract interface class PrototypeReadingSession {
 /// Creates sessions for canonical reading-order word lists.
 abstract interface class PrototypeReadingSessionFactory {
   /// Creates one session instance.
-  PrototypeReadingSession create(List<WordKey> words);
+  PrototypeReadingSession create(PrototypeSessionConfiguration configuration);
+}
+
+/// Isolate-sendable inputs required to build the real reading session.
+final class PrototypeSessionConfiguration {
+  /// Creates verified session inputs installed by the prototype repository.
+  const new({
+    required this.words,
+    required this.contentJson,
+    required this.normalizerJson,
+    required this.modelDirectory,
+    required this.vadModelPath,
+    required this.textVersion,
+    required this.rulesVersion,
+  });
+
+  /// Canonical reading range shown by the prototype.
+  final List<WordKey> words;
+
+  /// Canonical content JSON; parsed inside the session worker.
+  final String contentJson;
+
+  /// Normalizer supplied with the selected ASR package.
+  final String normalizerJson;
+
+  /// Verified ASR package directory.
+  final String modelDirectory;
+
+  /// Verified Silero VAD model path.
+  final String vadModelPath;
+
+  /// Canonical content revision used by events.
+  final String textVersion;
+
+  /// Follow/check parameter revision used by events.
+  final String rulesVersion;
 }
 
 /// Scripted session used until S05 is merged and retained for UI tests.
@@ -71,6 +109,9 @@ final class ScriptedPrototypeReadingSession implements PrototypeReadingSession {
 
   @override
   Stream<SessionEvent> get events => _events.stream;
+
+  @override
+  Stream<Exception> get failures => const Stream<Exception>.empty();
 
   @override
   Future<void> configureInput(PrototypeSessionInput input) async {
@@ -248,8 +289,8 @@ final class ScriptedPrototypeReadingSessionFactory
   const new();
 
   @override
-  PrototypeReadingSession create(List<WordKey> words) =>
-      ScriptedPrototypeReadingSession(words);
+  PrototypeReadingSession create(PrototypeSessionConfiguration configuration) =>
+      ScriptedPrototypeReadingSession(configuration.words);
 }
 
 final class _PrototypeSessionException implements Exception {

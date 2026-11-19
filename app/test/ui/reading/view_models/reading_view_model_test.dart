@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:contracts/contracts.dart';
@@ -83,6 +84,24 @@ void main() {
       <Type>[StartSession, Pause, Resume, RequestHint, Stop],
     );
     expect(viewModel.state, ReadingPrototypeState.finished);
+  });
+
+  test('a second start is blocked while the first start is pending', () async {
+    final startResult = Completer<Result<void>>();
+    sessionFactory.session.startResult = startResult;
+
+    final firstStart = viewModel.start();
+    expect(viewModel.state, ReadingPrototypeState.starting);
+
+    await viewModel.start();
+    expect(
+      sessionFactory.session.commands.whereType<StartSession>(),
+      hasLength(1),
+    );
+
+    startResult.complete(const Result<void>.ok(null));
+    await firstStart;
+    expect(viewModel.state, ReadingPrototypeState.running);
   });
 
   test('moving position never hides an already revealed word', () {
@@ -194,6 +213,10 @@ void main() {
 
       await viewModel.start();
       expect(sessionFactory.session.input, isA<PrototypeWavInput>());
+      expect(viewModel.canPause, isFalse);
+      await viewModel.pause();
+      expect(sessionFactory.session.pauses, 0);
+      expect(viewModel.state, ReadingPrototypeState.running);
       await viewModel.selectModel(PrototypeModelChoice.tiny);
       expect(repository.preparedModels, <PrototypeModelChoice>[
         PrototypeModelChoice.small,
@@ -209,26 +232,42 @@ void main() {
         ..beginPageRender(582)
         ..markPageRendered(582);
       await viewModel.start();
-      sessionFactory.session.emit(
-        const CheckEvent(
-          sessionId: 'test',
-          atMs: 500,
-          eventId: 'event-1',
-          kind: CheckKind.substitution,
-          state: CheckState.confirmed,
-          words: <WordKey>[firstWord],
-          expectedText: 'EXPECTED_SECRET',
-          heardText: 'HEARD_SECRET',
-          audioStartMs: 100,
-          audioEndMs: 450,
-          versions: ReadingVersions(
-            modelId: 'model',
-            modelVersion: '1',
-            rulesVersion: '1',
-            textVersion: '1',
+      sessionFactory.session
+        ..emit(
+          const SessionStarted(
+            sessionId: 'test',
+            atMs: 0,
+            fromWordKey: firstWord,
+            toWordKey: secondWord,
+            mode: SessionMode.recall,
+            versions: ReadingVersions(
+              modelId: 'model',
+              modelVersion: '1',
+              rulesVersion: '1',
+              textVersion: '1',
+            ),
           ),
-        ),
-      );
+        )
+        ..emit(
+          const CheckEvent(
+            sessionId: 'test',
+            atMs: 500,
+            eventId: 'event-1',
+            kind: CheckKind.substitution,
+            state: CheckState.confirmed,
+            words: <WordKey>[firstWord],
+            expectedText: 'EXPECTED_SECRET',
+            heardText: 'HEARD_SECRET',
+            audioStartMs: 100,
+            audioEndMs: 450,
+            versions: ReadingVersions(
+              modelId: 'model',
+              modelVersion: '1',
+              rulesVersion: '1',
+              textVersion: '1',
+            ),
+          ),
+        );
       final json = viewModel.measurementJson;
       final decoded = jsonDecode(json) as Map<String, Object?>;
       final events = switch (decoded['events']) {
@@ -240,7 +279,9 @@ void main() {
       expect(json, isNot(contains('HEARD_SECRET')));
       expect(
         events.whereType<Map<String, Object?>>().any(
-          (event) => event['type'] == 'MushafPageRendered',
+          (event) =>
+              event['type'] == 'SessionStarted' &&
+              event.containsKey('uiAtSessionMs'),
         ),
         isTrue,
       );
