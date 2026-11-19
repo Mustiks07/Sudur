@@ -70,6 +70,23 @@ final class PrototypeAssetInstaller {
   final PrototypePlatformService _platform;
   final HttpClient _httpClient;
 
+  /// Rewrites generated metadata for already downloaded models.
+  ///
+  /// This migrates normalizer rules without downloading model weights again.
+  Future<void> refreshInstalledModelMetadata() async {
+    final root = Directory(await _platform.applicationDirectory());
+    for (final manifest in _models.values) {
+      final directory = Directory(
+        '${root.path}/models/${manifest.directoryName}',
+      );
+      final downloaded = manifest.files.every((resource) {
+        final name = resource.relativePath.split('/').last;
+        return File('${directory.path}/$name').existsSync();
+      });
+      if (downloaded) await _writeModelMetadata(directory, manifest);
+    }
+  }
+
   /// Ensures content, both page fonts, and [model] are installed.
   Future<PrototypeResources> install(
     PrototypeModelChoice model, {
@@ -77,6 +94,7 @@ final class PrototypeAssetInstaller {
   }) async {
     final root = Directory(await _platform.applicationDirectory());
     await root.create(recursive: true);
+    await refreshInstalledModelMetadata();
     final modelManifest = _models[model];
     if (modelManifest == null) {
       throw StateError('The selected model has no resource manifest.');
@@ -182,26 +200,13 @@ final class PrototypeAssetInstaller {
     Directory directory,
     _ModelManifest manifest,
   ) async {
-    final spellingFile = File('${directory.path}/spelling.json');
-    final Object? decoded = jsonDecode(await spellingFile.readAsString());
-    if (decoded is! Map<String, Object?>) {
-      throw const FormatException('spelling.json must contain an object.');
-    }
-    final replacements = <Map<String, String>>[];
-    for (final entry in decoded.entries) {
-      final replacement = entry.value;
-      if (entry.key.isEmpty || replacement is! String) {
-        throw const FormatException('spelling.json has an invalid entry.');
-      }
-      replacements.add(<String, String>{'from': entry.key, 'to': replacement});
-    }
     await _writeJson(
       File('${directory.path}/normalizer.json'),
       <String, Object?>{
         'id': manifest.normalizerId,
         'nfc': true,
-        'removeRanges': <Object?>[],
-        'replace': replacements,
+        'removeRanges': _abdouRemoveRanges,
+        'replace': _abdouReplacements,
         'wordSeparator': ' ',
       },
     );
@@ -368,7 +373,7 @@ final _models = <PrototypeModelChoice, _ModelManifest>{
     directoryName: 'quran-asr-small',
     modelId: 'Abdou/quran-asr-small',
     version: 'hf-0c2744b9d70a',
-    normalizerId: 'abdou-quran-asr-small-spelling-0c2744b9d70a',
+    normalizerId: 'abdou-quran-asr-small-letters-v2-0c2744b9d70a',
     minRamMb: 384,
     modelSize: 36081762,
     tokensSize: 180,
@@ -388,7 +393,7 @@ final _models = <PrototypeModelChoice, _ModelManifest>{
     directoryName: 'quran-asr-tiny',
     modelId: 'Abdou/quran-asr-tiny',
     version: 'hf-a291b33fd5a3',
-    normalizerId: 'abdou-quran-asr-tiny-spelling-a291b33fd5a3',
+    normalizerId: 'abdou-quran-asr-tiny-letters-v2-a291b33fd5a3',
     minRamMb: 256,
     modelSize: 18850806,
     tokensSize: 180,
@@ -405,6 +410,34 @@ final _models = <PrototypeModelChoice, _ModelManifest>{
     ),
   ),
 };
+
+const _abdouRemoveRanges = <Map<String, String>>[
+  <String, String>{'from': '0600', 'to': '0620'},
+  <String, String>{'from': '063B', 'to': '0640'},
+  <String, String>{'from': '064B', 'to': '0670'},
+  <String, String>{'from': '0674', 'to': '06A8'},
+  <String, String>{'from': '06AA', 'to': '06CB'},
+  <String, String>{'from': '06CD', 'to': '06D1'},
+  <String, String>{'from': '06D3', 'to': '06FF'},
+  <String, String>{'from': '0750', 'to': '077F'},
+  <String, String>{'from': '08A0', 'to': '08FF'},
+];
+
+const _abdouReplacements = <Map<String, String>>[
+  <String, String>{'from': '\u0623', 'to': '\u0627'},
+  <String, String>{'from': '\u0625', 'to': '\u0627'},
+  <String, String>{'from': '\u0622', 'to': '\u0627'},
+  <String, String>{'from': '\u0671', 'to': '\u0627'},
+  <String, String>{'from': '\u0672', 'to': '\u0627'},
+  <String, String>{'from': '\u0673', 'to': '\u0627'},
+  <String, String>{'from': '\u0649', 'to': '\u064A'},
+  <String, String>{'from': '\u0626', 'to': '\u064A'},
+  <String, String>{'from': '\u06D2', 'to': '\u064A'},
+  <String, String>{'from': '\u06CC', 'to': '\u064A'},
+  <String, String>{'from': '\u0624', 'to': '\u0648'},
+  <String, String>{'from': '\u0629', 'to': '\u0647'},
+  <String, String>{'from': '\u06A9', 'to': '\u0643'},
+];
 
 const _thresholds = <String, num>{
   'beamSize': 5,

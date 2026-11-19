@@ -96,6 +96,9 @@ class AppLocalizationsUz extends AppLocalizations {
   String get prototypeShareLog => 'Jurnalni ulashish';
 
   @override
+  String get prototypeFinishReadingFirst => 'Avval o‘qishni yakunlang';
+
+  @override
   String get prototypeMockNotice =>
       'Audio faqat telefonda qayta ishlanadi va saqlanmaydi. «Boshlash» tugmasidan keyin Android mikrofonga ruxsat so‘raydi.';
 

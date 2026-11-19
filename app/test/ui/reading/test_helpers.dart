@@ -95,6 +95,10 @@ final class FakePrototypeRepository implements PrototypeRepository {
 final class ManualPrototypeSession implements PrototypeReadingSession {
   final StreamController<SessionEvent> _events =
       StreamController<SessionEvent>.broadcast(sync: true);
+  final StreamController<PrototypeSessionDiagnostic> _diagnostics =
+      StreamController<PrototypeSessionDiagnostic>.broadcast(sync: true);
+  final StreamController<Exception> _failures =
+      StreamController<Exception>.broadcast(sync: true);
 
   PrototypeSessionInput? input;
   int pauses = 0;
@@ -108,9 +112,17 @@ final class ManualPrototypeSession implements PrototypeReadingSession {
   Stream<SessionEvent> get events => _events.stream;
 
   @override
-  Stream<Exception> get failures => const Stream<Exception>.empty();
+  Stream<Exception> get failures => _failures.stream;
+
+  @override
+  Stream<PrototypeSessionDiagnostic> get diagnostics => _diagnostics.stream;
 
   void emit(SessionEvent event) => _events.add(event);
+
+  void emitDiagnostic(PrototypeSessionDiagnostic event) =>
+      _diagnostics.add(event);
+
+  void emitFailure(Exception error) => _failures.add(error);
 
   @override
   Future<void> configureInput(PrototypeSessionInput input) async {
@@ -139,7 +151,10 @@ final class ManualPrototypeSession implements PrototypeReadingSession {
   }
 
   @override
-  Future<void> dispose() async {}
+  Future<void> dispose() async {
+    await _diagnostics.close();
+    await _failures.close();
+  }
 }
 
 final class ManualPrototypeSessionFactory

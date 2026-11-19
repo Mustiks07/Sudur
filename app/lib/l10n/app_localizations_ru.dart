@@ -96,6 +96,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get prototypeShareLog => 'Поделиться журналом';
 
   @override
+  String get prototypeFinishReadingFirst => 'Сначала завершите чтение';
+
+  @override
   String get prototypeMockNotice =>
       'Звук обрабатывается только на телефоне и не сохраняется. После нажатия «Начать» Android запросит доступ к микрофону.';
 

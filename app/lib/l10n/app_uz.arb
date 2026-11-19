@@ -26,6 +26,7 @@
   "prototypeStop": "Tugatish",
   "prototypeHint": "Yordam",
   "prototypeShareLog": "Jurnalni ulashish",
+  "prototypeFinishReadingFirst": "Avval o‘qishni yakunlang",
   "prototypeMockNotice": "Audio faqat telefonda qayta ishlanadi va saqlanmaydi. «Boshlash» tugmasidan keyin Android mikrofonga ruxsat so‘raydi.",
   "mushafAyahSemantics": "{surah}-sura, {ayah}-oyat. {text}"
 }
