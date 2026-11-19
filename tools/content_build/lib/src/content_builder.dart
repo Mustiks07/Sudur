@@ -7,6 +7,7 @@ import 'package:content_build/src/content_assembler.dart';
 import 'package:content_build/src/content_build_exception.dart';
 import 'package:content_build/src/content_checks.dart';
 import 'package:content_build/src/content_model.dart';
+import 'package:content_build/src/derived_content.dart';
 import 'package:content_build/src/layout_parser.dart';
 import 'package:content_build/src/source_fetcher.dart';
 import 'package:content_build/src/sqlite_writer.dart';
@@ -185,9 +186,37 @@ void writeContentJson(ContentData data, String path) {
 }
 
 /// Writes the content database (docs/tz 12.2, ADR 0004) to [path].
-void writeContentDatabase(ContentBuild build, String path) {
+void writeContentDatabase(
+  ContentBuild build,
+  String path, {
+  DerivedContent? derived,
+}) {
   File(path).parent.createSync(recursive: true);
-  writeContentSqlite(build.text, build.layout, build.layoutId, path);
+  writeContentSqlite(
+    build.text,
+    build.layout,
+    build.layoutId,
+    path,
+    derived: derived,
+  );
+}
+
+/// Default passages and similar places of a build ([deriveContent]).
+DerivedContent deriveBuild(
+  ContentBuild build, {
+  required int linesPerPage,
+  required DerivedParams params,
+}) {
+  final ayahs = ayahSpansOfText(build.text);
+  return deriveContent(
+    ayahs: ayahs,
+    words: textWords(ayahs, [
+      for (final a in build.text.ayahs) ...a.words,
+    ]),
+    layout: layoutPlaces(build.layout),
+    linesPerPage: linesPerPage,
+    params: params,
+  );
 }
 
 /// Writes the text of the whole Quran as the text fixture (ADR 0004).

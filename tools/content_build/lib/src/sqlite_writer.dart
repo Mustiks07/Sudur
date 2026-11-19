@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:content_build/src/content_model.dart';
+import 'package:content_build/src/derived_content.dart';
 import 'package:content_build/src/text_model.dart';
 import 'package:sqlite3/sqlite3.dart';
 
@@ -84,21 +85,37 @@ CREATE TABLE line (
   PRIMARY KEY (layout_id, page, line)
 )''',
   '''
+CREATE TABLE passage_default (
+  id INTEGER PRIMARY KEY,
+  from_word_index INTEGER NOT NULL,
+  to_word_index INTEGER NOT NULL
+)''',
+  '''
+CREATE TABLE similar_pair (
+  id INTEGER PRIMARY KEY,
+  a_from INTEGER NOT NULL,
+  a_to INTEGER NOT NULL,
+  b_from INTEGER NOT NULL,
+  b_to INTEGER NOT NULL,
+  verified INTEGER NOT NULL DEFAULT 0
+)''',
+  '''
 CREATE TABLE content_version (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL
 )''',
 ];
 
-/// Writes the text of the whole Quran ([text]) and the page layout of the
-/// build scope ([layout]) to a new SQLite file at [path], replacing any old
-/// file.
+/// Writes the text of the whole Quran ([text]), the page layout of the
+/// build scope ([layout]) and the [derived] passages and similar places
+/// (none verified) to a new SQLite file at [path], replacing any old file.
 void writeContentSqlite(
   QuranTextData text,
   ContentData layout,
   String layoutId,
-  String path,
-) {
+  String path, {
+  DerivedContent? derived,
+}) {
   final file = File(path);
   if (file.existsSync()) file.deleteSync();
   final db = sqlite3.open(path);
@@ -179,6 +196,15 @@ void writeContentSqlite(
           l.surah,
         ],
     ]);
+    if (derived != null) {
+      _insertAll(db, 'INSERT INTO passage_default VALUES (?, ?, ?)', [
+        for (final (i, p) in derived.passages.indexed) [i + 1, p.from, p.to],
+      ]);
+      _insertAll(db, 'INSERT INTO similar_pair VALUES (?, ?, ?, ?, ?, 0)', [
+        for (final (i, p) in derived.pairs.indexed)
+          [i + 1, p.aFrom, p.aTo, p.bFrom, p.bTo],
+      ]);
+    }
     _insertAll(db, 'INSERT INTO content_version VALUES (?, ?)', [
       for (final e in text.version.entries) [e.key, e.value],
     ]);
