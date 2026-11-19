@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:content/src/config_schema.dart';
 import 'package:content/src/manifest.dart';
 import 'package:content/src/manifest_verifier.dart';
@@ -271,7 +273,9 @@ String? _check(ParamSpec spec, Object? value) {
 /// Where the app keeps the last verified config file.
 ///
 /// Like every service it reports failures as `Result.error` instead of
-/// throwing; the loader keeps working when the store does not.
+/// throwing; the loader also catches an `IOException` from a store that
+/// throws anyway, and keeps working. [FileConfigStore] replaces the file
+/// atomically.
 abstract interface class ConfigStore {
   /// The stored file, or `null` if there is none.
   Future<Result<String?>> read();
@@ -316,9 +320,11 @@ final class ConfigState {
   /// Why the last file was not taken, if it was not.
   final ConfigException? refused;
 
-  /// The store could not be read or written; the parameters above are
-  /// still usable (built-in values, or the received file kept in memory
-  /// only — the app may retry storing it).
+  /// The store could not be read or written. The parameters above are
+  /// still usable: the built-in values when it could not be read, the
+  /// previous verified copy when a new file could not be stored (the new
+  /// file is not taken then, so the app never runs on parameters it could
+  /// not keep; it may retry).
   final Exception? storeError;
 }
 
@@ -338,7 +344,7 @@ final class ConfigLoader {
   /// also when the store cannot be read.
   Future<ConfigState> current() async {
     final String? stored;
-    switch (await _store.read()) {
+    switch (await _guard(_store.read)) {
       case Ok(:final value):
         stored = value;
       case Error(:final error):
@@ -362,11 +368,10 @@ final class ConfigLoader {
     };
   }
 
-  /// A config file from an installed `config` package: taken and stored if
-  /// valid and not older than the stored copy; otherwise the parameters in
-  /// use stay. If storing fails, the valid file is still used for this run
-  /// and [ConfigState.storeError] says so; after a restart the previous
-  /// stored copy (or the built-in values) applies until it is stored.
+  /// A config file from an installed `config` package: taken once it is
+  /// valid, not older than the stored copy, **and stored**. If it cannot be
+  /// stored, the parameters in use (the previous verified copy, or the
+  /// built-in values) stay and [ConfigState.storeError] says why.
   Future<ConfigState> accept(String source) async {
     final now = await current();
     final result = await verifyConfig(
@@ -376,16 +381,22 @@ final class ConfigLoader {
     );
     switch (result) {
       case Ok(:final value):
-        final stored = await _store.write(source);
-        return ConfigState(
-          value.config,
-          ConfigSource.received,
-          verified: value,
-          storeError: switch (stored) {
-            Ok() => null,
-            Error(:final error) => error,
-          },
-        );
+        switch (await _guard(() => _store.write(source))) {
+          case Ok():
+            return ConfigState(
+              value.config,
+              ConfigSource.received,
+              verified: value,
+            );
+          case Error(:final error):
+            return ConfigState(
+              now.config,
+              now.source,
+              verified: now.verified,
+              refused: now.refused,
+              storeError: error,
+            );
+        }
       case Error(:final error):
         return ConfigState(
           now.config,
@@ -394,6 +405,62 @@ final class ConfigLoader {
           refused: _asConfigError(error),
           storeError: now.storeError,
         );
+    }
+  }
+
+  /// Runs a store call; an `IOException` thrown against the contract
+  /// becomes an error result.
+  static Future<Result<T>> _guard<T>(Future<Result<T>> Function() call) async {
+    try {
+      return await call();
+    } on IOException catch (e) {
+      return Result.error(e);
+    }
+  }
+}
+
+/// [ConfigStore] in a file. A write goes to `<path>.tmp` first and then
+/// replaces the file with one rename, so the stored copy is always either
+/// the old or the new file, never half of one.
+final class FileConfigStore implements ConfigStore {
+  /// Creates the store at [path].
+  const FileConfigStore(this.path);
+
+  /// The stored file.
+  final String path;
+
+  @override
+  Future<Result<String?>> read() async {
+    try {
+      final type = FileSystemEntity.typeSync(path);
+      if (type == FileSystemEntityType.notFound) return const Result.ok(null);
+      if (type != FileSystemEntityType.file) {
+        return Result.error(FileSystemException('not a file', path));
+      }
+      return Result.ok(await File(path).readAsString());
+    } on FileSystemException catch (e) {
+      return Result.error(e);
+    }
+  }
+
+  @override
+  Future<Result<void>> write(String source) async {
+    final temp = File('$path.tmp');
+    try {
+      await temp.parent.create(recursive: true);
+      await temp.writeAsString(source, flush: true);
+      await temp.rename(path);
+      return const Result.ok(null);
+    } on FileSystemException catch (e) {
+      try {
+        if (temp.existsSync()) await temp.delete();
+      } on FileSystemException catch (cleanup) {
+        // The next write overwrites the leftover temporary file.
+        return Result.error(
+          FileSystemException('${e.message}; ${cleanup.message}', path),
+        );
+      }
+      return Result.error(e);
     }
   }
 }

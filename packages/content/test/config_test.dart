@@ -268,6 +268,48 @@ void main() {
     });
   });
 
+  group('file store', () {
+    late Directory dir;
+    setUp(() => dir = Directory.systemTemp.createTempSync('config'));
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    String path() => '${dir.path}/config/config.json';
+
+    test('nothing stored: null; then writes and reads back', () async {
+      final store = FileConfigStore(path());
+      expect(ok(await store.read()), isNull);
+      ok(await store.write('first'));
+      expect(ok(await store.read()), 'first');
+      ok(await store.write('second'));
+      expect(ok(await store.read()), 'second');
+      expect(File('${path()}.tmp').existsSync(), isFalse);
+    });
+
+    test('a failed write leaves the stored copy whole', () async {
+      final store = FileConfigStore(path());
+      ok(await store.write('first'));
+      // The temporary file cannot be created: a folder stands in its way.
+      Directory('${path()}.tmp').createSync();
+      expect(await store.write('second'), isA<Error<void>>());
+      expect(ok(await store.read()), 'first');
+    });
+
+    test('an unreadable store is an error result, not an exception', () async {
+      Directory(path()).createSync(recursive: true); // A folder, not a file.
+      expect(await FileConfigStore(path()).read(), isA<Error<String?>>());
+    });
+
+    test('the loader on a real file: taken, kept across restarts', () async {
+      final store = FileConfigStore(path());
+      final doc = copy()..['issuedAt'] = '2026-11-19T00:00:00Z';
+      final taken = await ConfigLoader(keys: trust, store: store)
+          .accept(await signed(doc));
+      expect(taken.source, ConfigSource.received);
+      final restarted = await ConfigLoader(keys: trust, store: store).current();
+      expect(restarted.source, ConfigSource.stored);
+    });
+  });
+
   group('the loader keeps the last verified copy', () {
     late MemoryConfigStore store;
     late ConfigLoader loader;
@@ -332,23 +374,46 @@ void main() {
     });
 
     test(
-        'the store cannot be written: the valid file is used, the error '
-        'reported (review #24)', () async {
+        'the store cannot be written: the previous verified copy stays '
+        '(review #24)', () async {
+      await loader.accept(await withMinutes(20, '2026-11-19T00:00:00Z'));
       store.failWrite = true;
       final s =
-          await loader.accept(await withMinutes(20, '2026-11-19T00:00:00Z'));
-      expect(s.source, ConfigSource.received);
-      expect(s.config.other.freeVoiceMinutesPerDay, 20);
+          await loader.accept(await withMinutes(30, '2026-11-20T00:00:00Z'));
       expect(s.storeError, isA<FileSystemException>());
-      expect(store.stored, isNull);
-      // After a restart nothing was stored: the built-in values apply.
-      expect((await loader.current()).source, ConfigSource.builtIn);
-      // Storing works again: the next accept stores it.
+      expect(s.source, ConfigSource.stored);
+      expect(s.config.other.freeVoiceMinutesPerDay, 20);
+      // Nothing changed on disk: after a restart the same copy applies.
+      expect((await loader.current()).config.other.freeVoiceMinutesPerDay, 20);
+      // Storing works again: the new file is taken.
       store.failWrite = false;
       final again =
-          await loader.accept(await withMinutes(20, '2026-11-19T00:00:00Z'));
+          await loader.accept(await withMinutes(30, '2026-11-20T00:00:00Z'));
       expect(again.storeError, isNull);
-      expect(store.stored, isNotNull);
+      expect(again.source, ConfigSource.received);
+      expect(again.config.other.freeVoiceMinutesPerDay, 30);
+    });
+
+    test(
+        'nothing stored yet and the store cannot be written: built-in '
+        'values', () async {
+      store.failWrite = true;
+      final s =
+          await loader.accept(await withMinutes(30, '2026-11-20T00:00:00Z'));
+      expect(s.source, ConfigSource.builtIn);
+      expect(s.config.other.freeVoiceMinutesPerDay, 10);
+      expect(s.storeError, isNotNull);
+    });
+
+    test('a store that throws IOException does not break the loader', () async {
+      final throwing = ConfigLoader(keys: trust, store: ThrowingConfigStore());
+      final s = await throwing.current();
+      expect(s.source, ConfigSource.builtIn);
+      expect(s.storeError, isA<FileSystemException>());
+      final a =
+          await throwing.accept(await withMinutes(30, '2026-11-20T00:00:00Z'));
+      expect(a.source, ConfigSource.builtIn);
+      expect(a.storeError, isA<FileSystemException>());
     });
 
     test('a damaged stored copy: built-in values', () async {
@@ -359,6 +424,17 @@ void main() {
       expect(s.config.other.freeVoiceMinutesPerDay, 10);
     });
   });
+}
+
+/// A store that breaks its contract and throws.
+final class ThrowingConfigStore implements ConfigStore {
+  @override
+  Future<Result<String?>> read() =>
+      throw const FileSystemException('device error');
+
+  @override
+  Future<Result<void>> write(String source) =>
+      throw const FileSystemException('device error');
 }
 
 final class MemoryConfigStore implements ConfigStore {
