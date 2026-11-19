@@ -97,7 +97,7 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get prototypeMockNotice =>
-      'S05 hali birlashtirilmagan: ekran sinov sessiyasida ishlaydi. WAV va haqiqiy mikrofon ADR 0005 orqali ulanadi.';
+      'Audio faqat telefonda qayta ishlanadi va saqlanmaydi. «Boshlash» tugmasidan keyin Android mikrofonga ruxsat so‘raydi.';
 
   @override
   String mushafAyahSemantics(int surah, int ayah, String text) {

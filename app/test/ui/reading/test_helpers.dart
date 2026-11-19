@@ -29,6 +29,15 @@ PrototypeBundle fakePrototypeBundle() => PrototypeBundle(
   fontFamilies: const <int, String>{582: 'sans-serif', 583: 'sans-serif'},
   sessionWords: const <WordKey>[firstWord, secondWord],
   modelDirectory: '/fake/model',
+  sessionConfiguration: const PrototypeSessionConfiguration(
+    words: <WordKey>[firstWord, secondWord],
+    contentJson: '{}',
+    normalizerJson: '{}',
+    modelDirectory: '/fake/model',
+    vadModelPath: '/fake/vad.onnx',
+    textVersion: 'fake-text',
+    rulesVersion: 'fake-rules',
+  ),
 );
 
 MushafPageData _page(int number, List<MushafFragment> firstLine) =>
@@ -93,9 +102,13 @@ final class ManualPrototypeSession implements PrototypeReadingSession {
   int stops = 0;
   int hints = 0;
   final List<SessionCommand> commands = <SessionCommand>[];
+  Completer<Result<void>>? startResult;
 
   @override
   Stream<SessionEvent> get events => _events.stream;
+
+  @override
+  Stream<Exception> get failures => const Stream<Exception>.empty();
 
   void emit(SessionEvent event) => _events.add(event);
 
@@ -109,7 +122,8 @@ final class ManualPrototypeSession implements PrototypeReadingSession {
     commands.add(command);
     switch (command) {
       case StartSession():
-        break;
+        final pending = startResult;
+        if (pending != null) return await pending.future;
       case Pause():
         pauses += 1;
       case Resume():
@@ -135,7 +149,7 @@ final class ManualPrototypeSessionFactory
   ManualPrototypeSession get session => sessions.last;
 
   @override
-  PrototypeReadingSession create(List<WordKey> words) {
+  PrototypeReadingSession create(PrototypeSessionConfiguration configuration) {
     final session = ManualPrototypeSession();
     sessions.add(session);
     return session;

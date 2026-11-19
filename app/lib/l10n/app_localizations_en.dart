@@ -97,7 +97,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prototypeMockNotice =>
-      'S05 is not merged yet: the screen uses a scripted session. WAV mode and the real microphone pipeline will connect through ADR 0005.';
+      'Audio is processed only on this phone and is not saved. Android will request microphone access after you tap Start.';
 
   @override
   String mushafAyahSemantics(int surah, int ayah, String text) {
