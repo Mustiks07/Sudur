@@ -19,6 +19,7 @@ void main() {
   late MemoryActiveVersions versions;
   late PackageInstaller installer;
   late List<PackageState> states;
+  late FlakyFiles files;
 
   setUpAll(() => keys = loadTestKeys());
 
@@ -28,11 +29,12 @@ void main() {
     disk = FakeDisk(1 << 30);
     versions = MemoryActiveVersions();
     states = [];
+    files = FlakyFiles();
     installer = PackageInstaller(
       root: p.join(dir.path, 'packages'),
       appVersion: const PackageVersion(1, 2, 0),
       transport: transport,
-      files: const IoContentFiles(),
+      files: files,
       disk: disk,
       versions: versions,
       extractor: const SyncExtractor(),
@@ -258,6 +260,58 @@ void main() {
     expectV1Intact();
     expect(
       Directory(p.join(dir.path, 'packages', 'pkg', '1.1.0')).existsSync(),
+      isFalse,
+    );
+  });
+
+  test(
+      'active version unknown: live files of the same version kept '
+      '(review #22)', () async {
+    await installV1();
+    final again = await publish('pkg', '1.0.0', zip({'a.txt': 'v1-again'}));
+    versions.failActive = true;
+    expect(failure(await install(again)), InstallFailure.activation);
+    // The installed files of 1.0.0 are untouched.
+    expect(installedFile('pkg', '1.0.0', 'a.txt'), 'v1');
+    versions.failActive = false;
+    expectV1Intact();
+    // The checked archive is kept: the retry needs no download.
+    expect(File(installer.archivePath(again)).existsSync(), isTrue);
+  });
+
+  test('active version unknown on an update: nothing replaced', () async {
+    await installV1();
+    final v2 = await publish('pkg', '1.1.0', zip({'a.txt': 'v2'}));
+    versions.failActive = true;
+    expect(failure(await install(v2)), InstallFailure.activation);
+    versions.failActive = false;
+    expectV1Intact();
+    expect(
+      Directory(p.join(dir.path, 'packages', 'pkg', '1.1.0')).existsSync(),
+      isFalse,
+    );
+  });
+
+  test(
+      'clean-up failing after activation: still installed, retried later '
+      '(review #22)', () async {
+    await installV1();
+    final v2 = await publish('pkg', '1.1.0', zip({'a.txt': 'v2'}));
+    files.failDeleteSuffix = '1.1.0.tmp';
+    expect(ok(await install(v2)), const PackageVersion(1, 1, 0));
+    expect(states.last, isA<Installed>());
+    expect(versions.versions['pkg'], const PackageVersion(1, 1, 0));
+    expect(installedFile('pkg', '1.1.0', 'a.txt'), 'v2');
+    final leftover =
+        Directory(p.join(dir.path, 'packages', 'pkg', '1.1.0.tmp'));
+    expect(leftover.existsSync(), isTrue);
+
+    // The next launch removes the leftover and the old version.
+    files.failDeleteSuffix = null;
+    ok(await installer.cleanUpAfterLaunch(['pkg']));
+    expect(leftover.existsSync(), isFalse);
+    expect(
+      Directory(p.join(dir.path, 'packages', 'pkg', '1.0.0')).existsSync(),
       isFalse,
     );
   });
