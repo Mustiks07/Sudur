@@ -17,6 +17,7 @@
 | `fixtures/lessons_test_stage1.json` | Тестовый пакет уроков: по примеру каждого типа шага (УЧ-03). Только заглушки `TODO_CONTENT`, без настоящего содержания; см. [`fixtures/README.md`](fixtures/README.md) | K01 |
 | `fixtures/manifest/` | Тестовый подписанный манифест, тестовый пакет и тестовые ключи Ed25519 (`TEST-ONLY`) для `content` и `content_build`; см. [`fixtures/README.md`](fixtures/README.md) | O05 |
 | `FakeSpeechRecognizer` | `SpeechRecognizer`, который проигрывает заранее подготовленные результаты (СЛ-07, ПО-12) | P06 |
+| `FakeSessionAudioSource` | управляемый из теста источник открытий, кадров, закрытий и качества сигнала | S05 |
 | `RecognitionScript` | Строит последовательность результатов как у распознавателя (ТЗ 10.3): растущие частичные, окончательный, заданные частичные, скользящее окно, паузы | P06 |
 | `dropLetter`, `swapLetters` | Искажения букв для наборов результатов | P06 |
 
