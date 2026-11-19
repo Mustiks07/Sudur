@@ -10,13 +10,17 @@ import 'package:quran_text/quran_text.dart';
 import 'package:test/test.dart';
 import 'package:testing/testing.dart';
 
+import '../tool/build_reference.dart';
+
 // End-to-end: synthetic recordings built from the canon of surah 78 (P03
 // fixture) go through files, follow and the report. Heard words are search
 // keys of canonical words; nothing is typed.
 
 const String fixturePath =
     '../../packages/testing/fixtures/content_p582_583.json';
-const Normalizer normalizer = Normalizer.builtIn;
+// The model's normalizer.json from docs/tz 12.3; heard words are model
+// output (29 bare letters), not canonical keys.
+final Normalizer normalizer = loadModelNormalizer();
 const String model = 'synthetic';
 
 void main() {
@@ -51,7 +55,7 @@ void main() {
         (w) => w.key.surah == 78 && w.key.ayah >= first && w.key.ayah <= last,
       )
       .toList();
-  String heard(Word w) => quran.searchKey(w.key, normalizer.id).value;
+  String heard(Word w) => modelLetters(w.text);
 
   void save(SyntheticRecording r) {
     File(p.join(dir.path, '${r.id}.ann.json'))
@@ -77,6 +81,7 @@ void main() {
     String noise = 'quiet',
   }) {
     final r = SyntheticRecording(
+      modelOutput: true,
       id: id,
       speakerId: person,
       from: '${words.first.key}',

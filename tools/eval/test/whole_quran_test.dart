@@ -10,6 +10,8 @@ import 'package:quran_text/quran_text.dart';
 import 'package:test/test.dart';
 import 'package:testing/testing.dart';
 
+import '../tool/build_reference.dart';
+
 // S03: synthetic recordings with jumps across the whole Quran (ADR 0004
 // text fixture). Heard words are search keys of canonical words, picked by
 // their place in the text; nothing is typed.
@@ -17,7 +19,9 @@ import 'package:testing/testing.dart';
 const String textPath = '../../packages/testing/fixtures/quran_text.json';
 const String pagesPath =
     '../../packages/testing/fixtures/content_p582_583.json';
-const Normalizer normalizer = Normalizer.builtIn;
+// The model's normalizer.json from docs/tz 12.3; heard words are model
+// output (29 bare letters), not canonical keys.
+final Normalizer normalizer = loadModelNormalizer();
 const String model = 'synthetic';
 
 InMemoryQuranText load(String path) {
@@ -58,7 +62,7 @@ void main() {
   List<Word> ayahs(int surah, int first, int last) => [
         for (var a = first; a <= last; a++) ...ayah(surah, a),
       ];
-  String heard(Word w) => quran.searchKey(w.key, normalizer.id).value;
+  String heard(Word w) => modelLetters(w.text);
   String misheard(Word w) {
     final k = heard(w);
     return k.runes.length >= 5 ? dropLetter(k, k.runes.length ~/ 2) : k;
@@ -85,6 +89,7 @@ void main() {
     String Function(Word)? say,
   }) {
     final r = SyntheticRecording(
+      modelOutput: true,
       id: id,
       speakerId: person,
       from: '${before.first.key}',
