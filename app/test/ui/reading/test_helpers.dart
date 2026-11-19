@@ -102,6 +102,7 @@ final class ManualPrototypeSession implements PrototypeReadingSession {
   int stops = 0;
   int hints = 0;
   final List<SessionCommand> commands = <SessionCommand>[];
+  Completer<Result<void>>? startResult;
 
   @override
   Stream<SessionEvent> get events => _events.stream;
@@ -121,7 +122,8 @@ final class ManualPrototypeSession implements PrototypeReadingSession {
     commands.add(command);
     switch (command) {
       case StartSession():
-        break;
+        final pending = startResult;
+        if (pending != null) return await pending.future;
       case Pause():
         pauses += 1;
       case Resume():

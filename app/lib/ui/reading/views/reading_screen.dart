@@ -279,9 +279,7 @@ final class _SessionControls extends StatelessWidget {
             ),
           ),
           OutlinedButton.icon(
-            onPressed: viewModel.state == ReadingPrototypeState.running
-                ? viewModel.pause
-                : null,
+            onPressed: viewModel.canPause ? viewModel.pause : null,
             icon: const Icon(Icons.pause),
             label: Text(localizations.prototypePause),
           ),

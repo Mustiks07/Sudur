@@ -17,6 +17,9 @@ enum ReadingPrototypeState {
   /// Resources and the session are ready.
   ready,
 
+  /// The model/session worker is starting; duplicate starts are blocked.
+  starting,
+
   /// Session events are being consumed.
   running,
 
@@ -52,6 +55,7 @@ final class ReadingViewModel extends ChangeNotifier {
   PrototypeBundle? _bundle;
   PrototypeMeasurementLog? _measurementLog;
   String? _wavPath;
+  var _activeInputUsesWav = false;
   var _prepareGeneration = 0;
   var _disposed = false;
 
@@ -96,6 +100,10 @@ final class ReadingViewModel extends ChangeNotifier {
   String? get selectedWavName {
     return _wavPath?.split(RegExp(r'[/\\]')).last;
   }
+
+  /// Whether pausing is valid for the currently running input.
+  bool get canPause =>
+      _state == ReadingPrototypeState.running && !_activeInputUsesWav;
 
   /// Result of the phone benchmark, when run.
   AsrDeviceBenchmark? get benchmarkResult => _benchmarkResult;
@@ -182,7 +190,11 @@ final class ReadingViewModel extends ChangeNotifier {
     }
     final bundle = _bundle;
     if (bundle == null) return;
-    if (_state == ReadingPrototypeState.finished) {
+    final isRestart = _state == ReadingPrototypeState.finished;
+    _state = ReadingPrototypeState.starting;
+    _error = null;
+    notifyListeners();
+    if (isRestart) {
       await _replaceSession(bundle);
       for (final word in _wordStates.keys) {
         _wordStates[word] = MushafWordState.hidden;
@@ -191,8 +203,13 @@ final class ReadingViewModel extends ChangeNotifier {
       _checkWords.clear();
     }
     final session = _session;
-    if (session == null) return;
+    if (session == null) {
+      _state = ReadingPrototypeState.error;
+      notifyListeners();
+      return;
+    }
     final wavPath = _wavPath;
+    _activeInputUsesWav = wavPath != null;
     _measurementLog?.start(usesWav: wavPath != null);
     try {
       await session.configureInput(
@@ -229,7 +246,7 @@ final class ReadingViewModel extends ChangeNotifier {
 
   /// Pauses the current session.
   Future<void> pause() async {
-    if (_state != ReadingPrototypeState.running) return;
+    if (!canPause) return;
     if (!await _execute(const Pause())) return;
     _state = ReadingPrototypeState.paused;
     notifyListeners();

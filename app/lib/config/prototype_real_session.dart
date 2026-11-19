@@ -7,11 +7,37 @@ import 'package:quran_text/quran_text.dart';
 import 'package:session/session.dart';
 import 'package:sudur/data/services/prototype_session.dart';
 
+/// Creates the isolate bridge used by a production prototype session.
+///
+/// The seam keeps lifecycle races deterministic in tests while production uses
+/// [ReadingSessionIsolate.spawn].
+typedef PrototypeSessionIsolateSpawner =
+    Future<Result<ReadingSessionIsolate>> Function({
+      required SessionIsolateWorkerFactory factory,
+      required SessionAudioSource audioSource,
+      Object? configuration,
+    });
+
+Future<Result<ReadingSessionIsolate>> _spawnReadingSessionIsolate({
+  required SessionIsolateWorkerFactory factory,
+  required SessionAudioSource audioSource,
+  Object? configuration,
+}) => ReadingSessionIsolate.spawn(
+  factory: factory,
+  audioSource: audioSource,
+  configuration: configuration,
+);
+
 /// Builds production prototype sessions.
 ///
 /// Scripted sessions remain available to tests through their separate factory.
 final class RealPrototypeReadingSessionFactory
     implements PrototypeReadingSessionFactory {
+  /// Creates the production factory.
+  new({this.spawner = _spawnReadingSessionIsolate});
+
+  /// Isolate lifecycle seam used by regression tests.
+  final PrototypeSessionIsolateSpawner spawner;
   var _nextSession = 1;
 
   @override
@@ -19,14 +45,16 @@ final class RealPrototypeReadingSessionFactory
       _RealPrototypeReadingSession(
         configuration,
         sessionId: 'prototype-${_nextSession++}',
+        spawner: spawner,
       );
 }
 
 final class _RealPrototypeReadingSession implements PrototypeReadingSession {
-  new(this._configuration, {required this.sessionId});
+  new(this._configuration, {required this.sessionId, required this._spawner});
 
   final PrototypeSessionConfiguration _configuration;
   final String sessionId;
+  final PrototypeSessionIsolateSpawner _spawner;
   final StreamController<SessionEvent> _events =
       StreamController<SessionEvent>.broadcast(sync: true);
   final StreamController<Exception> _failures =
@@ -34,6 +62,7 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
 
   PrototypeSessionInput _input = const PrototypeMicrophoneInput();
   ReadingSessionIsolate? _isolate;
+  Future<Result<ReadingSessionIsolate>>? _spawnResult;
   StreamSubscription<SessionEvent>? _eventSubscription;
   StreamSubscription<SessionIsolateFailure>? _failureSubscription;
   var _disposed = false;
@@ -46,7 +75,7 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
 
   @override
   Future<void> configureInput(PrototypeSessionInput input) async {
-    if (_isolate != null) {
+    if (_isolate != null || _spawnResult != null) {
       throw const PrototypeRealSessionException(
         'alreadyStarted',
         'The input cannot change after the session worker starts.',
@@ -75,7 +104,7 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
           ),
         );
       }
-      final spawned = await _spawn();
+      final spawned = await (_spawnResult ??= _spawn());
       switch (spawned) {
         case Error<ReadingSessionIsolate>(:final error):
           return Result<void>.error(error);
@@ -98,12 +127,21 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
         if (isolate != null) unawaited(isolate.execute(const Stop()));
       },
     );
-    final spawned = await ReadingSessionIsolate.spawn(
+    final spawned = await _spawner(
       factory: createPrototypeSessionWorker,
       audioSource: source,
       configuration: _workerConfiguration(_configuration, sessionId),
     );
     if (spawned case Ok<ReadingSessionIsolate>(:final value)) {
+      if (_disposed) {
+        await value.dispose();
+        return const Result<ReadingSessionIsolate>.error(
+          PrototypeRealSessionException(
+            'disposed',
+            'The prototype session was disposed during startup.',
+          ),
+        );
+      }
       _isolate = value;
       _eventSubscription = value.events.listen(_events.add);
       _failureSubscription = value.failures.listen(_failures.add);
@@ -115,6 +153,7 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
+    await _spawnResult;
     await _eventSubscription?.cancel();
     await _failureSubscription?.cancel();
     await _isolate?.dispose();

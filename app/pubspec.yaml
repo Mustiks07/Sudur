@@ -30,6 +30,8 @@ dependencies:
     path: ../packages/session
 
 dev_dependencies:
+  check:
+    path: ../packages/check
   flutter_test:
     sdk: flutter
 
