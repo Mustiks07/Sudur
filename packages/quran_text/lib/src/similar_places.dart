@@ -84,7 +84,8 @@ final class SimilarPlacePair {
 /// 2. **Shared phrases:** every run of `minPhraseWords` equal keys seeds a
 ///    pair; it is extended both ways while the words are similar (at least
 ///    `wordSimilarity`) and trimmed to start and end on equal words. Each
-///    maximal phrase is reported once; places that overlap are skipped.
+///    place stays inside one surah. Each maximal phrase is reported once;
+///    places that overlap are skipped.
 ///
 /// Result is sorted by `aFrom`, then `bFrom`, without duplicates.
 List<SimilarPlacePair> findSimilarPlaces(
@@ -125,14 +126,18 @@ List<SimilarPlacePair> findSimilarPlaces(
     }
   }
 
-  // 2. Shared phrases.
+  // 2. Shared phrases, each place inside one surah: a phrase never runs on
+  // from the end of a surah into the next one.
+  final surahOf = [for (final w in words) w.key.surah];
   final n = params.minPhraseWords;
   final seeds = <String, List<int>>{};
   for (var i = 0; i + n <= k.length; i++) {
+    if (surahOf[i] != surahOf[i + n - 1]) continue;
     (seeds[k.sublist(i, i + n).join('\u0000')] ??= []).add(i);
   }
   bool alike(int i, int j) =>
       k[i] == k[j] || similarity(k[i], k[j]) >= params.wordSimilarity;
+  bool sameSurah(int i, int j) => surahOf[i] == surahOf[j];
   final seen = <(int, int, int)>{};
   for (final places in seeds.values) {
     for (var x = 0; x < places.length; x++) {
@@ -140,13 +145,19 @@ List<SimilarPlacePair> findSimilarPlaces(
         var a = places[x];
         var b = places[y];
         var end = n - 1; // Offset of the last word of the phrase.
-        while (a > 0 && b - 1 > a + end && alike(a - 1, b - 1)) {
+        while (a > 0 &&
+            b - 1 > a + end &&
+            sameSurah(a - 1, a) &&
+            sameSurah(b - 1, b) &&
+            alike(a - 1, b - 1)) {
           a--;
           b--;
           end++;
         }
         while (b + end + 1 < k.length &&
             a + end + 1 < b &&
+            sameSurah(a + end, a + end + 1) &&
+            sameSurah(b + end, b + end + 1) &&
             alike(a + end + 1, b + end + 1)) {
           end++;
         }

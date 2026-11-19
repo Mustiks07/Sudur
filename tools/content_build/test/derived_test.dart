@@ -185,6 +185,47 @@ void main() {
       }
     });
 
+    test('no place runs across a surah boundary (review #23)', () {
+      for (final p in derived.pairs) {
+        expect(key(p.aFrom).surah, key(p.aTo).surah, reason: '$p');
+        expect(key(p.bFrom).surah, key(p.bTo).surah, reason: '$p');
+      }
+    });
+
+    test('a phrase at the end of one surah does not glue onto the next', () {
+      // Synthetic text: surah 1 ends with "x y z w v", surah 2 starts with
+      // "q"; elsewhere surah 3 has "x y z w v q". The pair must stop at the
+      // end of surah 1.
+      Word w(int s, int a, int pos, int index, String t) =>
+          Word(key: WordKey(s, a, pos), index: index, text: t);
+      final text = [
+        w(1, 1, 1, 1, 'a'),
+        w(1, 1, 2, 2, 'x'),
+        w(1, 1, 3, 3, 'y'),
+        w(1, 1, 4, 4, 'z'),
+        w(1, 1, 5, 5, 'w'),
+        w(1, 1, 6, 6, 'v'),
+        w(2, 1, 1, 7, 'q'),
+        w(2, 1, 2, 8, 'b'),
+        w(3, 1, 1, 9, 'c'),
+        w(3, 1, 2, 10, 'x'),
+        w(3, 1, 3, 11, 'y'),
+        w(3, 1, 4, 12, 'z'),
+        w(3, 1, 5, 13, 'w'),
+        w(3, 1, 6, 14, 'v'),
+        w(3, 1, 7, 15, 'q'),
+      ];
+      final pairs = findSimilarPlaces(
+        text,
+        [for (final t in text) SearchKey(t.text)],
+        params.similar,
+      );
+      expect(pairs, hasLength(1));
+      expect(pairs.single.aFrom, 2);
+      expect(pairs.single.aTo, 6, reason: 'stops at the end of surah 1');
+      expect(pairs.single.bTo, 14);
+    });
+
     test('places start and end on equal keys and are long enough', () {
       for (final p in derived.pairs) {
         expect(keys[p.aFrom - 1], keys[p.bFrom - 1]);
