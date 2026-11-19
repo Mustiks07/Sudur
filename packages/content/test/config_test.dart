@@ -320,6 +320,37 @@ void main() {
       expect(old.config.other.freeVoiceMinutesPerDay, 20);
     });
 
+    test('the store cannot be read: built-in values, no crash (review #24)',
+        () async {
+      store
+        ..stored = await withMinutes(20, '2026-11-19T00:00:00Z')
+        ..failRead = true;
+      final s = await loader.current();
+      expect(s.source, ConfigSource.builtIn);
+      expect(s.storeError, isA<FileSystemException>());
+      expect(s.config.other.freeVoiceMinutesPerDay, 10);
+    });
+
+    test(
+        'the store cannot be written: the valid file is used, the error '
+        'reported (review #24)', () async {
+      store.failWrite = true;
+      final s =
+          await loader.accept(await withMinutes(20, '2026-11-19T00:00:00Z'));
+      expect(s.source, ConfigSource.received);
+      expect(s.config.other.freeVoiceMinutesPerDay, 20);
+      expect(s.storeError, isA<FileSystemException>());
+      expect(store.stored, isNull);
+      // After a restart nothing was stored: the built-in values apply.
+      expect((await loader.current()).source, ConfigSource.builtIn);
+      // Storing works again: the next accept stores it.
+      store.failWrite = false;
+      final again =
+          await loader.accept(await withMinutes(20, '2026-11-19T00:00:00Z'));
+      expect(again.storeError, isNull);
+      expect(store.stored, isNotNull);
+    });
+
     test('a damaged stored copy: built-in values', () async {
       store.stored = '{"broken": true}';
       final s = await loader.current();
@@ -332,10 +363,20 @@ void main() {
 
 final class MemoryConfigStore implements ConfigStore {
   String? stored;
+  bool failRead = false;
+  bool failWrite = false;
 
   @override
-  Future<String?> read() async => stored;
+  Future<Result<String?>> read() async => failRead
+      ? const Result.error(FileSystemException('storage is unavailable'))
+      : Result.ok(stored);
 
   @override
-  Future<void> write(String source) async => stored = source;
+  Future<Result<void>> write(String source) async {
+    if (failWrite) {
+      return const Result.error(FileSystemException('disk is full'));
+    }
+    stored = source;
+    return const Result.ok(null);
+  }
 }

@@ -269,12 +269,15 @@ String? _check(ParamSpec spec, Object? value) {
 }
 
 /// Where the app keeps the last verified config file.
+///
+/// Like every service it reports failures as `Result.error` instead of
+/// throwing; the loader keeps working when the store does not.
 abstract interface class ConfigStore {
-  /// The stored file, or `null`.
-  Future<String?> read();
+  /// The stored file, or `null` if there is none.
+  Future<Result<String?>> read();
 
   /// Replaces the stored file.
-  Future<void> write(String source);
+  Future<Result<void>> write(String source);
 }
 
 /// Where the parameters in use came from.
@@ -293,7 +296,13 @@ enum ConfigSource {
 @immutable
 final class ConfigState {
   /// Creates the state.
-  const ConfigState(this.config, this.source, {this.verified, this.refused});
+  const ConfigState(
+    this.config,
+    this.source, {
+    this.verified,
+    this.refused,
+    this.storeError,
+  });
 
   /// Parameters to use.
   final AppConfig config;
@@ -306,6 +315,11 @@ final class ConfigState {
 
   /// Why the last file was not taken, if it was not.
   final ConfigException? refused;
+
+  /// The store could not be read or written; the parameters above are
+  /// still usable (built-in values, or the received file kept in memory
+  /// only — the app may retry storing it).
+  final Exception? storeError;
 }
 
 /// Keeps the parameters: a new signed file replaces the stored copy only
@@ -320,9 +334,20 @@ final class ConfigLoader {
   final TrustedKeys _keys;
   final ConfigStore _store;
 
-  /// At start: the stored copy, checked again, or the built-in values.
+  /// At start: the stored copy, checked again, or the built-in values —
+  /// also when the store cannot be read.
   Future<ConfigState> current() async {
-    final stored = await _store.read();
+    final String? stored;
+    switch (await _store.read()) {
+      case Ok(:final value):
+        stored = value;
+      case Error(:final error):
+        return ConfigState(
+          AppConfig.defaults,
+          ConfigSource.builtIn,
+          storeError: error,
+        );
+    }
     if (stored == null) {
       return const ConfigState(AppConfig.defaults, ConfigSource.builtIn);
     }
@@ -339,7 +364,9 @@ final class ConfigLoader {
 
   /// A config file from an installed `config` package: taken and stored if
   /// valid and not older than the stored copy; otherwise the parameters in
-  /// use stay.
+  /// use stay. If storing fails, the valid file is still used for this run
+  /// and [ConfigState.storeError] says so; after a restart the previous
+  /// stored copy (or the built-in values) applies until it is stored.
   Future<ConfigState> accept(String source) async {
     final now = await current();
     final result = await verifyConfig(
@@ -349,11 +376,15 @@ final class ConfigLoader {
     );
     switch (result) {
       case Ok(:final value):
-        await _store.write(source);
+        final stored = await _store.write(source);
         return ConfigState(
           value.config,
           ConfigSource.received,
           verified: value,
+          storeError: switch (stored) {
+            Ok() => null,
+            Error(:final error) => error,
+          },
         );
       case Error(:final error):
         return ConfigState(
@@ -361,6 +392,7 @@ final class ConfigLoader {
           now.source,
           verified: now.verified,
           refused: _asConfigError(error),
+          storeError: now.storeError,
         );
     }
   }
