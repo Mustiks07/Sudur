@@ -1,0 +1,443 @@
+{
+  "recordingId": "r05-self-corrections",
+  "speaker": {
+    "id": "p5",
+    "nativeLanguage": "ru",
+    "gender": "f"
+  },
+  "conditions": {
+    "device": "iphone",
+    "noise": "quiet"
+  },
+  "expected": {
+    "from": "78:31:1",
+    "to": "78:40:15"
+  },
+  "words": [
+    {
+      "wordKey": "78:31:1",
+      "status": "correct",
+      "startMs": 0,
+      "endMs": 400
+    },
+    {
+      "wordKey": "78:31:2",
+      "status": "correct",
+      "startMs": 400,
+      "endMs": 800
+    },
+    {
+      "wordKey": "78:31:3",
+      "status": "correct",
+      "startMs": 800,
+      "endMs": 1200
+    },
+    {
+      "wordKey": "78:32:1",
+      "status": "selfCorrected",
+      "startMs": 2000,
+      "endMs": 2400,
+      "correction": {
+        "afterWords": 1,
+        "afterMs": 400
+      }
+    },
+    {
+      "wordKey": "78:32:2",
+      "status": "correct",
+      "startMs": 2800,
+      "endMs": 3200
+    },
+    {
+      "wordKey": "78:33:1",
+      "status": "correct",
+      "startMs": 4000,
+      "endMs": 4400
+    },
+    {
+      "wordKey": "78:33:2",
+      "status": "correct",
+      "startMs": 4400,
+      "endMs": 4800
+    },
+    {
+      "wordKey": "78:34:1",
+      "status": "correct",
+      "startMs": 5600,
+      "endMs": 6000
+    },
+    {
+      "wordKey": "78:34:2",
+      "status": "correct",
+      "startMs": 6000,
+      "endMs": 6400
+    },
+    {
+      "wordKey": "78:35:1",
+      "status": "correct",
+      "startMs": 7200,
+      "endMs": 7600
+    },
+    {
+      "wordKey": "78:35:2",
+      "status": "correct",
+      "startMs": 7600,
+      "endMs": 8000
+    },
+    {
+      "wordKey": "78:35:3",
+      "status": "correct",
+      "startMs": 8000,
+      "endMs": 8400
+    },
+    {
+      "wordKey": "78:35:4",
+      "status": "correct",
+      "startMs": 8400,
+      "endMs": 8800
+    },
+    {
+      "wordKey": "78:35:5",
+      "status": "correct",
+      "startMs": 8800,
+      "endMs": 9200
+    },
+    {
+      "wordKey": "78:35:6",
+      "status": "correct",
+      "startMs": 9200,
+      "endMs": 9600
+    },
+    {
+      "wordKey": "78:36:1",
+      "status": "correct",
+      "startMs": 10400,
+      "endMs": 10800
+    },
+    {
+      "wordKey": "78:36:2",
+      "status": "correct",
+      "startMs": 10800,
+      "endMs": 11200
+    },
+    {
+      "wordKey": "78:36:3",
+      "status": "correct",
+      "startMs": 11200,
+      "endMs": 11600
+    },
+    {
+      "wordKey": "78:36:4",
+      "status": "correct",
+      "startMs": 11600,
+      "endMs": 12000
+    },
+    {
+      "wordKey": "78:36:5",
+      "status": "correct",
+      "startMs": 12000,
+      "endMs": 12400
+    },
+    {
+      "wordKey": "78:37:1",
+      "status": "selfCorrected",
+      "startMs": 13200,
+      "endMs": 13600,
+      "correction": {
+        "afterWords": 1,
+        "afterMs": 400
+      }
+    },
+    {
+      "wordKey": "78:37:2",
+      "status": "correct",
+      "startMs": 14000,
+      "endMs": 14400
+    },
+    {
+      "wordKey": "78:37:3",
+      "status": "correct",
+      "startMs": 14400,
+      "endMs": 14800
+    },
+    {
+      "wordKey": "78:37:4",
+      "status": "correct",
+      "startMs": 14800,
+      "endMs": 15200
+    },
+    {
+      "wordKey": "78:37:5",
+      "status": "correct",
+      "startMs": 15200,
+      "endMs": 15600
+    },
+    {
+      "wordKey": "78:37:6",
+      "status": "correct",
+      "startMs": 15600,
+      "endMs": 16000
+    },
+    {
+      "wordKey": "78:37:7",
+      "status": "correct",
+      "startMs": 16000,
+      "endMs": 16400
+    },
+    {
+      "wordKey": "78:37:8",
+      "status": "correct",
+      "startMs": 16400,
+      "endMs": 16800
+    },
+    {
+      "wordKey": "78:37:9",
+      "status": "correct",
+      "startMs": 16800,
+      "endMs": 17200
+    },
+    {
+      "wordKey": "78:37:10",
+      "status": "correct",
+      "startMs": 17200,
+      "endMs": 17600
+    },
+    {
+      "wordKey": "78:38:1",
+      "status": "correct",
+      "startMs": 18400,
+      "endMs": 18800
+    },
+    {
+      "wordKey": "78:38:2",
+      "status": "correct",
+      "startMs": 18800,
+      "endMs": 19200
+    },
+    {
+      "wordKey": "78:38:3",
+      "status": "correct",
+      "startMs": 19200,
+      "endMs": 19600
+    },
+    {
+      "wordKey": "78:38:4",
+      "status": "correct",
+      "startMs": 19600,
+      "endMs": 20000
+    },
+    {
+      "wordKey": "78:38:5",
+      "status": "correct",
+      "startMs": 20000,
+      "endMs": 20400
+    },
+    {
+      "wordKey": "78:38:6",
+      "status": "correct",
+      "startMs": 20400,
+      "endMs": 20800
+    },
+    {
+      "wordKey": "78:38:7",
+      "status": "correct",
+      "startMs": 20800,
+      "endMs": 21200
+    },
+    {
+      "wordKey": "78:38:8",
+      "status": "correct",
+      "startMs": 21200,
+      "endMs": 21600
+    },
+    {
+      "wordKey": "78:38:9",
+      "status": "correct",
+      "startMs": 21600,
+      "endMs": 22000
+    },
+    {
+      "wordKey": "78:38:10",
+      "status": "correct",
+      "startMs": 22000,
+      "endMs": 22400
+    },
+    {
+      "wordKey": "78:38:11",
+      "status": "selfCorrected",
+      "startMs": 22400,
+      "endMs": 22800,
+      "correction": {
+        "afterWords": 4,
+        "afterMs": 1600
+      }
+    },
+    {
+      "wordKey": "78:38:12",
+      "status": "correct",
+      "startMs": 24400,
+      "endMs": 24800
+    },
+    {
+      "wordKey": "78:38:13",
+      "status": "correct",
+      "startMs": 24800,
+      "endMs": 25200
+    },
+    {
+      "wordKey": "78:38:14",
+      "status": "correct",
+      "startMs": 25200,
+      "endMs": 25600
+    },
+    {
+      "wordKey": "78:39:1",
+      "status": "correct",
+      "startMs": 26400,
+      "endMs": 26800
+    },
+    {
+      "wordKey": "78:39:2",
+      "status": "correct",
+      "startMs": 26800,
+      "endMs": 27200
+    },
+    {
+      "wordKey": "78:39:3",
+      "status": "correct",
+      "startMs": 27200,
+      "endMs": 27600
+    },
+    {
+      "wordKey": "78:39:4",
+      "status": "correct",
+      "startMs": 27600,
+      "endMs": 28000
+    },
+    {
+      "wordKey": "78:39:5",
+      "status": "correct",
+      "startMs": 28000,
+      "endMs": 28400
+    },
+    {
+      "wordKey": "78:39:6",
+      "status": "correct",
+      "startMs": 28400,
+      "endMs": 28800
+    },
+    {
+      "wordKey": "78:39:7",
+      "status": "correct",
+      "startMs": 28800,
+      "endMs": 29200
+    },
+    {
+      "wordKey": "78:39:8",
+      "status": "correct",
+      "startMs": 29200,
+      "endMs": 29600
+    },
+    {
+      "wordKey": "78:39:9",
+      "status": "correct",
+      "startMs": 29600,
+      "endMs": 30000
+    },
+    {
+      "wordKey": "78:40:1",
+      "status": "correct",
+      "startMs": 30800,
+      "endMs": 31200
+    },
+    {
+      "wordKey": "78:40:2",
+      "status": "correct",
+      "startMs": 31200,
+      "endMs": 31600
+    },
+    {
+      "wordKey": "78:40:3",
+      "status": "correct",
+      "startMs": 31600,
+      "endMs": 32000
+    },
+    {
+      "wordKey": "78:40:4",
+      "status": "correct",
+      "startMs": 32000,
+      "endMs": 32400
+    },
+    {
+      "wordKey": "78:40:5",
+      "status": "correct",
+      "startMs": 32400,
+      "endMs": 32800
+    },
+    {
+      "wordKey": "78:40:6",
+      "status": "correct",
+      "startMs": 32800,
+      "endMs": 33200
+    },
+    {
+      "wordKey": "78:40:7",
+      "status": "correct",
+      "startMs": 33200,
+      "endMs": 33600
+    },
+    {
+      "wordKey": "78:40:8",
+      "status": "correct",
+      "startMs": 33600,
+      "endMs": 34000
+    },
+    {
+      "wordKey": "78:40:9",
+      "status": "correct",
+      "startMs": 34000,
+      "endMs": 34400
+    },
+    {
+      "wordKey": "78:40:10",
+      "status": "correct",
+      "startMs": 34400,
+      "endMs": 34800
+    },
+    {
+      "wordKey": "78:40:11",
+      "status": "correct",
+      "startMs": 34800,
+      "endMs": 35200
+    },
+    {
+      "wordKey": "78:40:12",
+      "status": "correct",
+      "startMs": 35200,
+      "endMs": 35600
+    },
+    {
+      "wordKey": "78:40:13",
+      "status": "correct",
+      "startMs": 35600,
+      "endMs": 36000
+    },
+    {
+      "wordKey": "78:40:14",
+      "status": "correct",
+      "startMs": 36000,
+      "endMs": 36400
+    },
+    {
+      "wordKey": "78:40:15",
+      "status": "correct",
+      "startMs": 36400,
+      "endMs": 36800
+    }
+  ],
+  "insertions": [],
+  "jumps": [],
+  "annotators": [
+    "synthetic"
+  ]
+}

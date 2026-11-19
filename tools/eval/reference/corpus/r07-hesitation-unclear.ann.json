@@ -1,0 +1,107 @@
+{
+  "recordingId": "r07-hesitation-unclear",
+  "speaker": {
+    "id": "p1",
+    "nativeLanguage": "kk",
+    "gender": "f"
+  },
+  "conditions": {
+    "device": "mid-android",
+    "noise": "quiet"
+  },
+  "expected": {
+    "from": "78:38:1",
+    "to": "78:38:14"
+  },
+  "words": [
+    {
+      "wordKey": "78:38:1",
+      "status": "correct",
+      "startMs": 0,
+      "endMs": 400
+    },
+    {
+      "wordKey": "78:38:2",
+      "status": "correct",
+      "startMs": 400,
+      "endMs": 800
+    },
+    {
+      "wordKey": "78:38:3",
+      "status": "correct",
+      "startMs": 800,
+      "endMs": 1200
+    },
+    {
+      "wordKey": "78:38:4",
+      "status": "correct",
+      "startMs": 1200,
+      "endMs": 1600
+    },
+    {
+      "wordKey": "78:38:5",
+      "status": "correct",
+      "startMs": 1600,
+      "endMs": 2000
+    },
+    {
+      "wordKey": "78:38:6",
+      "status": "correct",
+      "startMs": 2000,
+      "endMs": 2400
+    },
+    {
+      "wordKey": "78:38:7",
+      "status": "correct",
+      "startMs": 6400,
+      "endMs": 6800
+    },
+    {
+      "wordKey": "78:38:8",
+      "status": "correct",
+      "startMs": 6800,
+      "endMs": 7200
+    },
+    {
+      "wordKey": "78:38:9",
+      "status": "correct",
+      "startMs": 7200,
+      "endMs": 7600
+    },
+    {
+      "wordKey": "78:38:10",
+      "status": "unclear",
+      "startMs": 7600,
+      "endMs": 8000
+    },
+    {
+      "wordKey": "78:38:11",
+      "status": "correct",
+      "startMs": 8000,
+      "endMs": 8400
+    },
+    {
+      "wordKey": "78:38:12",
+      "status": "correct",
+      "startMs": 8400,
+      "endMs": 8800
+    },
+    {
+      "wordKey": "78:38:13",
+      "status": "correct",
+      "startMs": 8800,
+      "endMs": 9200
+    },
+    {
+      "wordKey": "78:38:14",
+      "status": "correct",
+      "startMs": 9200,
+      "endMs": 9600
+    }
+  ],
+  "insertions": [],
+  "jumps": [],
+  "annotators": [
+    "synthetic"
+  ]
+}
