@@ -150,10 +150,12 @@ final class FakeDisk implements DiskSpace {
 final class MemoryActiveVersions implements ActiveVersions {
   final Map<String, PackageVersion> versions = {};
   bool failActivate = false;
+  bool failActive = false;
 
   @override
-  Future<Result<PackageVersion?>> active(String packageId) async =>
-      Result.ok(versions[packageId]);
+  Future<Result<PackageVersion?>> active(String packageId) async => failActive
+      ? const Result.error(FileSystemException('database is unavailable'))
+      : Result.ok(versions[packageId]);
 
   @override
   Future<Result<void>> activate(
@@ -176,4 +178,47 @@ final class SyncExtractor implements ArchiveExtractor {
   @override
   Future<ExtractProblem?> extract(String archivePath, String target) async =>
       extractZipSync(archivePath, target);
+}
+
+/// Real files, but deleting a path that ends with [failDeleteSuffix] fails —
+/// like a file held open by another process.
+final class FlakyFiles implements ContentFiles {
+  FlakyFiles();
+
+  final ContentFiles _real = const IoContentFiles();
+  String? failDeleteSuffix;
+
+  @override
+  Future<void> delete(String path) async {
+    final suffix = failDeleteSuffix;
+    if (suffix != null && path.endsWith(suffix)) {
+      throw FileSystemException('file is busy', path);
+    }
+    await _real.delete(path);
+  }
+
+  @override
+  Future<int> length(String path) => _real.length(path);
+
+  @override
+  Future<void> append(String path, Stream<List<int>> data) =>
+      _real.append(path, data);
+
+  @override
+  Future<void> truncate(String path) => _real.truncate(path);
+
+  @override
+  Future<String> sha256(String path) => _real.sha256(path);
+
+  @override
+  Future<bool> exists(String path) => _real.exists(path);
+
+  @override
+  Future<void> createDirectory(String path) => _real.createDirectory(path);
+
+  @override
+  Future<void> rename(String from, String to) => _real.rename(from, to);
+
+  @override
+  Future<List<String>> directories(String path) => _real.directories(path);
 }

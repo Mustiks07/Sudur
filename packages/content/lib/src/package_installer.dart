@@ -175,10 +175,20 @@ final class PackageInstaller {
           break;
       }
       final target = versionDirectory(pkg.id, pkg.version);
-      final active = await _versions.active(pkg.id);
-      if (active case Ok(value: final v) when v == pkg.version) {
+      // Nothing on disk is replaced until the active version is known: if
+      // the database cannot say, the live files might be this version.
+      final PackageVersion? active;
+      switch (await _versions.active(pkg.id)) {
+        case Ok(:final value):
+          active = value;
+        case Error(:final error):
+          // The checked archive stays for the next attempt.
+          await _cleanUp(unpacked);
+          return fail(InstallFailure.activation, '$error');
+      }
+      if (active == pkg.version) {
         // Reinstalling the active version: never replace live files.
-        await _files.delete(_tempDirectory(pkg));
+        await _cleanUp(_tempDirectory(pkg));
         move(Installed(pkg.version));
         return Result.ok(pkg.version);
       }
@@ -190,14 +200,26 @@ final class PackageInstaller {
         case Ok():
           break;
         case Error(:final error):
-          await _files.delete(target);
+          await _cleanUp(target);
           return fail(InstallFailure.activation, '$error');
       }
-      await _files.delete(_tempDirectory(pkg));
+      // The new version is active from here on; a failed clean-up does not
+      // change that and is retried by [cleanUpAfterLaunch].
+      await _cleanUp(_tempDirectory(pkg));
       move(Installed(pkg.version));
       return Result.ok(pkg.version);
     } on FileSystemException catch (e) {
       return fail(InstallFailure.storage, e.message);
+    }
+  }
+
+  /// Deletes [path] if it can; a failure is only logged. Leftovers are
+  /// removed later by [cleanUpAfterLaunch].
+  Future<void> _cleanUp(String path) async {
+    try {
+      await _files.delete(path);
+    } on FileSystemException catch (e) {
+      _log.warning('clean-up of $path postponed: ${e.message}');
     }
   }
 
@@ -295,8 +317,10 @@ final class PackageInstaller {
   }
 
   /// After a successful launch on the new versions: deletes every version
-  /// of [packageIds] that is not active (docs/tz 11.4, step 5). Unfinished
-  /// downloads are kept to resume.
+  /// of [packageIds] that is not active (docs/tz 11.4, step 5), and
+  /// temporary folders of the active or older versions that an earlier
+  /// clean-up could not remove. Unfinished downloads of newer versions are
+  /// kept to resume.
   Future<Result<void>> cleanUpAfterLaunch(Iterable<String> packageIds) async {
     try {
       for (final id in packageIds) {
@@ -310,6 +334,15 @@ final class PackageInstaller {
         if (active == null) continue;
         for (final v in await installedVersions(id)) {
           if (v != active) await _files.delete(versionDirectory(id, v));
+        }
+        for (final name in await _files.directories(packageDirectory(id))) {
+          if (!name.endsWith(_tempSuffix)) continue;
+          final v = PackageVersion.tryParse(
+            name.substring(0, name.length - _tempSuffix.length),
+          );
+          if (v != null && !(v > active)) {
+            await _files.delete(p.join(packageDirectory(id), name));
+          }
         }
       }
       return const Result.ok(null);
