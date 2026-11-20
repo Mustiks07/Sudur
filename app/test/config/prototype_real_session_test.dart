@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:check/check.dart';
 import 'package:contracts/contracts.dart';
@@ -13,6 +14,8 @@ void main() {
     'worker factory builds an idle real session from installed data',
     () async {
       final audio = _FakeAudioSource();
+      final diagnostics = ReceivePort();
+      addTearDown(diagnostics.close);
       final worker = createPrototypeSessionWorker(audio, <String, Object?>{
         'contentJson': File(
           '../packages/testing/fixtures/content_p582_583.json',
@@ -30,6 +33,7 @@ void main() {
         'textVersion': 'fixture',
         'rulesVersion': 'test-rules',
         'sessionId': 'prototype-test-1',
+        'diagnosticPort': diagnostics.sendPort,
       });
       addTearDown(worker.dispose);
 

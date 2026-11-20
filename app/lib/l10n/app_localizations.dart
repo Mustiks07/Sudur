@@ -258,6 +258,12 @@ abstract class AppLocalizations {
   /// **'Share log'**
   String get prototypeShareLog;
 
+  /// No description provided for @prototypeFinishReadingFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish reading first'**
+  String get prototypeFinishReadingFirst;
+
   /// No description provided for @prototypeMockNotice.
   ///
   /// In en, this message translates to:
