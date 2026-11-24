@@ -7,6 +7,33 @@ sealed class PrototypeSessionInput {
   const new();
 }
 
+/// Text-free diagnostic signal used only by the prototype measurement log.
+enum PrototypeDiagnosticKind {
+  /// Voice activity opened a speech segment.
+  segmentOpened,
+
+  /// Voice activity closed a speech segment.
+  segmentClosed,
+
+  /// ASR emitted a growing partial hypothesis.
+  recognitionPartial,
+
+  /// ASR emitted a final hypothesis for one segment.
+  recognitionFinal,
+}
+
+/// Safe diagnostic metadata; recognized text and audio are never included.
+final class PrototypeSessionDiagnostic {
+  /// Creates one diagnostic counter input.
+  const new(this.kind, {this.decodeMs});
+
+  /// Pipeline stage that advanced.
+  final PrototypeDiagnosticKind kind;
+
+  /// ASR decode duration, only for recognition results.
+  final int? decodeMs;
+}
+
 /// Uses the microphone once the real S05 session is connected.
 final class PrototypeMicrophoneInput extends PrototypeSessionInput {
   /// Creates microphone input.
@@ -32,6 +59,9 @@ abstract interface class PrototypeReadingSession {
 
   /// Terminal worker failures that are not tied to one command.
   Stream<Exception> get failures;
+
+  /// Text-free pipeline diagnostics consumed by the measurement log.
+  Stream<PrototypeSessionDiagnostic> get diagnostics;
 
   /// Selects the source used by the next [StartSession] command.
   Future<void> configureInput(PrototypeSessionInput input);
@@ -112,6 +142,10 @@ final class ScriptedPrototypeReadingSession implements PrototypeReadingSession {
 
   @override
   Stream<Exception> get failures => const Stream<Exception>.empty();
+
+  @override
+  Stream<PrototypeSessionDiagnostic> get diagnostics =>
+      const Stream<PrototypeSessionDiagnostic>.empty();
 
   @override
   Future<void> configureInput(PrototypeSessionInput input) async {

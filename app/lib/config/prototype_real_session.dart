@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:asr_sherpa/asr_sherpa.dart';
 import 'package:audio_capture/audio_capture.dart' as audio;
@@ -59,12 +61,16 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
       StreamController<SessionEvent>.broadcast(sync: true);
   final StreamController<Exception> _failures =
       StreamController<Exception>.broadcast(sync: true);
+  final StreamController<PrototypeSessionDiagnostic> _diagnostics =
+      StreamController<PrototypeSessionDiagnostic>.broadcast(sync: true);
 
   PrototypeSessionInput _input = const PrototypeMicrophoneInput();
   ReadingSessionIsolate? _isolate;
   Future<Result<ReadingSessionIsolate>>? _spawnResult;
   StreamSubscription<SessionEvent>? _eventSubscription;
   StreamSubscription<SessionIsolateFailure>? _failureSubscription;
+  ReceivePort? _diagnosticPort;
+  StreamSubscription<Object?>? _diagnosticSubscription;
   var _disposed = false;
 
   @override
@@ -72,6 +78,9 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
 
   @override
   Stream<Exception> get failures => _failures.stream;
+
+  @override
+  Stream<PrototypeSessionDiagnostic> get diagnostics => _diagnostics.stream;
 
   @override
   Future<void> configureInput(PrototypeSessionInput input) async {
@@ -116,12 +125,16 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
   }
 
   Future<Result<ReadingSessionIsolate>> _spawn() async {
+    final diagnosticPort = ReceivePort();
+    _diagnosticPort = diagnosticPort;
+    _diagnosticSubscription = diagnosticPort.listen(_onDiagnosticMessage);
     late final PrototypeSessionAudioSource source;
     source = PrototypeSessionAudioSource(
       capture: audio.AudioCaptureService(sessionId: sessionId),
       input: _input,
       vadModelPath: _configuration.vadModelPath,
       expectedSessionId: sessionId,
+      onDiagnostic: _diagnostics.add,
       onFileFinished: () {
         final isolate = _isolate;
         if (isolate != null) unawaited(isolate.execute(const Stop()));
@@ -130,7 +143,11 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
     final spawned = await _spawner(
       factory: createPrototypeSessionWorker,
       audioSource: source,
-      configuration: _workerConfiguration(_configuration, sessionId),
+      configuration: _workerConfiguration(
+        _configuration,
+        sessionId,
+        diagnosticPort.sendPort,
+      ),
     );
     if (spawned case Ok<ReadingSessionIsolate>(:final value)) {
       if (_disposed) {
@@ -149,6 +166,19 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
     return spawned;
   }
 
+  void _onDiagnosticMessage(Object? message) {
+    if (message case ['recognition', final bool isFinal, final int decodeMs]) {
+      _diagnostics.add(
+        PrototypeSessionDiagnostic(
+          isFinal
+              ? PrototypeDiagnosticKind.recognitionFinal
+              : PrototypeDiagnosticKind.recognitionPartial,
+          decodeMs: decodeMs,
+        ),
+      );
+    }
+  }
+
   @override
   Future<void> dispose() async {
     if (_disposed) return;
@@ -156,9 +186,12 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
     await _spawnResult;
     await _eventSubscription?.cancel();
     await _failureSubscription?.cancel();
+    await _diagnosticSubscription?.cancel();
+    _diagnosticPort?.close();
     await _isolate?.dispose();
     await _events.close();
     await _failures.close();
+    await _diagnostics.close();
   }
 }
 
@@ -171,6 +204,7 @@ final class PrototypeSessionAudioSource implements SessionAudioSource {
     required this._vadModelPath,
     required this._expectedSessionId,
     required this._onFileFinished,
+    required this._onDiagnostic,
   });
 
   final audio.AudioCaptureService _capture;
@@ -178,6 +212,7 @@ final class PrototypeSessionAudioSource implements SessionAudioSource {
   final String _vadModelPath;
   final String _expectedSessionId;
   final void Function() _onFileFinished;
+  final void Function(PrototypeSessionDiagnostic) _onDiagnostic;
   final audio.AudioCaptureSessionEventMapper _mapper =
       audio.AudioCaptureSessionEventMapper();
   final StreamController<Result<SessionAudioEvent>> _events =
@@ -229,7 +264,22 @@ final class PrototypeSessionAudioSource implements SessionAudioSource {
           _onFileFinished();
         }
         final event = _mapper.map(value);
-        if (event != null) _events.add(Result<SessionAudioEvent>.ok(event));
+        if (event != null) {
+          if (event is SessionAudioSegmentOpened) {
+            _onDiagnostic(
+              const PrototypeSessionDiagnostic(
+                PrototypeDiagnosticKind.segmentOpened,
+              ),
+            );
+          } else if (event is SessionAudioSegmentClosed) {
+            _onDiagnostic(
+              const PrototypeSessionDiagnostic(
+                PrototypeDiagnosticKind.segmentClosed,
+              ),
+            );
+          }
+          _events.add(Result<SessionAudioEvent>.ok(event));
+        }
     }
   }
 
@@ -281,6 +331,13 @@ SessionIsolateWorker createPrototypeSessionWorker(
   final contentJson = _requiredString(rawConfiguration, 'contentJson');
   final normalizerJson = _requiredString(rawConfiguration, 'normalizerJson');
   final sessionId = _requiredString(rawConfiguration, 'sessionId');
+  final diagnosticPort = rawConfiguration['diagnosticPort'];
+  if (diagnosticPort is! SendPort) {
+    throw const PrototypeRealSessionException(
+      'invalidConfiguration',
+      'The diagnostic port is invalid.',
+    );
+  }
   final words = switch (ContentJsonSource(contentJson).loadWords()) {
     Ok(:final value) => value,
     Error(:final error) => throw error,
@@ -295,7 +352,10 @@ SessionIsolateWorker createPrototypeSessionWorker(
     params: SearchParams.defaults,
   );
   return ReadingSession(
-    recognizer: SherpaCtcRecognizer(sessionId: sessionId),
+    recognizer: _DiagnosticSpeechRecognizer(
+      SherpaCtcRecognizer(sessionId: sessionId),
+      diagnosticPort,
+    ),
     audioSource: audioSource,
     text: text,
     normalizer: normalizer,
@@ -313,6 +373,7 @@ SessionIsolateWorker createPrototypeSessionWorker(
 Map<String, Object?> _workerConfiguration(
   PrototypeSessionConfiguration configuration,
   String sessionId,
+  SendPort diagnosticPort,
 ) => <String, Object?>{
   'contentJson': configuration.contentJson,
   'normalizerJson': configuration.normalizerJson,
@@ -320,7 +381,42 @@ Map<String, Object?> _workerConfiguration(
   'textVersion': configuration.textVersion,
   'rulesVersion': configuration.rulesVersion,
   'sessionId': sessionId,
+  'diagnosticPort': diagnosticPort,
 };
+
+final class _DiagnosticSpeechRecognizer implements SpeechRecognizer {
+  new(this._delegate, this._diagnosticPort);
+
+  final SpeechRecognizer _delegate;
+  final SendPort _diagnosticPort;
+
+  @override
+  RecognizerInfo get info => _delegate.info;
+
+  @override
+  Stream<RecognitionResult> get results => _delegate.results.map((result) {
+    _diagnosticPort.send(<Object?>[
+      'recognition',
+      result.isFinal,
+      result.decodeMs,
+    ]);
+    return result;
+  });
+
+  @override
+  Future<Result<void>> load(String modelDirectory) =>
+      _delegate.load(modelDirectory);
+
+  @override
+  void acceptAudio(Float32List samples, int sampleRateHz, int startMs) =>
+      _delegate.acceptAudio(samples, sampleRateHz, startMs);
+
+  @override
+  void closeSegment(int segmentId) => _delegate.closeSegment(segmentId);
+
+  @override
+  Future<void> dispose() => _delegate.dispose();
+}
 
 String _requiredString(Map<String, Object?> values, String key) {
   final value = values[key];

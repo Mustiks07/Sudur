@@ -4,6 +4,8 @@ import 'package:asr_sherpa/asr_sherpa.dart';
 import 'package:contracts/contracts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mushaf_view/mushaf_view.dart';
+import 'package:session/session.dart';
+import 'package:sudur/config/prototype_real_session.dart';
 import 'package:sudur/data/repositories/prototype_repository.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_measurement_log.dart';
@@ -52,6 +54,7 @@ final class ReadingViewModel extends ChangeNotifier {
   PrototypeReadingSession? _session;
   StreamSubscription<SessionEvent>? _events;
   StreamSubscription<Exception>? _failures;
+  StreamSubscription<PrototypeSessionDiagnostic>? _diagnostics;
   PrototypeBundle? _bundle;
   PrototypeMeasurementLog? _measurementLog;
   String? _wavPath;
@@ -66,6 +69,11 @@ final class ReadingViewModel extends ChangeNotifier {
   /// Selected model, initially `small` per prototype scope.
   PrototypeModelChoice get selectedModel => _selectedModel;
   PrototypeModelChoice _selectedModel = PrototypeModelChoice.small;
+
+  /// Whether changing the model cannot interrupt an active session.
+  bool get canSelectModel =>
+      _state == ReadingPrototypeState.ready ||
+      _state == ReadingPrototypeState.finished;
 
   /// Last first-run download snapshot.
   PrototypeDownloadProgress? get progress => _progress;
@@ -124,7 +132,7 @@ final class ReadingViewModel extends ChangeNotifier {
 
   /// Changes the ASR model, downloading it on demand if necessary.
   Future<void> selectModel(PrototypeModelChoice model) async {
-    if (model == _selectedModel) return;
+    if (!canSelectModel || model == _selectedModel) return;
     _selectedModel = model;
     await _prepare(model);
   }
@@ -237,11 +245,15 @@ final class ReadingViewModel extends ChangeNotifier {
   Future<void> _replaceSession(PrototypeBundle bundle) async {
     await _events?.cancel();
     await _failures?.cancel();
+    await _diagnostics?.cancel();
     await _session?.dispose();
     final session = _sessionFactory.create(bundle.sessionConfiguration);
     _session = session;
     _events = session.events.listen(_onEvent);
     _failures = session.failures.listen(_handleSessionError);
+    _diagnostics = session.diagnostics.listen(
+      (diagnostic) => _measurementLog?.addDiagnostic(diagnostic),
+    );
   }
 
   /// Pauses the current session.
@@ -339,6 +351,7 @@ final class ReadingViewModel extends ChangeNotifier {
   }
 
   bool _handleSessionError(Exception error) {
+    _measurementLog?.lastErrorReason = _errorReason(error);
     _error = error;
     _state = ReadingPrototypeState.error;
     notifyListeners();
@@ -387,6 +400,7 @@ final class ReadingViewModel extends ChangeNotifier {
     _disposed = true;
     unawaited(_events?.cancel());
     unawaited(_failures?.cancel());
+    unawaited(_diagnostics?.cancel());
     unawaited(_session?.dispose());
     super.dispose();
   }
@@ -414,3 +428,11 @@ int Function() _createMonotonicMilliseconds() {
   final stopwatch = Stopwatch()..start();
   return () => stopwatch.elapsedMilliseconds;
 }
+
+String _errorReason(Exception error) => switch (error) {
+  PrototypeRealSessionException(:final code) => code,
+  SessionIsolateFailure(:final code) => code,
+  ReadingSessionException(:final code) => code,
+  SherpaRecognizerException(:final code) => code,
+  _ => error.runtimeType.toString(),
+};

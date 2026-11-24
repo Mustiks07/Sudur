@@ -39,6 +39,7 @@
   "prototypeStop": "Stop",
   "prototypeHint": "Hint",
   "prototypeShareLog": "Share log",
+  "prototypeFinishReadingFirst": "Finish reading first",
   "prototypeMockNotice": "Audio is processed only on this phone and is not saved. Android will request microphone access after you tap Start.",
   "mushafAyahSemantics": "Surah {surah}, ayah {ayah}. {text}",
   "@mushafAyahSemantics": {

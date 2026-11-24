@@ -96,6 +96,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get prototypeShareLog => 'Share log';
 
   @override
+  String get prototypeFinishReadingFirst => 'Finish reading first';
+
+  @override
   String get prototypeMockNotice =>
       'Audio is processed only on this phone and is not saved. Android will request microphone access after you tap Start.';
 

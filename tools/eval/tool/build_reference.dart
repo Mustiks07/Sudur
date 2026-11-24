@@ -10,8 +10,11 @@ import 'package:quran_text/quran_text.dart';
 import 'package:testing/testing.dart';
 
 // Builds the reference corpus for the quality gate in CI (docs/tz 5.5,
-// C09): synthetic recordings only — recognition results made of search
-// keys of canonical words, picked by their place in the text. No audio, no
+// C09): synthetic recordings only. The recognized text is what the
+// Abdou/quran-asr model outputs — 29 bare letters (docs/tz 12.3,
+// `modelLetters`) — and the corpus is evaluated with the model's
+// normalizer.json from the spec, so a normalizer that keeps harakat fails
+// the gate. Words are picked by their place in the canon. No audio, no
 // recordings of people, no typed Arabic.
 //
 // From tools/eval: dart run tool/build_reference.dart
@@ -23,6 +26,18 @@ const String referenceModel = 'synthetic';
 const String referenceCorpus = 'reference/corpus';
 
 const String _textPath = '../../packages/testing/fixtures/quran_text.json';
+
+/// normalizer.json of the Abdou/quran-asr models, exactly as docs/tz 12.3
+/// gives it; the CI gate passes the same file to the evaluation.
+const String modelNormalizerPath =
+    '../../packages/testing/fixtures/models/normalizer.abdou.json';
+
+/// The model normalizer of [modelNormalizerPath].
+Normalizer loadModelNormalizer([String path = modelNormalizerPath]) =>
+    switch (Normalizer.fromJson(File(path).readAsStringSync())) {
+      Ok(:final value) => value,
+      Error(:final error) => throw error,
+    };
 
 void main() {
   final dir = Directory(referenceCorpus);
@@ -46,7 +61,7 @@ String asrJsonl(SyntheticRecording r) {
   return '${lines.join('\n')}\n';
 }
 
-/// The whole-Quran text with built-in keys.
+/// The whole-Quran text with keys of the model normalizer.
 InMemoryQuranText loadText() {
   final words = switch (QuranTextJsonSource(
     File(_textPath).readAsStringSync(),
@@ -56,14 +71,14 @@ InMemoryQuranText loadText() {
   };
   return InMemoryQuranText(
     words: words,
-    normalizers: [Normalizer.builtIn],
+    normalizers: [loadModelNormalizer()],
     params: SearchParams.defaults,
   );
 }
 
 /// The reference recordings, always the same.
 List<SyntheticRecording> buildReferenceCorpus(InMemoryQuranText quran) {
-  const normalizer = Normalizer.builtIn;
+  final normalizer = loadModelNormalizer();
   final words = quran.words;
   List<Word> ayah(int s, int a) => [
         for (final w in words)
@@ -72,7 +87,9 @@ List<SyntheticRecording> buildReferenceCorpus(InMemoryQuranText quran) {
   List<Word> ayahs(int s, int first, int last) => [
         for (var a = first; a <= last; a++) ...ayah(s, a),
       ];
-  String heard(Word w) => quran.searchKey(w.key, normalizer.id).value;
+
+  /// What the model outputs for [w].
+  String heard(Word w) => modelLetters(w.text);
   String nearMiss(Word w) {
     final k = heard(w);
     return dropLetter(k, k.runes.length ~/ 2);
@@ -112,6 +129,7 @@ List<SyntheticRecording> buildReferenceCorpus(InMemoryQuranText quran) {
     String noise = 'quiet',
   }) =>
       SyntheticRecording(
+        modelOutput: true,
         id: id,
         speakerId: person,
         from: '${expected.first.key}',

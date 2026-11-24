@@ -26,6 +26,7 @@
   "prototypeStop": "Аяқтау",
   "prototypeHint": "Көмек",
   "prototypeShareLog": "Журналды бөлісу",
+  "prototypeFinishReadingFirst": "Алдымен оқуды аяқтаңыз",
   "prototypeMockNotice": "Дыбыс тек телефонда өңделеді және сақталмайды. «Бастау» түймесін басқаннан кейін Android микрофонға рұқсат сұрайды.",
   "mushafAyahSemantics": "{surah}-сүре, {ayah}-аят. {text}"
 }
