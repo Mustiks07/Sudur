@@ -10,6 +10,7 @@ import 'package:planner/planner.dart';
 import 'package:storage/storage.dart';
 import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/data/models/canon_index.dart';
+import 'package:sudur/data/models/reading_models.dart';
 import 'package:sudur/data/models/user_models.dart';
 import 'package:sudur/data/repositories/plan_state_codec.dart';
 import 'package:sudur/data/services/app_canon_service.dart';
@@ -49,6 +50,10 @@ abstract interface class AppUserRepository {
 
   /// Marks today's plan as started at [stepId].
   Future<Result<TodayDashboardData>> startToday(String stepId);
+
+  /// Writes one reading: the session, its check events, the attempt and the
+  /// new state of the step's plan unit, in one transaction (НФ-21, ПЛ-12).
+  Future<Result<void>> recordReading(ReadingResult result);
 
   /// Marks [stepId] finished; when every step is finished the day is done.
   Future<Result<TodayDashboardData>> finishTodayStep(String stepId);
@@ -447,6 +452,196 @@ final class StorageAppUserRepository implements AppUserRepository {
       });
 
   @override
+  Future<Result<void>> recordReading(ReadingResult result) => _guard(() async {
+    final canon = await _canon.load();
+    final storage = await _storageService.storage;
+    final profile = await _requiredProfile(storage);
+    final unitId = result.stepId == null
+        ? null
+        : await _unitOfStep(storage, result.stepId!);
+    // stepId is checked in the condition just above.
+    final now = _clock.now().toUtc();
+    final sessionId = _createId();
+    final versions = result.checks.isEmpty
+        ? null
+        : result.checks.first.versions;
+    final eventIds = <String>[];
+    final events = <CheckEventData>[
+      for (final check in result.checks)
+        (
+          id: (eventIds..add(_createId())).last,
+          sessionId: sessionId,
+          kind: check.kind,
+          state: check.state,
+          wordIndexes: WordIndexes.fromJson([
+            for (final word in check.words) canon.indexOf(word),
+          ]),
+          expectedText: check.expectedText,
+          heardText: check.heardText,
+          jumpFromWordIndex: check.kind == CheckKind.jump
+              ? canon.indexOf(check.words.first)
+              : null,
+          jumpToWordIndex: switch (check.jumpTo) {
+            final WordKey to => canon.indexOf(to),
+            null => null,
+          },
+          audioStartMs: check.audioStartMs,
+          audioEndMs: check.audioEndMs,
+          versions: check.versions,
+          createdAt: now.millisecondsSinceEpoch,
+          updatedAt: now.millisecondsSinceEpoch,
+        ),
+    ];
+    final outcome = _outcome(result);
+    final storedMode = switch (result.mode) {
+      SessionMode.supported => StoredReadingMode.supported,
+      SessionMode.recall => StoredReadingMode.recall,
+      SessionMode.test => StoredReadingMode.test,
+    };
+    final hints = result.hints.values.fold(0, (sum, n) => sum + n);
+    final written = await storage.transaction(() async {
+      _unwrap(
+        await storage.sessions.put((
+          id: sessionId,
+          profileId: profile.id,
+          fromWordIndex: canon.indexOf(result.from),
+          toWordIndex: canon.indexOf(result.to),
+          mode: storedMode,
+          behavior: result.behavior == SessionBehavior.strict
+              ? ReadingBehavior.strict
+              : ReadingBehavior.gentle,
+          startedAt: result.startedAt.toUtc().millisecondsSinceEpoch,
+          endedAt: now.millisecondsSinceEpoch,
+          listeningMs: result.duration.inMilliseconds,
+          signalOkRatio: null,
+          summary: SessionSummary.fromJson({
+            'words': result.words.length,
+            'unlocked': result.unlocked.length,
+            'outcome': outcome.name,
+          }),
+        )),
+      );
+      if (unitId == null) {
+        for (final event in events) {
+          _unwrap(await storage.checkEvents.put(event));
+        }
+        return;
+      }
+      final unit = _unwrap(await storage.units.listForProfile(profile.id))
+          .firstWhere((u) => u.id == unitId);
+      final state = _unwrap(await storage.units.getState(unitId));
+      final attempts = _unwrap(await storage.attempts.listForUnit(unitId));
+      final before = await _plannerUnit(storage, canon, unit, state, attempts);
+      final attempt = Attempt(
+        unitId: unitId,
+        at: now,
+        mode: _attemptMode(storedMode),
+        result: _attemptResult(outcome),
+        hints: hints,
+        verification: VerificationMethod.voice,
+        duration: result.duration,
+        wordCount: result.words.isEmpty ? 1 : result.words.length,
+      );
+      final after = _planner.applyReading(before, attempt);
+      final rating = after.history.last.assessment.rating;
+      _unwrap(
+        await storage.attempts.recordPassage(
+          PassageWrite(
+            attempt: (
+              id: _createId(),
+              unitId: unitId,
+              sessionId: sessionId,
+              mode: storedMode,
+              outcome: outcome,
+              hints: HintCounts.fromJson({
+                for (final MapEntry(:key, :value) in result.hints.entries)
+                  key.name: value,
+              }),
+              errorEventIds: ErrorEventIds.fromJson(eventIds),
+              rating: rating == null ? null : _storedRating(rating),
+              method: CheckMethod.voice,
+              durationMs: result.duration.inMilliseconds,
+              words: result.words.length,
+              modelId: versions?.modelId ?? 'unknown',
+              modelVersion: versions?.modelVersion ?? 'unknown',
+              rulesVersion: versions?.rulesVersion ?? 'unknown',
+              textVersion: versions?.textVersion ?? 'unknown',
+              createdAt: now.millisecondsSinceEpoch,
+            ),
+            checkEvents: events,
+            unitState: (
+              unitId: unitId,
+              queue: _storedQueue(after),
+              memoryState: JsonObjectData.fromJson(
+                PlanMemoryState.of(after).toJson(),
+              ),
+              fsrsCard: JsonObjectData.fromJson(encodeFsrsCard(after.card)),
+              dueAt: after.due.toUtc().millisecondsSinceEpoch,
+              recentSince: after.recentStartedAt?.millisecondsSinceEpoch,
+              lastAttemptAt: now.millisecondsSinceEpoch,
+              lastMethod: CheckMethod.voice,
+              updatedAt: now.millisecondsSinceEpoch,
+            ),
+          ),
+        ),
+      );
+    });
+    _unwrap(written);
+  });
+
+  Future<String?> _unitOfStep(StorageService storage, String stepId) async {
+    final saved = _unwrap(
+      await storage.dailyPlans.get(_localDate(_clock.now())),
+    );
+    if (saved == null) return null;
+    final plan = _decodeToday(saved.items.toJson());
+    for (final step in [...plan.steps, ...plan.extraReview]) {
+      if (step.id == stepId) return step.unitId;
+    }
+    return null;
+  }
+
+  /// Outcome of the attempt (docs/tz 3.4): a confirmed mistake beats a
+  /// correction, which beats a hint; words that could not be checked or
+  /// were not read make it “unverified”.
+  AttemptOutcome _outcome(ReadingResult result) {
+    bool any(CheckState state) =>
+        result.checks.any((c) => c.state == state && _isMistake(c.kind));
+    if (any(CheckState.confirmed)) return AttemptOutcome.withErrors;
+    if (any(CheckState.corrected)) return AttemptOutcome.corrected;
+    if (result.hints.values.any((n) => n > 0)) return AttemptOutcome.withHints;
+    final unverified =
+        result.unlocked.isNotEmpty ||
+        result.words.isEmpty ||
+        result.words.any(
+          (w) =>
+              w.outcome == SessionWordOutcome.unverified ||
+              w.outcome == SessionWordOutcome.notRead,
+        );
+    return unverified ? AttemptOutcome.unverified : AttemptOutcome.clean;
+  }
+
+  static bool _isMistake(CheckKind kind) =>
+      kind != CheckKind.repetition && kind != CheckKind.hesitation;
+
+  UnitQueue _storedQueue(PlanUnit unit) {
+    if (unit.hardSpotStage == HardSpotStage.closed) return UnitQueue.closed;
+    return switch (unit.queue) {
+      PlanQueue.notStarted => UnitQueue.notStarted,
+      PlanQueue.learning => UnitQueue.learning,
+      PlanQueue.recent => UnitQueue.recent,
+      PlanQueue.old => UnitQueue.old,
+    };
+  }
+
+  AttemptRating _storedRating(PlannerRating rating) => switch (rating) {
+    PlannerRating.again => AttemptRating.again,
+    PlannerRating.hard => AttemptRating.hard,
+    PlannerRating.good => AttemptRating.good,
+    PlannerRating.easy => AttemptRating.easy,
+  };
+
+  @override
   Future<Result<TodayDashboardData>> finishTodayStep(String stepId) =>
       _changeToday((plan) {
         final inSteps = plan.steps.any((step) => step.id == stepId);
@@ -736,6 +931,7 @@ final class StorageAppUserRepository implements AppUserRepository {
       reason: TodayStepReason.values.byName(step.reason.name),
       estimatedSeconds: step.estimatedSeconds,
       surah: unit?.surah,
+      unitId: unit?.id,
       from: _keyOf(canon, unit?.fromWordIndex),
       to: _keyOf(canon, unit?.toWordIndex ?? unit?.fromWordIndex),
       requiresVoice:
@@ -778,6 +974,7 @@ final class StorageAppUserRepository implements AppUserRepository {
             reason: step.reason,
             estimatedSeconds: step.estimatedSeconds,
             surah: step.surah,
+            unitId: step.unitId,
             from: step.from,
             to: step.to,
             requiresVoice: step.requiresVoice,
@@ -823,6 +1020,7 @@ final class StorageAppUserRepository implements AppUserRepository {
     'reason': step.reason.name,
     'estimatedSeconds': step.estimatedSeconds,
     'surah': step.surah,
+    'unitId': step.unitId,
     'from': step.from?.toString(),
     'to': step.to?.toString(),
     'requiresVoice': step.requiresVoice,
@@ -853,6 +1051,7 @@ final class StorageAppUserRepository implements AppUserRepository {
               reason: TodayStepReason.values.byName(item['reason']! as String),
               estimatedSeconds: item['estimatedSeconds']! as int,
               surah: item['surah'] as int?,
+              unitId: item['unitId'] as String?,
               from: _wordKeyOrNull(item['from']),
               to: _wordKeyOrNull(item['to']),
               requiresVoice: item['requiresVoice']! as bool,

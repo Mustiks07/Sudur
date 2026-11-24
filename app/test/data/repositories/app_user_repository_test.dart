@@ -6,6 +6,7 @@ import 'package:planner/planner.dart';
 import 'package:storage/storage.dart';
 import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/data/models/canon_index.dart';
+import 'package:sudur/data/models/reading_models.dart';
 import 'package:sudur/data/models/user_models.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
 import 'package:sudur/data/repositories/plan_state_codec.dart';
@@ -304,6 +305,119 @@ void main() {
 
   test('surah names: none before content is installed', () async {
     expect(_value(await repository.loadSurahNames()), isEmpty);
+  });
+
+  ReadingResult reading(
+    TodayStepData step, {
+    SessionMode mode = SessionMode.test,
+    List<CheckEvent> checks = const [],
+    Map<HintKind, int> hints = const {},
+  }) {
+    final words = index.passagesOf(78).first;
+    return ReadingResult(
+      stepId: step.id,
+      from: step.from!,
+      to: step.to!,
+      // A step of surah 78 carries its words (tested above).
+      mode: mode,
+      behavior: SessionBehavior.gentle,
+      startedAt: clock.now(),
+      duration: const Duration(seconds: 30),
+      words: [
+        for (var i = words.fromWordIndex; i <= words.toWordIndex; i++)
+          SessionWordResult(
+            wordKey: index.keyOf(i),
+            outcome: SessionWordOutcome.read,
+          ),
+      ],
+      hints: hints,
+      checks: checks,
+      unlocked: const {},
+    );
+  }
+
+  CheckEvent confirmed(WordKey word) => CheckEvent(
+    sessionId: 'session',
+    atMs: 10,
+    eventId: 'e1',
+    kind: CheckKind.substitution,
+    state: CheckState.confirmed,
+    words: [word],
+    expectedText: 'expected-test',
+    heardText: 'heard-test',
+    audioStartMs: 0,
+    audioEndMs: 100,
+    versions: const ReadingVersions(
+      modelId: 'model',
+      modelVersion: '1',
+      rulesVersion: 'r',
+      textVersion: 't',
+    ),
+  );
+
+  test('a clean check of a known passage moves its unit to recent', () async {
+    _value(await repository.completeOnboarding(draft()));
+    final step = _value(await repository.loadToday()).steps
+        .firstWhere((s) => s.unitId != null);
+
+    _value(await repository.recordReading(reading(step)));
+
+    final attempts = _value(await storage.attempts.listForUnit(step.unitId!));
+    // The step was chosen by its unit id.
+    expect(attempts.single.outcome, AttemptOutcome.clean);
+    expect(attempts.single.method, CheckMethod.voice);
+    final state = _value(await storage.units.getState(step.unitId!))!;
+    expect(state.queue, UnitQueue.recent);
+    expect(state.lastAttemptAt, isNotNull);
+    final profile = _value(await storage.profiles.list()).single;
+    expect(
+      _value(await storage.sessions.listForProfile(profile.id)),
+      hasLength(1),
+    );
+  });
+
+  test('a confirmed mistake is stored with what was heard', () async {
+    _value(await repository.completeOnboarding(draft()));
+    final step = _value(await repository.loadToday()).steps
+        .firstWhere((s) => s.unitId != null);
+
+    _value(
+      await repository.recordReading(
+        reading(step, checks: [confirmed(step.from!)]),
+      ),
+    );
+
+    final attempt = _value(await storage.attempts.listForUnit(step.unitId!))
+        .single;
+    expect(attempt.outcome, AttemptOutcome.withErrors);
+    expect(attempt.errorEventIds.value, hasLength(1));
+    final events = _value(
+      await storage.checkEvents.listForSession(attempt.sessionId),
+    );
+    expect(events.single.heardText, 'heard-test');
+    expect(events.single.wordIndexes.value, [index.indexOf(step.from!)]);
+    expect(
+      _value(await storage.units.getState(step.unitId!))!.queue,
+      UnitQueue.learning,
+      reason: 'a failed recovery check goes back to learning',
+    );
+  });
+
+  test('reading with support gives no rating', () async {
+    _value(await repository.completeOnboarding(draft()));
+    final step = _value(await repository.loadToday()).steps
+        .firstWhere((s) => s.unitId != null);
+
+    _value(
+      await repository.recordReading(
+        reading(step, mode: SessionMode.supported),
+      ),
+    );
+
+    final attempt = _value(await storage.attempts.listForUnit(step.unitId!))
+        .single;
+    expect(attempt.mode, StoredReadingMode.supported);
+    expect(attempt.rating, isNull);
   });
 
   test('planner state survives its JSON', () {

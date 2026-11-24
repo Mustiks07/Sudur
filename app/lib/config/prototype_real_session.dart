@@ -338,7 +338,12 @@ SessionIsolateWorker createPrototypeSessionWorker(
       'The diagnostic port is invalid.',
     );
   }
-  final words = switch (ContentJsonSource(contentJson).loadWords()) {
+  // Either the prototype content (pages 582–583) or the whole-Quran text
+  // (format 2, ADR 0004) for any passage.
+  final loaded = rawConfiguration['wholeQuranText'] == true
+      ? QuranTextJsonSource(contentJson).loadWords()
+      : ContentJsonSource(contentJson).loadWords();
+  final words = switch (loaded) {
     Ok(:final value) => value,
     Error(:final error) => throw error,
   };
@@ -376,6 +381,7 @@ Map<String, Object?> _workerConfiguration(
   SendPort diagnosticPort,
 ) => <String, Object?>{
   'contentJson': configuration.contentJson,
+  'wholeQuranText': configuration.wholeQuranText,
   'normalizerJson': configuration.normalizerJson,
   'modelDirectory': configuration.modelDirectory,
   'textVersion': configuration.textVersion,

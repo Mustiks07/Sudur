@@ -245,6 +245,7 @@ final class TodayStepData {
     required this.reason,
     required this.estimatedSeconds,
     this.surah,
+    this.unitId,
     this.from,
     this.to,
     this.requiresVoice = false,
@@ -266,6 +267,9 @@ final class TodayStepData {
 
   /// Surah number, when known; names always come from content later.
   final int? surah;
+
+  /// Plan unit the step reads, when it has one.
+  final String? unitId;
 
   /// First word to read, for steps with words (passage, hard spot, check).
   final WordKey? from;
@@ -289,6 +293,7 @@ final class TodayStepData {
     reason: reason,
     estimatedSeconds: estimatedSeconds,
     surah: surah,
+    unitId: unitId,
     from: from,
     to: to,
     requiresVoice: requiresVoice,

@@ -1,4 +1,5 @@
 import 'package:contracts/contracts.dart';
+import 'package:sudur/data/models/reading_models.dart';
 import 'package:sudur/data/models/user_models.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
@@ -97,6 +98,15 @@ final class FakeAppUserRepository implements AppUserRepository {
       currentStepId: stepId,
     );
     return Result.ok(today);
+  }
+
+  /// Readings written through [recordReading], in order.
+  final List<ReadingResult> readings = <ReadingResult>[];
+
+  @override
+  Future<Result<void>> recordReading(ReadingResult result) async {
+    readings.add(result);
+    return const Result.ok(null);
   }
 
   /// Steps finished through [finishTodayStep], in order.

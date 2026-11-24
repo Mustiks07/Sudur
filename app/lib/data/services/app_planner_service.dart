@@ -26,6 +26,21 @@ final class AppPlannerService {
   final PlannerEngine _engine;
   final Random _random;
 
+  /// [unit] after one reading [attempt] (docs/tz 3.4): the first check of a
+  /// passage known before goes through the recovery check; a passage not
+  /// started yet starts learning first.
+  PlanUnit applyReading(PlanUnit unit, Attempt attempt) {
+    if (unit.queue == PlanQueue.notStarted &&
+        unit.knownBefore &&
+        unit.kind == PlanUnitKind.passage) {
+      return _engine.applyRecoveryCheck(unit, attempt);
+    }
+    final started = unit.queue == PlanQueue.notStarted
+        ? _engine.startLearning(unit)
+        : unit;
+    return _engine.applyAttempt(started, attempt);
+  }
+
   /// Builds a plan using the pure-Dart package and specification parameters.
   TodayPlan build(TodayPlanRequest request) => TodayPlanner(
     params: _params,

@@ -38,6 +38,32 @@ final class PrototypeDownloadProgress {
   double get fraction => totalBytes == 0 ? 0 : completedBytes / totalBytes;
 }
 
+/// What is already installed; `null` for what is not.
+final class PrototypeInstalledFiles {
+  /// Creates the paths.
+  const new({
+    required this.modelDirectory,
+    required this.vadModelPath,
+    required this.contentPath,
+    required this.fontDirectory,
+  });
+
+  /// ASR model package directory.
+  final String? modelDirectory;
+
+  /// Silero VAD model.
+  final String? vadModelPath;
+
+  /// Prototype content (pages 582–583 with layout).
+  final String? contentPath;
+
+  /// Fonts of pages 582–583.
+  final String? fontDirectory;
+
+  /// Whether reading with voice is possible.
+  bool get voiceReady => modelDirectory != null && vadModelPath != null;
+}
+
 /// Verified local paths of the whole-Quran text and derived passages.
 final class PrototypeCanonFiles {
   /// Creates the paths.
@@ -129,6 +155,51 @@ final class PrototypeAssetInstaller {
       fontDirectory: '${root.path}/fonts',
       modelDirectory: modelDirectory.path,
       vadModelPath: '${root.path}/audio/silero_vad.onnx',
+    );
+  }
+
+  /// What is installed for reading with voice, without downloading: the
+  /// model ([preferred] first, else the other one), the VAD model and the
+  /// page content and fonts of the prototype. Files are checked by size
+  /// here; their SHA-256 was checked on download and the model package is
+  /// checked again by `asr_sherpa` when the session loads it.
+  Future<PrototypeInstalledFiles> installedFiles({
+    PrototypeModelChoice preferred = PrototypeModelChoice.small,
+  }) async {
+    final root = await _platform.applicationDirectory();
+    Future<bool> present(_RemoteResource resource) async {
+      final file = File('$root/${resource.relativePath}');
+      return await file.exists() && await file.length() == resource.size;
+    }
+
+    Future<bool> all(Iterable<_RemoteResource> resources) async {
+      for (final resource in resources) {
+        if (!await present(resource)) return false;
+      }
+      return true;
+    }
+
+    String? modelDirectory;
+    for (final choice in [
+      preferred,
+      ...PrototypeModelChoice.values.where((c) => c != preferred),
+    ]) {
+      final manifest = _models[choice];
+      if (manifest != null && await all(manifest.files)) {
+        await refreshInstalledModelMetadata();
+        modelDirectory = '$root/models/${manifest.directoryName}';
+        break;
+      }
+    }
+    return PrototypeInstalledFiles(
+      modelDirectory: modelDirectory,
+      vadModelPath: await present(_vadModel)
+          ? '$root/${_vadModel.relativePath}'
+          : null,
+      contentPath: await present(_content)
+          ? '$root/${_content.relativePath}'
+          : null,
+      fontDirectory: await all(_fonts) ? '$root/fonts' : null,
     );
   }
 

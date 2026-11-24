@@ -48,6 +48,7 @@ final class PrototypeBundle {
       vadModelPath: sessionConfiguration.vadModelPath,
       textVersion: sessionConfiguration.textVersion,
       rulesVersion: sessionConfiguration.rulesVersion,
+      wholeQuranText: sessionConfiguration.wholeQuranText,
     ),
   );
 }

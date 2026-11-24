@@ -90,6 +90,7 @@ final class PrototypeSessionConfiguration {
     required this.vadModelPath,
     required this.textVersion,
     required this.rulesVersion,
+    this.wholeQuranText = false,
   });
 
   /// Canonical reading range shown by the prototype.
@@ -97,6 +98,10 @@ final class PrototypeSessionConfiguration {
 
   /// Canonical content JSON; parsed inside the session worker.
   final String contentJson;
+
+  /// Whether [contentJson] is the whole-Quran text (format 2, ADR 0004)
+  /// rather than the prototype pages.
+  final bool wholeQuranText;
 
   /// Normalizer supplied with the selected ASR package.
   final String normalizerJson;
