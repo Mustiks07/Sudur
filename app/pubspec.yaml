@@ -34,6 +34,10 @@ dev_dependencies:
     path: ../packages/check
   flutter_test:
     sdk: flutter
+  follow:
+    path: ../packages/follow
+  testing:
+    path: ../packages/testing
 
 flutter:
   generate: true

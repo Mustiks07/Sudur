@@ -150,26 +150,7 @@ final class _ReadyBody extends StatelessWidget {
                 runSpacing: 8,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: <Widget>[
-                  DropdownButton<PrototypeModelChoice>(
-                    value: viewModel.selectedModel,
-                    onChanged: viewModel.state == ReadingPrototypeState.running
-                        ? null
-                        : (value) {
-                            if (value != null) {
-                              unawaited(viewModel.selectModel(value));
-                            }
-                          },
-                    items: <DropdownMenuItem<PrototypeModelChoice>>[
-                      DropdownMenuItem<PrototypeModelChoice>(
-                        value: PrototypeModelChoice.small,
-                        child: Text(localizations.prototypeModelSmall),
-                      ),
-                      DropdownMenuItem<PrototypeModelChoice>(
-                        value: PrototypeModelChoice.tiny,
-                        child: Text(localizations.prototypeModelTiny),
-                      ),
-                    ],
-                  ),
+                  _ModelSelector(viewModel: viewModel),
                   OutlinedButton.icon(
                     onPressed: viewModel.isBenchmarking
                         ? null
@@ -241,6 +222,42 @@ final class _ReadyBody extends StatelessWidget {
         ),
         _SessionControls(viewModel: viewModel),
       ],
+    );
+  }
+}
+
+final class _ModelSelector extends StatelessWidget {
+  const new({required this.viewModel});
+
+  final ReadingViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final selector = DropdownButton<PrototypeModelChoice>(
+      key: const ValueKey<String>('prototype-model-selector'),
+      value: viewModel.selectedModel,
+      onChanged: viewModel.canSelectModel
+          ? (value) {
+              if (value != null) unawaited(viewModel.selectModel(value));
+            }
+          : null,
+      items: <DropdownMenuItem<PrototypeModelChoice>>[
+        DropdownMenuItem<PrototypeModelChoice>(
+          value: PrototypeModelChoice.small,
+          child: Text(localizations.prototypeModelSmall),
+        ),
+        DropdownMenuItem<PrototypeModelChoice>(
+          value: PrototypeModelChoice.tiny,
+          child: Text(localizations.prototypeModelTiny),
+        ),
+      ],
+    );
+    if (viewModel.canSelectModel) return selector;
+    return Tooltip(
+      message: localizations.prototypeFinishReadingFirst,
+      triggerMode: TooltipTriggerMode.tap,
+      child: selector,
     );
   }
 }

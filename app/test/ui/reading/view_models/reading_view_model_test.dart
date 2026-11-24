@@ -217,6 +217,16 @@ void main() {
       await viewModel.pause();
       expect(sessionFactory.session.pauses, 0);
       expect(viewModel.state, ReadingPrototypeState.running);
+      sessionFactory.session.emit(
+        const SessionFinished(
+          sessionId: 'test',
+          atMs: 100,
+          words: <SessionWordResult>[],
+          eventIds: <String>[],
+          durationMs: 100,
+          audioWasSuitable: true,
+        ),
+      );
       await viewModel.selectModel(PrototypeModelChoice.tiny);
       expect(repository.preparedModels, <PrototypeModelChoice>[
         PrototypeModelChoice.small,
@@ -233,6 +243,28 @@ void main() {
         ..markPageRendered(582);
       await viewModel.start();
       sessionFactory.session
+        ..emitDiagnostic(
+          const PrototypeSessionDiagnostic(
+            PrototypeDiagnosticKind.segmentOpened,
+          ),
+        )
+        ..emitDiagnostic(
+          const PrototypeSessionDiagnostic(
+            PrototypeDiagnosticKind.recognitionPartial,
+            decodeMs: 31,
+          ),
+        )
+        ..emitDiagnostic(
+          const PrototypeSessionDiagnostic(
+            PrototypeDiagnosticKind.recognitionFinal,
+            decodeMs: 47,
+          ),
+        )
+        ..emitDiagnostic(
+          const PrototypeSessionDiagnostic(
+            PrototypeDiagnosticKind.segmentClosed,
+          ),
+        )
         ..emit(
           const SessionStarted(
             sessionId: 'test',
@@ -267,9 +299,11 @@ void main() {
               textVersion: '1',
             ),
           ),
-        );
+        )
+        ..emitFailure(const FormatException('PRIVATE_FAILURE_DETAIL'));
       final json = viewModel.measurementJson;
       final decoded = jsonDecode(json) as Map<String, Object?>;
+      final diagnostics = decoded['diagnostics']! as Map<String, Object?>;
       final events = switch (decoded['events']) {
         final List<Object?> value => value,
         _ => fail('The measurement log must contain an events list.'),
@@ -277,6 +311,17 @@ void main() {
 
       expect(json, isNot(contains('EXPECTED_SECRET')));
       expect(json, isNot(contains('HEARD_SECRET')));
+      expect(json, isNot(contains('PRIVATE_FAILURE_DETAIL')));
+      expect(diagnostics['segmentsOpened'], 1);
+      expect(diagnostics['segmentsClosed'], 1);
+      expect(diagnostics['recognitionResults'], 2);
+      expect(diagnostics['recognitionPartial'], 1);
+      expect(diagnostics['recognitionFinal'], 1);
+      expect(diagnostics['recognitionDecodeMsTotal'], 78);
+      expect(diagnostics['recognitionDecodeMsMax'], 47);
+      expect(diagnostics['positionUpdates'], 0);
+      expect(diagnostics['wordsRevealed'], 0);
+      expect(diagnostics['lastErrorReason'], 'FormatException');
       expect(
         events.whereType<Map<String, Object?>>().any(
           (event) =>
