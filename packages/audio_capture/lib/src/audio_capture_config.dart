@@ -6,9 +6,10 @@ final class AudioCaptureConfig {
     this.ringBufferSec = 30,
     this.preRollMs = 300,
     this.postRollMs = 300,
-    this.segmentEndPauseMs = 700,
+    this.segmentEndPauseMs = 300,
     this.maxSegmentMs = 15000,
     this.reviewSnippetPadMs = 3000,
+    this.maxReviewSnippetBytes = 20 * 1024 * 1024,
     this.quietDbfs = -42,
     this.noisyDbfs = -35,
     this.clippingRatio = 0.01,
@@ -29,6 +30,10 @@ final class AudioCaptureConfig {
         assert(
           reviewSnippetPadMs >= 0,
           'Snippet padding must not be negative.',
+        ),
+        assert(
+          maxReviewSnippetBytes > 0,
+          'Review snippet memory limit must be positive.',
         ),
         assert(
           clippingRatio >= 0 && clippingRatio <= 1,
@@ -59,6 +64,7 @@ final class AudioCaptureConfig {
         segmentEndPauseMs: _int(value, 'segmentEndPauseMs'),
         maxSegmentMs: _int(value, 'maxSegmentMs'),
         reviewSnippetPadMs: _int(value, 'reviewSnippetPadMs'),
+        maxReviewSnippetBytes: _int(value, 'maxReviewSnippetBytes'),
         quietDbfs: _double(value, 'quietDbfs'),
         noisyDbfs: _double(value, 'noisyDbfs'),
         clippingRatio: _double(value, 'clippingRatio'),
@@ -92,6 +98,9 @@ final class AudioCaptureConfig {
 
   /// Padding around requested review snippets.
   final int reviewSnippetPadMs;
+
+  /// Maximum memory retained for event-centred review snippets.
+  final int maxReviewSnippetBytes;
 
   /// Speech level threshold in dBFS.
   final double quietDbfs;
@@ -138,6 +147,7 @@ final class AudioCaptureConfig {
         'segmentEndPauseMs': segmentEndPauseMs,
         'maxSegmentMs': maxSegmentMs,
         'reviewSnippetPadMs': reviewSnippetPadMs,
+        'maxReviewSnippetBytes': maxReviewSnippetBytes,
         'quietDbfs': quietDbfs,
         'noisyDbfs': noisyDbfs,
         'clippingRatio': clippingRatio,

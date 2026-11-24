@@ -3,8 +3,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPOSITORY_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
-CACHE_ROOT="$REPOSITORY_ROOT/third_party_cache/asr_sherpa"
+CACHE_ROOT="${SUDUR_ASR_CACHE_ROOT:-$REPOSITORY_ROOT/third_party_cache/asr_sherpa}"
+MODEL_SOURCE_ROOT="${SUDUR_ASR_MODEL_SOURCE_ROOT:-}"
 MODEL_CHOICE="${1:-all}"
+EVAL_ROOT="${SUDUR_ASR_EVAL_DIR:-}"
+
+if [[ -z "$EVAL_ROOT" ]]; then
+  echo "Set SUDUR_ASR_EVAL_DIR to reviewed small.json and tiny.json reports." >&2
+  exit 64
+fi
 
 mkdir -p "$CACHE_ROOT"
 
@@ -13,6 +20,7 @@ download_model() {
   local revision="$2"
   local min_ram_mb="$3"
   local repository="Abdou/quran-asr-$name"
+  local evaluation="$EVAL_ROOT/$name.json"
   local target="$CACHE_ROOT/quran-asr-$name"
   local temporary
 
@@ -21,13 +29,22 @@ download_model() {
     echo "Remove it explicitly before downloading a different revision." >&2
     return 1
   fi
+  if [[ ! -f "$evaluation" ]]; then
+    echo "Evaluation report is missing: $evaluation" >&2
+    return 1
+  fi
 
   temporary="$(mktemp -d "$CACHE_ROOT/.quran-asr-$name.XXXXXX")"
   trap 'rm -rf "$temporary"' RETURN
 
-  for file in model.int8.onnx tokens.txt spelling.json LICENSE; do
-    curl --fail --location --retry 3 --silent --show-error "https://huggingface.co/$repository/resolve/$revision/$file" --output "$temporary/$file"
+  for file in model.int8.onnx tokens.txt LICENSE; do
+    if [[ -n "$MODEL_SOURCE_ROOT" ]]; then
+      cp "$MODEL_SOURCE_ROOT/quran-asr-$name/$file" "$temporary/$file"
+    else
+      curl --fail --location --retry 3 --silent --show-error "https://huggingface.co/$repository/resolve/$revision/$file" --output "$temporary/$file"
+    fi
   done
+  cp "$evaluation" "$temporary/eval.json"
 
   local model_sha256
   local tokens_sha256
@@ -46,9 +63,6 @@ min_ram_mb = int(sys.argv[4])
 model_sha256 = sys.argv[5]
 tokens_sha256 = sys.argv[6]
 
-with (target / "spelling.json").open(encoding="utf-8") as source:
-    spelling = json.load(source)
-
 model = {
     "modelId": repository,
     "version": f"hf-{revision[:12]}",
@@ -58,7 +72,7 @@ model = {
     "sampleRate": 16000,
     "minRamMb": min_ram_mb,
     "license": "MIT",
-    "normalizerId": f"{repository.lower().replace('/', '-')}-spelling-{revision[:12]}",
+    "normalizerId": f"{repository.lower().replace('/', '-')}-letters-{revision[:12]}",
     "modelSizeBytes": (target / "model.int8.onnx").stat().st_size,
     "tokensSizeBytes": (target / "tokens.txt").stat().st_size,
     "modelSha256": model_sha256,
@@ -67,10 +81,37 @@ model = {
 normalizer = {
     "id": model["normalizerId"],
     "nfc": True,
-    "removeRanges": [],
+    "removeRanges": [
+        {"from": start, "to": end}
+        for start, end in (
+            ("0600", "0620"),
+            ("063B", "0640"),
+            ("064B", "0670"),
+            ("0674", "06A8"),
+            ("06AA", "06CB"),
+            ("06CD", "06D1"),
+            ("06D3", "06FF"),
+            ("0750", "077F"),
+            ("08A0", "08FF"),
+        )
+    ],
     "replace": [
-        {"from": source, "to": replacement}
-        for source, replacement in spelling.items()
+        {"from": chr(source), "to": chr(replacement)}
+        for source, replacement in (
+            (0x0623, 0x0627),
+            (0x0625, 0x0627),
+            (0x0622, 0x0627),
+            (0x0671, 0x0627),
+            (0x0672, 0x0627),
+            (0x0673, 0x0627),
+            (0x0649, 0x064A),
+            (0x0626, 0x064A),
+            (0x06D2, 0x064A),
+            (0x06CC, 0x064A),
+            (0x0624, 0x0648),
+            (0x0629, 0x0647),
+            (0x06A9, 0x0643),
+        )
     ],
     "wordSeparator": " ",
 }
@@ -87,6 +128,8 @@ thresholds = {
     "ambiguityMargin": 0.15,
     "ngramSize": 3,
     "stableConfirmations": 2,
+    "openDelayWords": 2,
+    "lostWindowWords": 4,
     "strongMatch": 0.85,
     "substitutionMax": 0.60,
     "confirmContextWords": 2,
@@ -109,7 +152,6 @@ for filename, value in (
         json.dump(value, output, ensure_ascii=False, indent=2)
         output.write("\n")
 
-(target / "spelling.json").unlink()
 PY
 
   mv "$temporary" "$target"
