@@ -51,6 +51,9 @@ final class Checker {
   int _nextPos = 0;
   int _lastHeardMs = 0;
   int _lastHeardIndex = -1;
+
+  /// Heard index of the last word matched in the passage.
+  int _lastMatchHeard = -1;
   AlignmentStep? _pendingInsert;
   int _ids = 0;
   final List<_Candidate> _open = [];
@@ -267,6 +270,7 @@ final class Checker {
   }
 
   void _onMatch(AlignmentStep step, _Output out, {required bool isBack}) {
+    _lastMatchHeard = step.heard.index;
     final pos = _pos(step.expected!); // Match, skip and back have one.
     final sim = step.similarity ?? 0;
     final heard = step.heard;
@@ -310,6 +314,24 @@ final class Checker {
   void _onJump(JumpCandidate jump, _Output out) {
     if (jump.matchedNgrams < 1 || jump.heard.length < _params.jumpMinWords) {
       return;
+    }
+    // Words heard after the last word read in the passage and before the
+    // words that showed the jump are the start of the reading elsewhere,
+    // not extra words: an extra-word candidate there would report the same
+    // place twice. With real model output (bare letters) the first words
+    // of a jump are often short and common, so the jump is seen a few
+    // words late (found with model-output tests, docs/tz 12.3).
+    final start = jump.heard.first.index;
+    bool partOfJump(int heardIndex) =>
+        heardIndex > _lastMatchHeard && heardIndex < start;
+    if (_pendingInsert case final pending?
+        when partOfJump(pending.heard.index)) {
+      _pendingInsert = null;
+    }
+    for (final open in List.of(_open)) {
+      if (open.kind == CheckKind.insertion && partOfJump(open.createdHeard)) {
+        _move(open, CheckState.unverified, out);
+      }
     }
     final from = jump.from;
     final c = _create(

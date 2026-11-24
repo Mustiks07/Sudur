@@ -1,0 +1,20 @@
+{
+  "WARNING": "TEST ONLY. These private keys are public in the repository. Never use them to sign a real manifest; the app refuses key ids starting with 'test-' (TrustedKeys).",
+  "keys": [
+    {
+      "keyId": "test-main",
+      "seed": "rjV2Leafafn8RFYti+Gubd5DwLqxC4SdJDJIOayD1PY=",
+      "publicKey": "tWhEm6wTETPPr/DOYdrENt+pKXdWds54Y8VE73TwHtE="
+    },
+    {
+      "keyId": "test-backup",
+      "seed": "Qo9UpYnrTluFCWzMCbF6T3SzNMQAHNL6e+9XNqFgljw=",
+      "publicKey": "yThusoCSwuCJUFWjp8hWwQaN3KE9BhEOcIX4IkrihXU="
+    },
+    {
+      "keyId": "test-stranger",
+      "seed": "/CgPVtsdGtZ9XdtqXZo/8cIy5rORPxb9gjKarsHsQcU=",
+      "publicKey": "e5sgedGuS83HI2yD2D88e7KqL+bbTVR5sc8oBqSUwWQ="
+    }
+  ]
+}

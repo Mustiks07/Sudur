@@ -5,8 +5,10 @@ import 'package:testing/src/recognition_script.dart';
 /// both the annotation (docs/tz 12.6 `<id>.ann.json`) and the recognition
 /// results, so the right answer is known in advance.
 ///
-/// Heard words are given by the test; build them from the canon (search
-/// keys), never from typed Arabic text.
+/// Heard words are given by the test; build them from the canon, never from
+/// typed Arabic text — as the model outputs them (`modelLetters`) with
+/// `modelOutput: true`, so the recognition results look like the real
+/// model's (docs/tz 12.3).
 final class SyntheticRecording {
   /// Starts a recording of the expected range [from]..[to].
   SyntheticRecording({
@@ -19,7 +21,12 @@ final class SyntheticRecording {
     this.device = 'budget-android',
     this.noise = 'quiet',
     this.msPerWord = 400,
-  }) : script = RecognitionScript(sessionId: id, msPerWord: msPerWord);
+    bool modelOutput = false,
+  }) : script = RecognitionScript(
+          sessionId: id,
+          msPerWord: msPerWord,
+          modelOutput: modelOutput,
+        );
 
   /// Recording id.
   final String id;

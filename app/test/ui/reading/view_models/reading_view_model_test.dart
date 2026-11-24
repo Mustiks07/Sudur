@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:contracts/contracts.dart';
@@ -83,6 +84,24 @@ void main() {
       <Type>[StartSession, Pause, Resume, RequestHint, Stop],
     );
     expect(viewModel.state, ReadingPrototypeState.finished);
+  });
+
+  test('a second start is blocked while the first start is pending', () async {
+    final startResult = Completer<Result<void>>();
+    sessionFactory.session.startResult = startResult;
+
+    final firstStart = viewModel.start();
+    expect(viewModel.state, ReadingPrototypeState.starting);
+
+    await viewModel.start();
+    expect(
+      sessionFactory.session.commands.whereType<StartSession>(),
+      hasLength(1),
+    );
+
+    startResult.complete(const Result<void>.ok(null));
+    await firstStart;
+    expect(viewModel.state, ReadingPrototypeState.running);
   });
 
   test('moving position never hides an already revealed word', () {
@@ -194,6 +213,20 @@ void main() {
 
       await viewModel.start();
       expect(sessionFactory.session.input, isA<PrototypeWavInput>());
+      expect(viewModel.canPause, isFalse);
+      await viewModel.pause();
+      expect(sessionFactory.session.pauses, 0);
+      expect(viewModel.state, ReadingPrototypeState.running);
+      sessionFactory.session.emit(
+        const SessionFinished(
+          sessionId: 'test',
+          atMs: 100,
+          words: <SessionWordResult>[],
+          eventIds: <String>[],
+          durationMs: 100,
+          audioWasSuitable: true,
+        ),
+      );
       await viewModel.selectModel(PrototypeModelChoice.tiny);
       expect(repository.preparedModels, <PrototypeModelChoice>[
         PrototypeModelChoice.small,
@@ -209,28 +242,68 @@ void main() {
         ..beginPageRender(582)
         ..markPageRendered(582);
       await viewModel.start();
-      sessionFactory.session.emit(
-        const CheckEvent(
-          sessionId: 'test',
-          atMs: 500,
-          eventId: 'event-1',
-          kind: CheckKind.substitution,
-          state: CheckState.confirmed,
-          words: <WordKey>[firstWord],
-          expectedText: 'EXPECTED_SECRET',
-          heardText: 'HEARD_SECRET',
-          audioStartMs: 100,
-          audioEndMs: 450,
-          versions: ReadingVersions(
-            modelId: 'model',
-            modelVersion: '1',
-            rulesVersion: '1',
-            textVersion: '1',
+      sessionFactory.session
+        ..emitDiagnostic(
+          const PrototypeSessionDiagnostic(
+            PrototypeDiagnosticKind.segmentOpened,
           ),
-        ),
-      );
+        )
+        ..emitDiagnostic(
+          const PrototypeSessionDiagnostic(
+            PrototypeDiagnosticKind.recognitionPartial,
+            decodeMs: 31,
+          ),
+        )
+        ..emitDiagnostic(
+          const PrototypeSessionDiagnostic(
+            PrototypeDiagnosticKind.recognitionFinal,
+            decodeMs: 47,
+          ),
+        )
+        ..emitDiagnostic(
+          const PrototypeSessionDiagnostic(
+            PrototypeDiagnosticKind.segmentClosed,
+          ),
+        )
+        ..emit(
+          const SessionStarted(
+            sessionId: 'test',
+            atMs: 0,
+            fromWordKey: firstWord,
+            toWordKey: secondWord,
+            mode: SessionMode.recall,
+            versions: ReadingVersions(
+              modelId: 'model',
+              modelVersion: '1',
+              rulesVersion: '1',
+              textVersion: '1',
+            ),
+          ),
+        )
+        ..emit(
+          const CheckEvent(
+            sessionId: 'test',
+            atMs: 500,
+            eventId: 'event-1',
+            kind: CheckKind.substitution,
+            state: CheckState.confirmed,
+            words: <WordKey>[firstWord],
+            expectedText: 'EXPECTED_SECRET',
+            heardText: 'HEARD_SECRET',
+            audioStartMs: 100,
+            audioEndMs: 450,
+            versions: ReadingVersions(
+              modelId: 'model',
+              modelVersion: '1',
+              rulesVersion: '1',
+              textVersion: '1',
+            ),
+          ),
+        )
+        ..emitFailure(const FormatException('PRIVATE_FAILURE_DETAIL'));
       final json = viewModel.measurementJson;
       final decoded = jsonDecode(json) as Map<String, Object?>;
+      final diagnostics = decoded['diagnostics']! as Map<String, Object?>;
       final events = switch (decoded['events']) {
         final List<Object?> value => value,
         _ => fail('The measurement log must contain an events list.'),
@@ -238,9 +311,22 @@ void main() {
 
       expect(json, isNot(contains('EXPECTED_SECRET')));
       expect(json, isNot(contains('HEARD_SECRET')));
+      expect(json, isNot(contains('PRIVATE_FAILURE_DETAIL')));
+      expect(diagnostics['segmentsOpened'], 1);
+      expect(diagnostics['segmentsClosed'], 1);
+      expect(diagnostics['recognitionResults'], 2);
+      expect(diagnostics['recognitionPartial'], 1);
+      expect(diagnostics['recognitionFinal'], 1);
+      expect(diagnostics['recognitionDecodeMsTotal'], 78);
+      expect(diagnostics['recognitionDecodeMsMax'], 47);
+      expect(diagnostics['positionUpdates'], 0);
+      expect(diagnostics['wordsRevealed'], 0);
+      expect(diagnostics['lastErrorReason'], 'FormatException');
       expect(
         events.whereType<Map<String, Object?>>().any(
-          (event) => event['type'] == 'MushafPageRendered',
+          (event) =>
+              event['type'] == 'SessionStarted' &&
+              event.containsKey('uiAtSessionMs'),
         ),
         isTrue,
       );

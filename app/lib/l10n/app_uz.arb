@@ -26,6 +26,7 @@
   "prototypeStop": "Tugatish",
   "prototypeHint": "Yordam",
   "prototypeShareLog": "Jurnalni ulashish",
-  "prototypeMockNotice": "S05 hali birlashtirilmagan: ekran sinov sessiyasida ishlaydi. WAV va haqiqiy mikrofon ADR 0005 orqali ulanadi.",
+  "prototypeFinishReadingFirst": "Avval o‘qishni yakunlang",
+  "prototypeMockNotice": "Audio faqat telefonda qayta ishlanadi va saqlanmaydi. «Boshlash» tugmasidan keyin Android mikrofonga ruxsat so‘raydi.",
   "mushafAyahSemantics": "{surah}-sura, {ayah}-oyat. {text}"
 }

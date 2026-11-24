@@ -26,6 +26,7 @@
   "prototypeStop": "Аяқтау",
   "prototypeHint": "Көмек",
   "prototypeShareLog": "Журналды бөлісу",
-  "prototypeMockNotice": "S05 әлі біріктірілмеді: экран сынақ сессиясымен жұмыс істейді. WAV және нақты микрофон ADR 0005 арқылы қосылады.",
+  "prototypeFinishReadingFirst": "Алдымен оқуды аяқтаңыз",
+  "prototypeMockNotice": "Дыбыс тек телефонда өңделеді және сақталмайды. «Бастау» түймесін басқаннан кейін Android микрофонға рұқсат сұрайды.",
   "mushafAyahSemantics": "{surah}-сүре, {ayah}-аят. {text}"
 }

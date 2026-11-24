@@ -96,8 +96,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get prototypeShareLog => 'Поделиться журналом';
 
   @override
+  String get prototypeFinishReadingFirst => 'Сначала завершите чтение';
+
+  @override
   String get prototypeMockNotice =>
-      'S05 ещё не слита: экран работает на подставной сессии. WAV и настоящий микрофон подключатся через ADR 0005.';
+      'Звук обрабатывается только на телефоне и не сохраняется. После нажатия «Начать» Android запросит доступ к микрофону.';
 
   @override
   String mushafAyahSemantics(int surah, int ayah, String text) {

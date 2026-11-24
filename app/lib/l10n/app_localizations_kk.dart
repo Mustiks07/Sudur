@@ -96,8 +96,11 @@ class AppLocalizationsKk extends AppLocalizations {
   String get prototypeShareLog => 'Журналды бөлісу';
 
   @override
+  String get prototypeFinishReadingFirst => 'Алдымен оқуды аяқтаңыз';
+
+  @override
   String get prototypeMockNotice =>
-      'S05 әлі біріктірілмеді: экран сынақ сессиясымен жұмыс істейді. WAV және нақты микрофон ADR 0005 арқылы қосылады.';
+      'Дыбыс тек телефонда өңделеді және сақталмайды. «Бастау» түймесін басқаннан кейін Android микрофонға рұқсат сұрайды.';
 
   @override
   String mushafAyahSemantics(int surah, int ayah, String text) {
