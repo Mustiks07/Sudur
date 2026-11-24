@@ -28,6 +28,15 @@ Future<void> main(List<String> arguments) async {
       help: 'Also write the pages JSON here (packages/testing/fixtures).',
     )
     ..addOption(
+      'derived',
+      help: 'Derived data parameters, relative to the repository root.',
+      defaultsTo: 'tools/content_build/config/derived.json',
+    )
+    ..addOption(
+      'derived-fixture-out',
+      help: 'Also write passages and similar places here (derived.json).',
+    )
+    ..addOption(
       'text-fixture-out',
       help: 'Also write the whole-Quran text JSON here (ADR 0004).',
     )
@@ -92,7 +101,35 @@ Future<void> main(List<String> arguments) async {
 
   switch (await builder.build()) {
     case Ok(value: final build):
-      writeContentDatabase(build, p.join(out, 'content.sqlite'));
+      final DerivedContent derived;
+      try {
+        derived = deriveBuild(
+          build,
+          linesPerPage: config.linesPerPage,
+          params: DerivedParams.fromJson(
+            File(p.join(root, args.option('derived'))).readAsStringSync(),
+          ),
+        );
+      } on ContentBuildException catch (e) {
+        logger.severe(e.message);
+        exitCode = 1;
+        return;
+      }
+      writeContentDatabase(
+        build,
+        p.join(out, 'content.sqlite'),
+        derived: derived,
+      );
+      final canon = build.text.version['canonSha256'] ?? 'unknown';
+      final derivedJson = derived.toJson(canonSha256: canon);
+      File(p.join(out, 'derived.json')).writeAsStringSync(derivedJson);
+      if (args.option('derived-fixture-out') case final f?) {
+        File(p.join(root, f)).writeAsStringSync(derivedJson);
+      }
+      logger.info(
+        '${derived.passages.length} default passages, '
+        '${derived.pairs.length} similar pairs (not verified)',
+      );
       writeTextJson(build.text, p.join(out, 'text.json'));
       writeContentJson(build.layout, p.join(out, 'content.json'));
       File(

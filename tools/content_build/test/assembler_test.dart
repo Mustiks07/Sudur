@@ -150,6 +150,40 @@ void main() {
       );
     });
 
+    test('SQLite holds derived passages and unverified similar pairs', () {
+      final layout = assemble();
+      final text = assembleText(
+        quran: syntheticQuran(),
+        verses: syntheticLayout(),
+        chapters: syntheticChapters(),
+        version: const {'version': 'test'},
+      );
+      final build =
+          ContentBuild(text: text, layout: layout, layoutId: 'test-layout');
+      final derived = deriveBuild(
+        build,
+        linesPerPage: 15,
+        params: DerivedParams.fromJson(
+          File('config/derived.json').readAsStringSync(),
+        ),
+      );
+      final dbPath = p.join(dir.path, 'content.sqlite');
+      writeContentDatabase(build, dbPath, derived: derived);
+      final db = sqlite3.open(dbPath);
+      addTearDown(db.dispose);
+      final passages = db.select(
+        'SELECT from_word_index, to_word_index FROM passage_default '
+        'ORDER BY id',
+      );
+      expect(passages, hasLength(derived.passages.length));
+      expect(passages.first['from_word_index'], 1);
+      expect(passages.last['to_word_index'], text.wordCount);
+      expect(
+        db.select('SELECT * FROM similar_pair WHERE verified <> 0'),
+        isEmpty,
+      );
+    });
+
     test('prototype pages JSON keeps the table form', () {
       final jsonPath = p.join(dir.path, 'content.json');
       writeContentJson(assemble(), jsonPath);

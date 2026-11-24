@@ -11,6 +11,7 @@ export 'src/quran_text.dart';
 export 'src/search_key.dart';
 export 'src/search_key_cache.dart';
 export 'src/search_params.dart';
+export 'src/similar_places.dart';
 export 'src/similarity.dart';
 export 'src/text_json_source.dart';
 export 'src/word.dart';
