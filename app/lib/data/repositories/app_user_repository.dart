@@ -8,7 +8,10 @@ import 'package:contracts/contracts.dart';
 import 'package:planner/planner.dart';
 import 'package:storage/storage.dart';
 import 'package:sudur/config/e01_config.dart';
+import 'package:sudur/data/models/canon_index.dart';
 import 'package:sudur/data/models/user_models.dart';
+import 'package:sudur/data/repositories/plan_state_codec.dart';
+import 'package:sudur/data/services/app_canon_service.dart';
 import 'package:sudur/data/services/app_file_service.dart';
 import 'package:sudur/data/services/app_planner_service.dart';
 import 'package:sudur/data/services/app_storage_service.dart';
@@ -82,6 +85,7 @@ final class StorageAppUserRepository implements AppUserRepository {
     required AppStorageService storage,
     required AppFileService files,
     required PrototypeAssetInstaller modelInstaller,
+    required AppCanonService canon,
     required AppPlannerService planner,
     required Clock clock,
     required AppIdFactory createId,
@@ -89,6 +93,7 @@ final class StorageAppUserRepository implements AppUserRepository {
   }) : _storageService = storage,
        _files = files,
        _modelInstaller = modelInstaller,
+       _canon = canon,
        _planner = planner,
        _clock = clock,
        _createId = createId,
@@ -100,10 +105,14 @@ final class StorageAppUserRepository implements AppUserRepository {
   static const _startPointKey = 'startPoint';
   static const _modelDeferredKey = 'modelDeferred';
   static const _memorizationRepeatsKey = 'memorizationRepeats';
+  static const _letterKnowledgeKey = 'letterKnowledge';
+  static const _nextCardIdKey = 'nextFsrsCardId';
+  static const _courseEntrySkill = 'course-entry';
 
   final AppStorageService _storageService;
   final AppFileService _files;
   final PrototypeAssetInstaller _modelInstaller;
+  final AppCanonService _canon;
   final AppPlannerService _planner;
   final Clock _clock;
   final AppIdFactory _createId;
@@ -180,86 +189,203 @@ final class StorageAppUserRepository implements AppUserRepository {
         if (language == null || path == null || dailyMinutes == null) {
           throw const FormatException('Onboarding choices are incomplete.');
         }
+        final surahs = _plannedSurahs(draft, path);
+        // The text is installed (network) before anything is written, so a
+        // failure leaves the start where it was.
+        final canon = surahs.isEmpty ? null : await _canon.load();
         final storage = await _storageService.storage;
-        final existing = _unwrap(await storage.profiles.list());
-        final id = existing.isEmpty ? _createId() : existing.first.id;
-        final createdAt = existing.isEmpty ? _nowMs : existing.first.createdAt;
-        final profile = (
-          id: id,
-          createdAt: createdAt,
-          uiLanguage: _storedLanguage(language),
-          path: _storedPath(path),
-          dailyMinutes: dailyMinutes,
-          behavior: ReadingBehavior.gentle,
-          showFirstWord: true,
-        );
-        _unwrap(await storage.profiles.put(profile));
-        await _putSetting(storage, _languageKey, language.name);
-        await _putSetting(
-          storage,
-          _selectedSurahsKey,
-          draft.familiarSurahs.toList()..sort(),
-        );
-        await _putSetting(storage, _startPointKey, draft.startPoint?.name);
-        await _putSetting(
-          storage,
-          _modelDeferredKey,
-          draft.downloadModelNow == false,
-        );
-        await _putSetting(
-          storage,
-          _memorizationRepeatsKey,
-          _config.defaultMemorizationRepeats,
-        );
-        _unwrap(
-          await storage.settings.put((
-            key: _draftKey,
-            value: JsonValueData.fromJson(
-              draft.copyWith(step: OnboardingStep.completed).toJson(),
-            ),
-          )),
-        );
-        if (path == AppLearningPath.learnReading) {
-          await _ensureCourseUnit(storage, id, createdAt);
-        }
-        return _profile(profile, language);
+        final completed = await storage.transaction(() async {
+          final existing = _unwrap(await storage.profiles.list());
+          final id = existing.isEmpty ? _createId() : existing.first.id;
+          final createdAt = existing.isEmpty
+              ? _nowMs
+              : existing.first.createdAt;
+          final profile = (
+            id: id,
+            createdAt: createdAt,
+            uiLanguage: _storedLanguage(language),
+            path: _storedPath(path),
+            dailyMinutes: dailyMinutes,
+            behavior: ReadingBehavior.gentle,
+            showFirstWord: true,
+          );
+          _unwrap(await storage.profiles.put(profile));
+          await _putSetting(storage, _languageKey, language.name);
+          await _putSetting(
+            storage,
+            _selectedSurahsKey,
+            draft.familiarSurahs.toList()..sort(),
+          );
+          await _putSetting(storage, _startPointKey, draft.startPoint?.name);
+          await _putSetting(
+            storage,
+            _letterKnowledgeKey,
+            draft.letterKnowledge?.name,
+          );
+          await _putSetting(
+            storage,
+            _modelDeferredKey,
+            draft.downloadModelNow == false,
+          );
+          await _putSetting(
+            storage,
+            _memorizationRepeatsKey,
+            _config.defaultMemorizationRepeats,
+          );
+          if (path == AppLearningPath.learnReading) {
+            await _ensureCourseUnit(storage, id);
+          }
+          if (canon != null) {
+            for (final (surah, origin) in surahs) {
+              await _ensurePassageUnits(storage, canon, id, surah, origin);
+            }
+          }
+          // Last: the start counts as finished only with everything above.
+          _unwrap(
+            await storage.settings.put((
+              key: _draftKey,
+              value: JsonValueData.fromJson(
+                draft.copyWith(step: OnboardingStep.completed).toJson(),
+              ),
+            )),
+          );
+          return profile;
+        });
+        return _profile(_unwrap(completed), language);
       });
+
+  /// Surahs whose passages become plan units (docs/tz 3.4, 13.1): the
+  /// familiar ones, or — when nothing is familiar — the chosen start.
+  List<(int, UnitOrigin)> _plannedSurahs(
+    OnboardingDraft draft,
+    AppLearningPath path,
+  ) {
+    if (path == AppLearningPath.learnReading) return const [];
+    if (draft.familiarSurahs.isNotEmpty) {
+      return [
+        for (final surah in draft.familiarSurahs.toList()..sort())
+          (surah, UnitOrigin.knownBefore),
+      ];
+    }
+    return switch (draft.startPoint) {
+      AppStartPoint.firstSurah => [
+        (_config.firstSurah, UnitOrigin.defaultOrigin),
+      ],
+      AppStartPoint.shortSurahs => [
+        (_config.firstShortSurah, UnitOrigin.defaultOrigin),
+      ],
+      null => const [],
+    };
+  }
+
+  Future<void> _ensurePassageUnits(
+    StorageService storage,
+    CanonIndex canon,
+    String profileId,
+    int surah,
+    UnitOrigin origin,
+  ) async {
+    final existing = {
+      for (final unit in _unwrap(await storage.units.listForProfile(profileId)))
+        if (unit.kind == UnitKind.passage)
+          (unit.fromWordIndex, unit.toWordIndex),
+    };
+    for (final passage in canon.passagesOf(surah)) {
+      if (existing.contains((passage.fromWordIndex, passage.toWordIndex))) {
+        continue;
+      }
+      await _putNewUnit(
+        storage,
+        id: _createId(),
+        profileId: profileId,
+        kind: UnitKind.passage,
+        fromWordIndex: passage.fromWordIndex,
+        toWordIndex: passage.toWordIndex,
+        skillId: null,
+        surah: surah,
+        origin: origin,
+      );
+    }
+  }
 
   Future<void> _ensureCourseUnit(
     StorageService storage,
     String profileId,
-    int createdAt,
   ) async {
     final units = _unwrap(await storage.units.listForProfile(profileId));
-    if (units.any((unit) => unit.skillId == 'course-entry')) return;
-    final id = _createId();
+    if (units.any((unit) => unit.skillId == _courseEntrySkill)) return;
+    await _putNewUnit(
+      storage,
+      id: _createId(),
+      profileId: profileId,
+      kind: UnitKind.skill,
+      fromWordIndex: null,
+      toWordIndex: null,
+      skillId: _courseEntrySkill,
+      surah: null,
+      origin: UnitOrigin.lesson,
+    );
+  }
+
+  /// Writes a unit with its first state: queue “not started”, due now, and
+  /// its FSRS card created once here (the plan never starts it again).
+  Future<void> _putNewUnit(
+    StorageService storage, {
+    required String id,
+    required String profileId,
+    required UnitKind kind,
+    required int? fromWordIndex,
+    required int? toWordIndex,
+    required String? skillId,
+    required int? surah,
+    required UnitOrigin origin,
+  }) async {
+    final now = _clock.now().toUtc();
     _unwrap(
       await storage.units.putUnit((
         id: id,
         profileId: profileId,
-        kind: UnitKind.skill,
-        fromWordIndex: null,
-        toWordIndex: null,
-        skillId: 'course-entry',
-        surah: null,
-        origin: UnitOrigin.lesson,
+        kind: kind,
+        fromWordIndex: fromWordIndex,
+        toWordIndex: toWordIndex,
+        skillId: skillId,
+        surah: surah,
+        origin: origin,
         parentUnitId: null,
-        createdAt: createdAt,
+        createdAt: now.millisecondsSinceEpoch,
       )),
+    );
+    final card = FsrsCardSnapshot.initial(
+      cardId: await _nextCardId(storage),
+      now: now,
     );
     _unwrap(
       await storage.units.putState((
         unitId: id,
         queue: UnitQueue.notStarted,
-        memoryState: null,
-        fsrsCard: null,
-        dueAt: _nowMs,
+        memoryState: JsonObjectData.fromJson(
+          PlanMemoryState(
+            skillStage: kind == UnitKind.skill ? SkillStage.learning : null,
+            hardSpotStage: kind == UnitKind.hardSpot
+                ? HardSpotStage.open
+                : null,
+          ).toJson(),
+        ),
+        fsrsCard: JsonObjectData.fromJson(encodeFsrsCard(card)),
+        dueAt: now.millisecondsSinceEpoch,
         recentSince: null,
         lastAttemptAt: null,
         lastMethod: null,
-        updatedAt: _nowMs,
+        updatedAt: now.millisecondsSinceEpoch,
       )),
     );
+  }
+
+  /// A new FSRS card id, unique for this user.
+  Future<int> _nextCardId(StorageService storage) async {
+    final id = await _settingInt(storage, _nextCardIdKey, 1);
+    await _putSetting(storage, _nextCardIdKey, id + 1);
+    return id;
   }
 
   @override
@@ -327,11 +453,16 @@ final class StorageAppUserRepository implements AppUserRepository {
     String date,
   ) async {
     final storedUnits = _unwrap(await storage.units.listForProfile(profile.id));
+    final canon = storedUnits.any((unit) => unit.fromWordIndex != null)
+        ? await _canon.load()
+        : null;
     final units = <PlanUnit>[];
     for (final unit in storedUnits) {
       final state = _unwrap(await storage.units.getState(unit.id));
+      // A closed unit (docs/tz 3.4) is not planned any more.
+      if (state?.queue == UnitQueue.closed) continue;
       final attempts = _unwrap(await storage.attempts.listForUnit(unit.id));
-      units.add(_plannerUnit(unit, state, attempts));
+      units.add(await _plannerUnit(storage, canon, unit, state, attempts));
     }
     final sessions = _unwrap(await storage.sessions.listForProfile(profile.id));
     final request = TodayPlanRequest(
@@ -390,18 +521,25 @@ final class StorageAppUserRepository implements AppUserRepository {
     return data;
   }
 
-  PlanUnit _plannerUnit(
+  /// The planner's view of a stored unit: its range in the canon, its FSRS
+  /// card and stages as stored (docs/tz 3.4, 12.1).
+  Future<PlanUnit> _plannerUnit(
+    StorageService storage,
+    CanonIndex? canon,
     UnitData unit,
     UnitStateData? state,
     List<AttemptData> attempts,
-  ) {
+  ) async {
     final now = _clock.now().toUtc();
-    final fromIndex = unit.fromWordIndex ?? 0;
-    final toIndex = unit.toWordIndex ?? fromIndex;
-    final surah = unit.surah ?? 1;
     final due = state?.dueAt == null
         ? now
         : DateTime.fromMillisecondsSinceEpoch(state!.dueAt!, isUtc: true);
+    final memory = PlanMemoryState.fromJson(state?.memoryState?.value);
+    final card = switch (state?.fsrsCard) {
+      final JsonObjectData stored => decodeFsrsCard(stored.value),
+      // Written by an earlier version without a card: created once now.
+      null => await _storeInitialCard(storage, unit, state, now),
+    };
     final history = <AttemptRecord>[
       for (final attempt in attempts)
         AttemptRecord(
@@ -421,32 +559,86 @@ final class StorageAppUserRepository implements AppUserRepository {
             duration: Duration(milliseconds: attempt.durationMs),
             wordCount: attempt.words == 0 ? 1 : attempt.words,
           ),
-          assessment: attempt.rating == null
-              ? const AttemptAssessment(
-                  noRatingReason: NoRatingReason.notAssessable,
-                )
-              : AttemptAssessment(rating: _plannerRating(attempt.rating!)),
+          assessment: switch (attempt.rating) {
+            null => const AttemptAssessment(
+              noRatingReason: NoRatingReason.notAssessable,
+            ),
+            final AttemptRating rating => AttemptAssessment(
+              rating: _plannerRating(rating),
+            ),
+          },
         ),
     ];
     return PlanUnit(
       id: unit.id,
       kind: _planUnitKind(unit.kind),
-      range: PassageRange(
-        from: WordKey(surah, 1, fromIndex + 1),
-        to: WordKey(surah, 1, toIndex + 1),
-        wordCount: toIndex - fromIndex + 1,
-      ),
+      range: _range(canon, unit),
       queue: _planQueue(state?.queue),
-      hardSpotStage: unit.kind == UnitKind.hardSpot ? HardSpotStage.open : null,
-      skillStage: unit.kind == UnitKind.skill ? SkillStage.learning : null,
-      card: FsrsCardSnapshot.initial(cardId: fromIndex + 1, now: now),
+      hardSpotStage: unit.kind == UnitKind.hardSpot
+          ? memory.hardSpotStage ?? HardSpotStage.open
+          : null,
+      skillStage: unit.kind == UnitKind.skill
+          ? memory.skillStage ?? SkillStage.learning
+          : null,
+      card: card,
       due: due,
+      recentStartedAt: memory.recentStartedAt,
+      learningStartedAt: memory.learningStartedAt,
+      recentReviewIndex: memory.recentReviewIndex,
+      consecutiveForgot: memory.consecutiveForgot,
+      hardSpotCleanAt: memory.hardSpotCleanAt,
+      acceleratedLearning: memory.acceleratedLearning,
       history: history,
       knownBefore: unit.origin == UnitOrigin.knownBefore,
       priorErrorCount: attempts
           .where((attempt) => attempt.outcome == AttemptOutcome.withErrors)
           .length,
     );
+  }
+
+  /// The words of [unit] as keys of the canon. A skill has no words: the
+  /// planner gets the first word of the Quran, which it does not read.
+  PassageRange _range(CanonIndex? canon, UnitData unit) {
+    final from = unit.fromWordIndex;
+    final to = unit.toWordIndex ?? from;
+    if (canon == null || from == null || to == null) {
+      if (unit.kind != UnitKind.skill) {
+        throw FormatException('Unit ${unit.id} has no words.');
+      }
+      const first = WordKey(1, 1, 1);
+      return const PassageRange(from: first, to: first, wordCount: 1);
+    }
+    return PassageRange(
+      from: canon.keyOf(from),
+      to: canon.keyOf(to),
+      wordCount: to - from + 1,
+    );
+  }
+
+  Future<FsrsCardSnapshot> _storeInitialCard(
+    StorageService storage,
+    UnitData unit,
+    UnitStateData? state,
+    DateTime now,
+  ) async {
+    final card = FsrsCardSnapshot.initial(
+      cardId: await _nextCardId(storage),
+      now: now,
+    );
+    _unwrap(
+      await storage.units.putState((
+        unitId: unit.id,
+        queue: state?.queue ?? UnitQueue.notStarted,
+        memoryState: state?.memoryState,
+        fsrsCard: JsonObjectData.fromJson(encodeFsrsCard(card)),
+        dueAt: state?.dueAt ?? now.millisecondsSinceEpoch,
+        recentSince: state?.recentSince,
+        lastAttemptAt: state?.lastAttemptAt,
+        lastMethod: state?.lastMethod,
+        updatedAt: now.millisecondsSinceEpoch,
+      )),
+    );
+    return card;
   }
 
   TodayStepData _todayStep(PlanStep step, List<UnitData> units) {
@@ -800,11 +992,13 @@ final class StorageAppUserRepository implements AppUserRepository {
     UnitKind.skill => PlanUnitKind.skill,
   };
 
+  /// Closed units never reach here (see `_createToday`).
   PlanQueue _planQueue(UnitQueue? queue) => switch (queue) {
     UnitQueue.learning => PlanQueue.learning,
     UnitQueue.recent => PlanQueue.recent,
     UnitQueue.old => PlanQueue.old,
-    UnitQueue.notStarted || UnitQueue.closed || null => PlanQueue.notStarted,
+    UnitQueue.notStarted || null => PlanQueue.notStarted,
+    UnitQueue.closed => throw StateError('A closed unit is not planned.'),
   };
 
   AttemptMode _attemptMode(StoredReadingMode mode) => switch (mode) {

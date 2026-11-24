@@ -1,43 +1,18 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:contracts/contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sudur/data/models/canon_index.dart';
 
-final String _text = File('../packages/testing/fixtures/quran_text.json')
-    .readAsStringSync();
+import '../../test_helpers/fixture_canon.dart';
 
-// The derived passages of D01 (#23). Until #23 is merged the fixture is not
-// on main; tests build an index with one passage per ayah instead.
-String _ayahPassages(String text) {
-  final root = jsonDecode(text) as Map<String, Object?>;
-  final version = root['contentVersion']! as Map<String, Object?>;
-  var next = 1;
-  return jsonEncode(<String, Object?>{
-    'format': 1,
-    'kind': 'derived',
-    'textCanonSha256': version['canonSha256'],
-    'passages': <Object?>[
-      for (final ayah in root['ayahs']! as List<Object?>)
-        <int>[next, (next += _wordsOf(ayah)) - 1],
-    ],
-  });
-}
-
-int _wordsOf(Object? ayah) =>
-    ((ayah! as List<Object?>)[2]! as List<Object?>).length;
+final String _text = fixtureQuranText();
+String _ayahPassages(String text) => ayahPassages(text);
 
 void main() {
   late CanonIndex index;
 
-  setUpAll(() {
-    final derived = File('../packages/testing/fixtures/derived.json');
-    index = CanonIndex.parse(
-      _text,
-      derived.existsSync() ? derived.readAsStringSync() : _ayahPassages(_text),
-    );
-  });
+  setUpAll(() => index = fixtureCanon());
 
   test('the whole text: 114 surahs, 6236 ayahs, 77 433 words', () {
     expect(index.wordCount, 77433);

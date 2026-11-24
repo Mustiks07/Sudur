@@ -9,6 +9,8 @@ final class E01Config {
     this.freeVoiceLimit = const Duration(minutes: 10),
     this.defaultDailyMinutes = 10,
     this.defaultMemorizationRepeats = 3,
+    this.firstSurah = 1,
+    this.firstShortSurah = 114,
   });
 
   /// Delay before a loading skeleton is shown (spec section 13).
@@ -22,4 +24,12 @@ final class E01Config {
 
   /// Initial number of repetitions when learning new material.
   final int defaultMemorizationRepeats;
+
+  /// Surah of the start “Al-Fatiha” (docs/tz 13.1).
+  final int firstSurah;
+
+  /// First surah of the start “short surahs from the end of the Quran”
+  /// (docs/tz 13.1): the last surah; later ones are added by learning new
+  /// material (Q11).
+  final int firstShortSurah;
 }

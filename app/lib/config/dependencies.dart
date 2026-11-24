@@ -10,6 +10,7 @@ import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/config/prototype_real_session.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
 import 'package:sudur/data/repositories/prototype_repository.dart';
+import 'package:sudur/data/services/app_canon_service.dart';
 import 'package:sudur/data/services/app_file_service.dart';
 import 'package:sudur/data/services/app_planner_service.dart';
 import 'package:sudur/data/services/app_storage_service.dart';
@@ -48,6 +49,7 @@ class AppDependencies extends StatelessWidget {
       storage: storage,
       files: files,
       modelInstaller: installer,
+      canon: InstalledCanonService(installer),
       planner: AppPlannerService(clock: clock, random: random),
       clock: clock,
       createId: () => _uuid(random),
