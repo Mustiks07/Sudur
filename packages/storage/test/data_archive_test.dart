@@ -77,7 +77,7 @@ void main() {
           'manifest.json',
           jsonEncode(<String, Object?>{
             'format': 'sudur-user-data',
-            'schemaVersion': 2,
+            'schemaVersion': 3,
           }),
         ),
       );
@@ -87,6 +87,74 @@ void main() {
     expect(result, isA<Error<void>>());
     expect(unwrap(await storage.profiles.list()), hasLength(1));
   });
+
+  test('a schema 1 archive restores every table, pending becomes queued',
+      () async {
+    await _seedEveryRepository(storage);
+    final v1 = _rewrite(unwrap(await storage.exportData()), {
+      'manifest.json': <String, Object?>{
+        'format': 'sudur-user-data',
+        'schemaVersion': 1,
+      },
+      'download.json': (Object? rows) => <Object?>[
+            for (final row in rows! as List<Object?>)
+              // The export above wrote a list of row objects.
+              <String, Object?>{
+                ...row! as Map<String, Object?>,
+                'state': 'pending',
+              },
+          ],
+    });
+    unwrap(await storage.eraseAll(_FakeRecordingFileSystem()));
+
+    unwrap(await storage.importData(v1));
+
+    await _expectEveryRepositoryHasOne(storage);
+    expect(
+      unwrap(await storage.downloads.list()).single.state,
+      DownloadState.queued,
+    );
+  });
+
+  test('a broken schema 1 archive changes no data', () async {
+    await _seedEveryRepository(storage);
+    final v1 = _rewrite(unwrap(await storage.exportData()), {
+      'manifest.json': <String, Object?>{
+        'format': 'sudur-user-data',
+        'schemaVersion': 1,
+      },
+      // The last table is broken: nothing before it may be written either.
+      'outbox.json': <Object?>[
+        <String, Object?>{'id': 'not-a-uuid', 'event': 1, 'created_at': 0},
+      ],
+    });
+    unwrap(await storage.eraseAll(_FakeRecordingFileSystem()));
+    unwrap(await storage.profiles.put(profile()));
+
+    final result = await storage.importData(v1);
+
+    expect(result, isA<Error<void>>());
+    expect(unwrap(await storage.profiles.list()), hasLength(1));
+    expect(unwrap(await storage.downloads.list()), isEmpty);
+    expect(unwrap(await storage.outbox.list()), isEmpty);
+  });
+
+  for (final version in <Object?>[0, 3, '2', null]) {
+    test('archive schema $version is refused and changes no data', () async {
+      unwrap(await storage.profiles.put(profile()));
+      final bytes = _rewrite(unwrap(await storage.exportData()), {
+        'manifest.json': <String, Object?>{
+          'format': 'sudur-user-data',
+          'schemaVersion': version,
+        },
+      });
+
+      final result = await storage.importData(bytes);
+
+      expect(result, isA<Error<void>>());
+      expect(unwrap(await storage.profiles.list()), hasLength(1));
+    });
+  }
 
   test('zip-slip archive entry is rejected', () async {
     final archive = Archive()
@@ -131,6 +199,25 @@ void main() {
 
     expect(result, isA<Error<void>>());
   });
+}
+
+/// Rebuilds [archive] with some entries replaced: a JSON value, or a
+/// function of the old decoded value.
+Uint8List _rewrite(Uint8List archive, Map<String, Object?> replacements) {
+  final result = Archive();
+  for (final entry in ZipDecoder().decodeBytes(archive)) {
+    if (!replacements.containsKey(entry.name)) {
+      result.addFile(entry);
+      continue;
+    }
+    final replacement = replacements[entry.name];
+    final value = replacement is Object? Function(Object?)
+        ? replacement(jsonDecode(utf8.decode(entry.readBytes()!)))
+        // Every entry of an export has content.
+        : replacement;
+    result.addFile(ArchiveFile.string(entry.name, jsonEncode(value)));
+  }
+  return ZipEncoder().encodeBytes(result);
 }
 
 final class _FakeRecordingFileSystem implements RecordingFileSystem {
