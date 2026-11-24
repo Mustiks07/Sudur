@@ -88,8 +88,8 @@
     },
     "refusalRate": {
       "code": "КЧ-06",
-      "value": 0.017857142857142856,
-      "numerator": 7,
+      "value": 0.02040816326530612,
+      "numerator": 8,
       "denominator": 392,
       "ciLow": 0.0,
       "ciHigh": 0.05384615384615385,
@@ -274,8 +274,8 @@
           "ciHigh": null
         },
         "refusalRate": {
-          "value": 0.0,
-          "numerator": 0,
+          "value": 0.013333333333333334,
+          "numerator": 1,
           "denominator": 75,
           "ciLow": null,
           "ciHigh": null
@@ -336,8 +336,8 @@
           "ciHigh": null
         },
         "refusalRate": {
-          "value": 0.0,
-          "numerator": 0,
+          "value": 0.004464285714285714,
+          "numerator": 1,
           "denominator": 224,
           "ciLow": null,
           "ciHigh": null
@@ -458,8 +458,8 @@
           "ciHigh": null
         },
         "refusalRate": {
-          "value": 0.0,
-          "numerator": 0,
+          "value": 0.008064516129032258,
+          "numerator": 1,
           "denominator": 124,
           "ciLow": null,
           "ciHigh": null
@@ -700,8 +700,8 @@
           "ciHigh": null
         },
         "refusalRate": {
-          "value": 0.017857142857142856,
-          "numerator": 7,
+          "value": 0.02040816326530612,
+          "numerator": 8,
           "denominator": 392,
           "ciLow": null,
           "ciHigh": null

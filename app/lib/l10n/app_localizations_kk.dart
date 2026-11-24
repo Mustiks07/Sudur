@@ -96,6 +96,9 @@ class AppLocalizationsKk extends AppLocalizations {
   String get prototypeShareLog => 'Журналды бөлісу';
 
   @override
+  String get prototypeFinishReadingFirst => 'Алдымен оқуды аяқтаңыз';
+
+  @override
   String get prototypeMockNotice =>
       'Дыбыс тек телефонда өңделеді және сақталмайды. «Бастау» түймесін басқаннан кейін Android микрофонға рұқсат сұрайды.';
 

@@ -110,8 +110,14 @@ dart run tools/eval/bin/eval.dart --corpus <папка с записями> --mo
 **Шаг CI** «Quality gate» (в `.github/workflows/ci.yml`, после тестов; ≈ 1,5 с):
 
 ```bash
-dart run tools/eval/bin/eval.dart --corpus tools/eval/reference/corpus --model synthetic --baseline tools/eval/reference/report.json --out build/eval/reference --ci
+dart run tools/eval/bin/eval.dart --corpus tools/eval/reference/corpus --model synthetic --normalizer packages/testing/fixtures/models/normalizer.abdou.json --baseline tools/eval/reference/report.json --out build/eval/reference --ci
 ```
+
+### Распознанный текст — как выдаёт модель (ТЗ 12.3)
+
+Записи набора содержат текст **в том виде, в каком его выдаёт модель** `Abdou/quran-asr`: только 29 «голых» букв (`modelLetters` из `packages/testing`), а не канонические ключи. Оценка идёт с `normalizer.json` модели **строго по ТЗ 12.3** (`packages/testing/fixtures/models/normalizer.abdou.json`). Поэтому нормализатор, который не убирает огласовки, роняет шаг — раньше синтетические записи подавали канонические ключи, и такую ошибку ловил только телефон.
+
+Проверено: со старым нормализатором (пустой `removeRanges`) шаг падает — КЧ-01 0 % (слова не открываются), полнота пропусков и замен 0 %, отказы 91 %. Это закреплено тестом `reference_test.dart`. Там же — сверка двух независимых реализаций правила ТЗ 12.3 на всех 77 433 словах (`normalizer.json` через `quran_text` и `modelLetters`).
 
 ### Эталонный набор
 
@@ -130,7 +136,7 @@ dart run tools/eval/bin/eval.dart --corpus tools/eval/reference/corpus --model s
 | `r10` | Неоднозначность: сура 55 с повторяющимся рефреном |
 | `r11` | Правильное чтение, распознанное с потерянной буквой в каждом третьем длинном слове |
 
-Сейчас: КЧ-01 100 % (589/589), КЧ-02 0 %, точность 100 % (10/10), полнота пропусков 100 % (3/3), замен 100 % (3/3), ложных тревог 0, отказы 1,8 %, самоисправления 100 % (2/2).
+Сейчас (вывод модели, нормализатор ТЗ 12.3): КЧ-01 100 % (589/589), КЧ-02 0 %, точность 100 % (10/10), полнота пропусков 100 % (3/3), замен 100 % (3/3), ложных тревог 0, отказы 2,0 % (8/392), самоисправления 100 % (2/2).
 
 **Проверено намеренной поломкой** (в `main` не сливалось): `substitutionMax` в `check` 0,6 → 0,2 — шаг падает («КЧ-04 Полнота замен: упало на 33.33 п. п.»); `openThreshold` в `follow` 0,70 → 0,95 — шаг падает («КЧ-01 … упало на 1.36 п. п.»).
 
@@ -142,7 +148,7 @@ dart run tools/eval/bin/eval.dart --corpus tools/eval/reference/corpus --model s
 2. Пересчитать отчёт и заменить эталон:
 
    ```bash
-   dart run tools/eval/bin/eval.dart --corpus tools/eval/reference/corpus --model synthetic --baseline tools/eval/reference/report.json --out build/eval/reference
+   dart run tools/eval/bin/eval.dart --corpus tools/eval/reference/corpus --model synthetic --normalizer packages/testing/fixtures/models/normalizer.abdou.json --baseline tools/eval/reference/report.json --out build/eval/reference
    ```
 
    ```bash

@@ -26,6 +26,7 @@
   "prototypeStop": "Завершить",
   "prototypeHint": "Подсказка",
   "prototypeShareLog": "Поделиться журналом",
+  "prototypeFinishReadingFirst": "Сначала завершите чтение",
   "prototypeMockNotice": "Звук обрабатывается только на телефоне и не сохраняется. После нажатия «Начать» Android запросит доступ к микрофону.",
   "mushafAyahSemantics": "Сура {surah}, аят {ayah}. {text}"
 }

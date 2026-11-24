@@ -6,7 +6,7 @@ The owner speaks Russian. Write code, identifiers and code comments in English; 
 
 ## Team, branches, tasks
 
-- Agents: **Opus** (logic and data), **GPT-A** (app and UI), **GPT-B** (audio and recognition), **Astra** (integrator: reviews, merges, keeps `main` green, owns root files, `packages/contracts`, `docs/`, `.github/`).
+- Agents: **Opus** (since 2026-11-24 all code: logic and data, app and UI, audio and recognition; GPT-A and GPT-B left the team), **Astra** (integrator: reviews and gives verdicts, keeps `main` green, owns root files, `packages/contracts`, `docs/`, `.github/`). The owner merges. Branches named `gpt-a/…` and `gpt-b/…` are now continued by Opus: new commits on top, `git merge origin/main`, no rebase.
 - Your task file is in `docs/tasks/`. It lists your branch, the paths you may change, the spec sections, and what "done" means. Read it first.
 - Branch per task: `<agent>/<task-id>-<short>`, e.g. `opus/p06-follow`. Never push to `main`.
 - Before opening a PR: `git fetch origin && git rebase origin/main`, then format, analyze and tests must pass.

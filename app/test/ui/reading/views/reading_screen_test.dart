@@ -102,6 +102,75 @@ void main() {
     expect(pause.onPressed, isNull);
     expect(stop.onPressed, isNotNull);
   });
+
+  testWidgets('model selector opens while the prototype is ready', (
+    tester,
+  ) async {
+    final viewModel = ReadingViewModel(
+      FakePrototypeRepository(),
+      ManualPrototypeSessionFactory(),
+    );
+    await viewModel.initialize();
+    await tester.pumpWidget(_app(viewModel));
+    final before = find.text('Tiny model').evaluate().length;
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('prototype-model-selector')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tiny model').evaluate().length, greaterThan(before));
+  });
+
+  testWidgets('model selector opens after reading is finished', (tester) async {
+    final sessionFactory = ManualPrototypeSessionFactory();
+    final viewModel = ReadingViewModel(
+      FakePrototypeRepository(),
+      sessionFactory,
+    );
+    await viewModel.initialize();
+    await viewModel.start();
+    sessionFactory.session.emit(
+      const SessionFinished(
+        sessionId: 'widget',
+        atMs: 100,
+        words: <SessionWordResult>[],
+        eventIds: <String>[],
+        durationMs: 100,
+        audioWasSuitable: true,
+      ),
+    );
+    await tester.pumpWidget(_app(viewModel));
+    final before = find.text('Tiny model').evaluate().length;
+
+    await tester.tap(
+      find.byKey(const ValueKey<String>('prototype-model-selector')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tiny model').evaluate().length, greaterThan(before));
+  });
+
+  testWidgets('active reading explains why model selection is locked', (
+    tester,
+  ) async {
+    final viewModel = ReadingViewModel(
+      FakePrototypeRepository(),
+      ManualPrototypeSessionFactory(),
+    );
+    await viewModel.initialize();
+    await viewModel.start();
+    await tester.pumpWidget(_app(viewModel));
+
+    final selector = find.byKey(
+      const ValueKey<String>('prototype-model-selector'),
+    );
+    final tooltip = tester.widget<Tooltip>(
+      find.ancestor(of: selector, matching: find.byType(Tooltip)),
+    );
+
+    expect(tooltip.message, 'Finish reading first');
+  });
 }
 
 Widget _app(ReadingViewModel viewModel) =>
