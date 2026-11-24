@@ -38,6 +38,18 @@ final class PrototypeDownloadProgress {
   double get fraction => totalBytes == 0 ? 0 : completedBytes / totalBytes;
 }
 
+/// Verified local paths of the whole-Quran text and derived passages.
+final class PrototypeCanonFiles {
+  /// Creates the paths.
+  const new({required this.textPath, required this.derivedPath});
+
+  /// Whole-Quran text JSON (format 2, `kind: text`, ADR 0004).
+  final String textPath;
+
+  /// Derived content JSON (`kind: derived`): default passages (D01).
+  final String derivedPath;
+}
+
 /// Verified local paths consumed by the prototype repository.
 final class PrototypeResources {
   /// Creates installed resource paths.
@@ -106,9 +118,42 @@ final class PrototypeAssetInstaller {
       _vadLicense,
       ...modelManifest.files,
     ];
+    await _ensureAll(root, resources, onProgress);
+
+    final modelDirectory = Directory(
+      '${root.path}/models/${modelManifest.directoryName}',
+    );
+    await _writeModelMetadata(modelDirectory, modelManifest);
+    return PrototypeResources(
+      contentPath: '${root.path}/content/content_p582_583.json',
+      fontDirectory: '${root.path}/fonts',
+      modelDirectory: modelDirectory.path,
+      vadModelPath: '${root.path}/audio/silero_vad.onnx',
+    );
+  }
+
+  /// Ensures the whole-Quran text (ADR 0004) and the passages derived from
+  /// it (D01) are installed. Both are verbatim files from the repository at
+  /// pinned commits, checked by SHA-256, like the prototype content.
+  Future<PrototypeCanonFiles> installCanon({
+    required void Function(PrototypeDownloadProgress progress) onProgress,
+  }) async {
+    final root = Directory(await _platform.applicationDirectory());
+    await root.create(recursive: true);
+    await _ensureAll(root, const [_quranText, _derived], onProgress);
+    return PrototypeCanonFiles(
+      textPath: '${root.path}/${_quranText.relativePath}',
+      derivedPath: '${root.path}/${_derived.relativePath}',
+    );
+  }
+
+  Future<void> _ensureAll(
+    Directory root,
+    List<_RemoteResource> resources,
+    void Function(PrototypeDownloadProgress progress) onProgress,
+  ) async {
     final total = resources.fold<int>(0, (sum, item) => sum + item.size);
     var completed = 0;
-
     for (final resource in resources) {
       final target = File('${root.path}/${resource.relativePath}');
       await _ensureResource(
@@ -133,17 +178,6 @@ final class PrototypeAssetInstaller {
         ),
       );
     }
-
-    final modelDirectory = Directory(
-      '${root.path}/models/${modelManifest.directoryName}',
-    );
-    await _writeModelMetadata(modelDirectory, modelManifest);
-    return PrototypeResources(
-      contentPath: '${root.path}/content/content_p582_583.json',
-      fontDirectory: '${root.path}/fonts',
-      modelDirectory: modelDirectory.path,
-      vadModelPath: '${root.path}/audio/silero_vad.onnx',
-    );
   }
 
   Future<void> _ensureResource(
@@ -283,6 +317,31 @@ const _content = _RemoteResource(
       'packages/testing/fixtures/content_p582_583.json',
   sha256: '928326595eea80edfac7733b7cb9c5b596457ab5627b9ccf3888cb3537c075d5',
   size: 73326,
+);
+
+// Tanzil text, verbatim (ADR 0004), at a pinned commit of `main`.
+const _quranText = _RemoteResource(
+  displayName: 'quran-text',
+  relativePath: 'content/quran_text.json',
+  url:
+      'https://raw.githubusercontent.com/Mustiks07/Sudur/'
+      'b8cb9c60ce87d3787312938114cc47d1e6ec6f08/'
+      'packages/testing/fixtures/quran_text.json',
+  sha256: '245635a81aa337b2cbb7577a0b5585c0520e28f78aa0e87dec5526e234820b72',
+  size: 1582449,
+);
+
+// Default passages computed from the text by `content_build` (D01, #23),
+// pinned to the commit of that pull request until it is merged.
+const _derived = _RemoteResource(
+  displayName: 'derived-passages',
+  relativePath: 'content/derived.json',
+  url:
+      'https://raw.githubusercontent.com/Mustiks07/Sudur/'
+      '4a348fb87c54cd52fef93382c6e464df139e57b4/'
+      'packages/testing/fixtures/derived.json',
+  sha256: 'b7d8272e01aa062fa6f896fea3f093e82d9767d1d6de96da3de63cab47b66789',
+  size: 151895,
 );
 
 const _vadModel = _RemoteResource(
