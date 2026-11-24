@@ -222,6 +222,46 @@ void main() {
     expect(unwrap(await events.listForSession(sessionId)), hasLength(1));
   });
 
+  test('a removed download is not listed', () async {
+    unwrap(
+      await storage.downloads.put(
+        const (
+          packageId: 'model-1',
+          kind: DownloadKind.model,
+          activeVersion: '1',
+          pendingVersion: null,
+          state: DownloadState.installed,
+          bytesTotal: 1,
+          bytesDone: 1,
+          updatedAt: 1,
+        ),
+      ),
+    );
+    unwrap(await storage.downloads.remove('model-1'));
+    unwrap(await storage.downloads.remove('never-installed'));
+    expect(unwrap(await storage.downloads.list()), isEmpty);
+  });
+
+  test('transaction keeps writes of every repository together or not at all',
+      () async {
+    final failed = await storage.transaction(() async {
+      unwrap(await storage.profiles.put(profile()));
+      unwrap(await storage.units.putUnit(unit()));
+      throw const StorageException('stop');
+    });
+    expect(failed, isA<Error<Object?>>());
+    expect(unwrap(await storage.profiles.list()), isEmpty);
+
+    final done = await storage.transaction(() async {
+      unwrap(await storage.profiles.put(profile()));
+      unwrap(await storage.units.putUnit(unit()));
+      return 2;
+    });
+    expect(unwrap(done), 2);
+    expect(unwrap(await storage.profiles.list()), hasLength(1));
+    expect(unwrap(await storage.units.listForProfile(profileId)), hasLength(1));
+  });
+
   test('invalid identifiers are returned as Result.error', () async {
     final valid = profile();
     final result = await storage.profiles.put(

@@ -23,11 +23,15 @@ dependencies:
   material_ui: 1.11.0
   mushaf_view:
     path: ../packages/mushaf_view
+  planner:
+    path: ../packages/planner
   provider: 6.1.5+1
   quran_text:
     path: ../packages/quran_text
   session:
     path: ../packages/session
+  storage:
+    path: ../packages/storage
 
 dev_dependencies:
   check:
