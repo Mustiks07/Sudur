@@ -60,6 +60,59 @@ void main() {
     expect(find.text('Surah 78 prototype'), findsOneWidget);
   });
 
+  testWidgets('check events appear in the list with kind and state', (
+    tester,
+  ) async {
+    final repository = FakePrototypeRepository();
+    final sessionFactory = ManualPrototypeSessionFactory();
+    final viewModel = ReadingViewModel(repository, sessionFactory);
+    await viewModel.initialize();
+    await tester.pumpWidget(
+      ChangeNotifierProvider<ReadingViewModel>.value(
+        value: viewModel,
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ReadingScreen(),
+        ),
+      ),
+    );
+    await viewModel.start();
+    sessionFactory.session.emit(
+      const CheckEvent(
+        sessionId: 'test',
+        atMs: 100,
+        eventId: 'c1',
+        kind: CheckKind.substitution,
+        state: CheckState.confirmed,
+        words: [firstWord],
+        expectedText: 'expected-test',
+        heardText: 'heard-test',
+        audioStartMs: 0,
+        audioEndMs: 100,
+        versions: ReadingVersions(
+          modelId: 'model',
+          modelVersion: '1',
+          rulesVersion: '1',
+          textVersion: '1',
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('prototype-checks')), findsOneWidget);
+    expect(find.textContaining('Substitution · 78:1:1 · confirmed'), findsOne);
+    expect(find.textContaining('heard: heard-test'), findsOneWidget);
+    expect(
+      tester
+          .widget<Switch>(find.byKey(const ValueKey('prototype-strict')))
+          .onChanged,
+      isNull,
+      reason: 'strict mode is locked while reading',
+    );
+  });
+
   testWidgets('start is disabled while the session worker is starting', (
     tester,
   ) async {

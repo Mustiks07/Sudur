@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:contracts/contracts.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mushaf_view/mushaf_view.dart';
@@ -172,6 +173,19 @@ final class _ReadyBody extends StatelessWidget {
                       onPressed: viewModel.useMicrophone,
                       child: Text(localizations.prototypeUseMicrophone),
                     ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Switch(
+                        key: const ValueKey('prototype-strict'),
+                        value: viewModel.strict,
+                        onChanged: viewModel.canSelectModel
+                            ? (value) => viewModel.setStrict(value: value)
+                            : null,
+                      ),
+                      Text(localizations.prototypeStrict),
+                    ],
+                  ),
                 ],
               ),
               if (viewModel.selectedWavName case final fileName?)
@@ -220,10 +234,81 @@ final class _ReadyBody extends StatelessWidget {
             },
           ),
         ),
+        if (viewModel.checks.isNotEmpty) _CheckList(checks: viewModel.checks),
         _SessionControls(viewModel: viewModel),
       ],
     );
   }
+}
+
+/// Check events of the run, newest first: what, where, and its state
+/// (docs/tz 10.5, 11.3). Recognized text is shown as recognized (ПО-13).
+final class _CheckList extends StatelessWidget {
+  const new({required this.checks});
+
+  final List<PrototypeCheck> checks;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final style = Theme.of(context).textTheme.bodySmall;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 140),
+      child: ListView(
+        key: const ValueKey('prototype-checks'),
+        shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        children: <Widget>[
+          for (final check in checks.reversed)
+            ListTile(
+              dense: true,
+              leading: Icon(_stateIcon(check.state)),
+              title: Text(
+                '${_kind(l10n, check.kind)} · ${check.words.firstOrNull ?? ''}'
+                '${check.jumpTo == null ? '' : ' → ${check.jumpTo}'}'
+                ' · ${_state(l10n, check.state)}',
+              ),
+              subtitle: check.heardText.isEmpty && check.expectedText.isEmpty
+                  ? null
+                  : Text(
+                      l10n.prototypeCheckTexts(
+                        check.expectedText,
+                        check.heardText,
+                      ),
+                      style: style,
+                      textDirection: TextDirection.rtl,
+                    ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  static String _kind(AppLocalizations l10n, CheckKind kind) => switch (kind) {
+    CheckKind.omission => l10n.checkOmission,
+    CheckKind.substitution => l10n.checkSubstitution,
+    CheckKind.insertion => l10n.checkInsertion,
+    CheckKind.jump => l10n.checkJump,
+    CheckKind.repetition => l10n.checkRepetition,
+    CheckKind.hesitation => l10n.checkHesitation,
+  };
+
+  static String _state(AppLocalizations l10n, CheckState state) =>
+      switch (state) {
+        CheckState.preliminary => l10n.checkPreliminary,
+        CheckState.confirmed => l10n.checkConfirmed,
+        CheckState.corrected => l10n.checkCorrected,
+        CheckState.unverified => l10n.checkUnverified,
+        CheckState.disputed => l10n.checkDisputed,
+      };
+
+  static IconData _stateIcon(CheckState state) => switch (state) {
+    CheckState.preliminary => Icons.help_outline,
+    CheckState.confirmed => Icons.error_outline,
+    CheckState.corrected => Icons.check_circle_outline,
+    CheckState.unverified => Icons.hearing_disabled,
+    CheckState.disputed => Icons.flag_outlined,
+  };
 }
 
 final class _ModelSelector extends StatelessWidget {

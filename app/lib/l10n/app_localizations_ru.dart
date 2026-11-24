@@ -106,4 +106,45 @@ class AppLocalizationsRu extends AppLocalizations {
   String mushafAyahSemantics(int surah, int ayah, String text) {
     return 'Сура $surah, аят $ayah. $text';
   }
+
+  @override
+  String get prototypeStrict => 'Строгий режим';
+
+  @override
+  String get checkOmission => 'Пропуск';
+
+  @override
+  String get checkSubstitution => 'Замена';
+
+  @override
+  String get checkInsertion => 'Лишнее слово';
+
+  @override
+  String get checkJump => 'Перескок';
+
+  @override
+  String get checkRepetition => 'Повтор';
+
+  @override
+  String get checkHesitation => 'Запинка';
+
+  @override
+  String get checkPreliminary => 'предварительно';
+
+  @override
+  String get checkConfirmed => 'подтверждено';
+
+  @override
+  String get checkCorrected => 'исправлено';
+
+  @override
+  String get checkUnverified => 'не удалось проверить';
+
+  @override
+  String get checkDisputed => 'оспорено';
+
+  @override
+  String prototypeCheckTexts(String expected, String heard) {
+    return 'ожидалось: $expected · услышано: $heard';
+  }
 }

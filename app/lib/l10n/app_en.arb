@@ -48,5 +48,19 @@
       "ayah": {"type": "int"},
       "text": {"type": "String"}
     }
-  }
+  },
+  "prototypeStrict": "Strict mode",
+  "checkOmission": "Omission",
+  "checkSubstitution": "Substitution",
+  "checkInsertion": "Extra word",
+  "checkJump": "Jump",
+  "checkRepetition": "Repetition",
+  "checkHesitation": "Hesitation",
+  "checkPreliminary": "preliminary",
+  "checkConfirmed": "confirmed",
+  "checkCorrected": "corrected",
+  "checkUnverified": "could not check",
+  "checkDisputed": "disputed",
+  "prototypeCheckTexts": "expected: {expected} · heard: {heard}",
+  "@prototypeCheckTexts": {"placeholders": {"expected": {"type": "String"}, "heard": {"type": "String"}}}
 }

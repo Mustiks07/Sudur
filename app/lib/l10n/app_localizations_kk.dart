@@ -106,4 +106,45 @@ class AppLocalizationsKk extends AppLocalizations {
   String mushafAyahSemantics(int surah, int ayah, String text) {
     return '$surah-сүре, $ayah-аят. $text';
   }
+
+  @override
+  String get prototypeStrict => '[Нужен перевод]';
+
+  @override
+  String get checkOmission => '[Нужен перевод]';
+
+  @override
+  String get checkSubstitution => '[Нужен перевод]';
+
+  @override
+  String get checkInsertion => '[Нужен перевод]';
+
+  @override
+  String get checkJump => '[Нужен перевод]';
+
+  @override
+  String get checkRepetition => '[Нужен перевод]';
+
+  @override
+  String get checkHesitation => '[Нужен перевод]';
+
+  @override
+  String get checkPreliminary => '[Нужен перевод]';
+
+  @override
+  String get checkConfirmed => '[Нужен перевод]';
+
+  @override
+  String get checkCorrected => '[Нужен перевод]';
+
+  @override
+  String get checkUnverified => '[Нужен перевод]';
+
+  @override
+  String get checkDisputed => '[Нужен перевод]';
+
+  @override
+  String prototypeCheckTexts(String expected, String heard) {
+    return '[Нужен перевод] $expected $heard';
+  }
 }

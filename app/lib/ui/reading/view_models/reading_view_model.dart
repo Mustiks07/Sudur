@@ -35,6 +35,52 @@ enum ReadingPrototypeState {
   error,
 }
 
+/// One check event as the screen shows it now (docs/tz 10.5, 11.3).
+final class PrototypeCheck {
+  /// Creates the item.
+  const new({
+    required this.eventId,
+    required this.kind,
+    required this.state,
+    required this.words,
+    required this.expectedText,
+    required this.heardText,
+    this.jumpTo,
+  });
+
+  /// Stable event id.
+  final String eventId;
+
+  /// Omission, substitution, jump, …
+  final CheckKind kind;
+
+  /// Current state: preliminary, confirmed, corrected, …
+  final CheckState state;
+
+  /// Affected expected words.
+  final List<WordKey> words;
+
+  /// Canonical text of [words], for display only.
+  final String expectedText;
+
+  /// What was recognized, exactly as recognized (ПО-13).
+  final String heardText;
+
+  /// Where the reader jumped to.
+  final WordKey? jumpTo;
+
+  /// The same item in [next] state.
+  PrototypeCheck withState(CheckState next) => PrototypeCheck(
+    eventId: eventId,
+    kind: kind,
+    state: next,
+    words: words,
+    expectedText: expectedText,
+    heardText: heardText,
+    jumpTo: jumpTo,
+  );
+}
+
 /// UI state and commands for the standalone reading prototype.
 final class ReadingViewModel extends ChangeNotifier {
   /// Creates a view model with injected data and session boundaries.
@@ -61,6 +107,22 @@ final class ReadingViewModel extends ChangeNotifier {
   var _activeInputUsesWav = false;
   var _prepareGeneration = 0;
   var _disposed = false;
+
+  /// Check events of the current run, in the order they happened.
+  List<PrototypeCheck> get checks => List.unmodifiable(_checks.values);
+  final Map<String, PrototypeCheck> _checks = <String, PrototypeCheck>{};
+
+  /// Whether the next run uses strict behavior (docs/tz 13.3, ЭЧ-05): after
+  /// a mistake the session waits for the right word or a hint.
+  bool get strict => _strict;
+  var _strict = false;
+
+  /// Changes the behavior of the next run; not while one is going.
+  void setStrict({required bool value}) {
+    if (!canSelectModel || value == _strict) return;
+    _strict = value;
+    notifyListeners();
+  }
 
   /// Current screen lifecycle.
   ReadingPrototypeState get state => _state;
@@ -179,6 +241,7 @@ final class ReadingViewModel extends ChangeNotifier {
       _renderedPages.clear();
       _pageRenderStartedAt.clear();
       _checkWords.clear();
+      _checks.clear();
       _currentWord = null;
       _state = ReadingPrototypeState.ready;
       notifyListeners();
@@ -209,6 +272,7 @@ final class ReadingViewModel extends ChangeNotifier {
       }
       _currentWord = null;
       _checkWords.clear();
+      _checks.clear();
     }
     final session = _session;
     if (session == null) {
@@ -218,7 +282,7 @@ final class ReadingViewModel extends ChangeNotifier {
     }
     final wavPath = _wavPath;
     _activeInputUsesWav = wavPath != null;
-    _measurementLog?.start(usesWav: wavPath != null);
+    _measurementLog?.start(usesWav: wavPath != null, strict: _strict);
     try {
       await session.configureInput(
         wavPath == null
@@ -234,7 +298,7 @@ final class ReadingViewModel extends ChangeNotifier {
         fromWordKey: bundle.sessionWords.first,
         toWordKey: bundle.sessionWords.last,
         mode: SessionMode.recall,
-        behavior: SessionBehavior.gentle,
+        behavior: _strict ? SessionBehavior.strict : SessionBehavior.gentle,
       ),
     );
     if (!started) return;
@@ -368,6 +432,15 @@ final class ReadingViewModel extends ChangeNotifier {
             ? MushafWordState.revealedByHint
             : MushafWordState.correct;
       case CheckEvent():
+        _checks[event.eventId] = PrototypeCheck(
+          eventId: event.eventId,
+          kind: event.kind,
+          state: event.state,
+          words: List<WordKey>.unmodifiable(event.words),
+          expectedText: event.expectedText,
+          heardText: event.heardText,
+          jumpTo: event.jumpTo,
+        );
         _checkWords[event.eventId] = List<WordKey>.unmodifiable(event.words);
         final state = _wordStateForCheck(event.state);
         for (final word in event.words) {
@@ -380,6 +453,8 @@ final class ReadingViewModel extends ChangeNotifier {
       case HintGiven():
         _wordStates[event.wordKey] = MushafWordState.revealedByHint;
       case CheckStateChanged():
+        final check = _checks[event.eventId];
+        if (check != null) _checks[event.eventId] = check.withState(event.to);
         final words = _checkWords[event.eventId] ?? const <WordKey>[];
         final state = _wordStateForCheck(event.to);
         for (final word in words) {
