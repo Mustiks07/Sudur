@@ -1,4 +1,5 @@
 import 'package:contracts/contracts.dart';
+import 'package:testing/src/model_output.dart';
 
 /// Model description used by scripted results.
 const RecognizerInfo scriptedRecognizerInfo = RecognizerInfo(
@@ -13,16 +14,23 @@ const RecognizerInfo scriptedRecognizerInfo = RecognizerInfo(
 /// them (docs/tz 10.3): growing partial results while a segment is open,
 /// then one final result for the whole segment.
 ///
-/// Words are given by the test. Build them from the canon (search keys of
-/// words, with skips, repeats and letter distortions), never from typed
-/// Arabic text.
+/// Words are given by the test. Build them from the canon, never from
+/// typed Arabic text — preferably as the model outputs them
+/// ([modelLetters], docs/tz 12.3) with [modelOutput] set, so a normalizer
+/// that does not match the model cannot go unnoticed.
 final class RecognitionScript {
-  /// Creates an empty script.
+  /// Creates an empty script. With [modelOutput], every word must be model
+  /// output (the 29 bare letters, [isModelOutput]); anything else, such as
+  /// a canonical search key with harakat, is an [ArgumentError].
   RecognitionScript({
     this.sessionId = 'test-session',
     this.msPerWord = 400,
     this.separator = ' ',
+    this.modelOutput = false,
   });
+
+  /// Whether words must look like real model output.
+  final bool modelOutput;
 
   /// Session id put into every result.
   final String sessionId;
@@ -94,6 +102,17 @@ final class RecognitionScript {
     int endMs, {
     required bool isFinal,
   }) {
+    if (modelOutput) {
+      for (final w in words) {
+        if (!isModelOutput(w)) {
+          throw ArgumentError.value(
+            w.runes.map((r) => r.toRadixString(16)).join(' '),
+            'word',
+            'not model output (29 bare letters, docs/tz 12.3)',
+          );
+        }
+      }
+    }
     _results.add(
       RecognitionResult(
         sessionId: sessionId,

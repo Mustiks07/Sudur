@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:contracts/contracts.dart';
+import 'package:testing/src/model_output.dart';
 
 /// A [SpeechRecognizer] that plays back prepared results instead of
 /// recognizing audio (docs/tz СЛ-07, ПО-12: work on saved results).
@@ -13,6 +14,33 @@ final class FakeSpeechRecognizer implements SpeechRecognizer {
     this.loadResult = const Result<void>.ok(null),
     this.onCloseSegment,
   });
+
+  /// A recognizer that plays only text the model could output: the 29
+  /// bare letters of docs/tz 12.3 ([isModelOutput]). Throws an
+  /// [ArgumentError] for a result that holds anything else — for example
+  /// canonical search keys with harakat.
+  factory FakeSpeechRecognizer.modelOutput(
+    List<RecognitionResult> script, {
+    required RecognizerInfo info,
+    Result<void> loadResult = const Result<void>.ok(null),
+    void Function(int segmentId)? onCloseSegment,
+  }) {
+    for (final r in script) {
+      if (!isModelOutput(r.text)) {
+        throw ArgumentError.value(
+          r.segmentId,
+          'segment',
+          'result text is not model output (docs/tz 12.3)',
+        );
+      }
+    }
+    return FakeSpeechRecognizer(
+      script,
+      info: info,
+      loadResult: loadResult,
+      onCloseSegment: onCloseSegment,
+    );
+  }
 
   /// Results to play, in order.
   final List<RecognitionResult> script;
