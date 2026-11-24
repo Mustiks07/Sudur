@@ -87,6 +87,29 @@ final class FakeAppUserRepository implements AppUserRepository {
       extraReview: today.extraReview,
       condition: today.condition,
       inProgress: true,
+      currentStepId: stepId,
+    );
+    return Result.ok(today);
+  }
+
+  /// Steps finished through [finishTodayStep], in order.
+  final List<String> finished = <String>[];
+
+  @override
+  Future<Result<TodayDashboardData>> finishTodayStep(String stepId) async {
+    finished.add(stepId);
+    final steps = [
+      for (final step in today.steps)
+        if (step.id == stepId) step.withDone(done: true) else step,
+    ];
+    final allDone = steps.every((step) => step.done);
+    today = TodayDashboardData(
+      date: today.date,
+      approximateMinutes: today.approximateMinutes,
+      steps: steps,
+      extraReview: today.extraReview,
+      condition: allDone ? TodayCondition.completed : today.condition,
+      inProgress: !allDone,
     );
     return Result.ok(today);
   }

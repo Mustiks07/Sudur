@@ -383,4 +383,23 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get deleteAllDataWarning =>
       'Будут удалены профиль, занятия, настройки и сохранённые записи. Это действие нельзя отменить.';
+
+  @override
+  String get back => 'Назад';
+
+  @override
+  String get readingDone => 'Готово';
+
+  @override
+  String get readingRangeUnavailable =>
+      'Этот отрывок пока нельзя открыть: в прототипе есть только страницы 582–583. Экран чтения для всего Корана появится в следующей версии.';
+
+  @override
+  String get stepComingSoon =>
+      'Этот шаг появится в следующей версии приложения.';
+
+  @override
+  String todaySummary(int count) {
+    return 'Сделано шагов: $count';
+  }
 }

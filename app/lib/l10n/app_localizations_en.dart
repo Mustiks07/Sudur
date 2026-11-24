@@ -377,4 +377,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAllDataWarning => '[Нужен перевод]';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get readingDone => 'Done';
+
+  @override
+  String get readingRangeUnavailable =>
+      'This passage cannot be opened yet: the prototype has only pages 582–583. Reading the whole Quran comes in the next version.';
+
+  @override
+  String get stepComingSoon =>
+      'This step comes in the next version of the app.';
+
+  @override
+  String todaySummary(int count) {
+    return 'Steps done: $count';
+  }
 }

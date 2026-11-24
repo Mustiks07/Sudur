@@ -3,6 +3,8 @@
 // ignore_for_file: unnecessary_type_name_in_constructor
 // ignore_for_file: sort_constructors_first
 
+import 'package:contracts/contracts.dart';
+
 /// Interface languages supported by the application.
 enum AppLanguage { ru, kk, uz, en }
 
@@ -202,8 +204,11 @@ final class TodayStepData {
     required this.reason,
     required this.estimatedSeconds,
     this.surah,
+    this.from,
+    this.to,
     this.requiresVoice = false,
     this.selfCheck = false,
+    this.done = false,
   });
 
   /// Stable step identifier.
@@ -221,11 +226,34 @@ final class TodayStepData {
   /// Surah number, when known; names always come from content later.
   final int? surah;
 
+  /// First word to read, for steps with words (passage, hard spot, check).
+  final WordKey? from;
+
+  /// Last word to read, inclusive.
+  final WordKey? to;
+
   /// Whether this step normally uses voice checking.
   final bool requiresVoice;
 
   /// Whether voice checking was replaced by self-check.
   final bool selfCheck;
+
+  /// Whether the step was finished today.
+  final bool done;
+
+  /// The same step with [done] changed.
+  TodayStepData withDone({required bool done}) => TodayStepData(
+    id: id,
+    kind: kind,
+    reason: reason,
+    estimatedSeconds: estimatedSeconds,
+    surah: surah,
+    from: from,
+    to: to,
+    requiresVoice: requiresVoice,
+    selfCheck: selfCheck,
+    done: done,
+  );
 }
 
 /// Special state rendered above the stable daily plan.
@@ -248,6 +276,7 @@ final class TodayDashboardData {
     required List<TodayStepData> extraReview,
     required this.condition,
     this.inProgress = false,
+    this.currentStepId,
   }) : steps = List.unmodifiable(steps),
        extraReview = List.unmodifiable(extraReview);
 
@@ -268,6 +297,24 @@ final class TodayDashboardData {
 
   /// Whether the main action becomes “Continue”.
   final bool inProgress;
+
+  /// The step that was started and is not finished yet.
+  final String? currentStepId;
+
+  /// The step the main action opens: the started one, else the first one
+  /// not done; `null` when every step is done.
+  TodayStepData? get nextStep {
+    for (final step in steps) {
+      if (step.id == currentStepId && !step.done) return step;
+    }
+    for (final step in steps) {
+      if (!step.done) return step;
+    }
+    return null;
+  }
+
+  /// Steps finished today.
+  int get doneCount => steps.where((step) => step.done).length;
 }
 
 /// Settings displayed under “More”.

@@ -12,8 +12,12 @@
   "prototypeDownloadProgress": "Downloading {resource}: {percent}%",
   "@prototypeDownloadProgress": {
     "placeholders": {
-      "resource": {"type": "String"},
-      "percent": {"type": "int"}
+      "resource": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "prototypeRetry": "Try again",
@@ -25,14 +29,24 @@
   "prototypePhoneResult": "Speed ratio: {ratio}; decode: {decodeMs} ms",
   "@prototypePhoneResult": {
     "placeholders": {
-      "ratio": {"type": "String"},
-      "decodeMs": {"type": "int"}
+      "ratio": {
+        "type": "String"
+      },
+      "decodeMs": {
+        "type": "int"
+      }
     }
   },
   "prototypeChooseWav": "Choose WAV",
   "prototypeUseMicrophone": "Use microphone",
   "prototypeWavSelected": "Measurement input: {fileName}",
-  "@prototypeWavSelected": {"placeholders": {"fileName": {"type": "String"}}},
+  "@prototypeWavSelected": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "prototypeStart": "Start",
   "prototypePause": "Pause",
   "prototypeResume": "Resume",
@@ -44,9 +58,15 @@
   "mushafAyahSemantics": "Surah {surah}, ayah {ayah}. {text}",
   "@mushafAyahSemantics": {
     "placeholders": {
-      "surah": {"type": "int"},
-      "ayah": {"type": "int"},
-      "text": {"type": "String"}
+      "surah": {
+        "type": "int"
+      },
+      "ayah": {
+        "type": "int"
+      },
+      "text": {
+        "type": "String"
+      }
     }
   },
   "retry": "[Нужен перевод]",
@@ -135,5 +155,17 @@
   "exportData": "[Нужен перевод]",
   "importData": "[Нужен перевод]",
   "deleteAllData": "[Нужен перевод]",
-  "deleteAllDataWarning": "[Нужен перевод]"
+  "deleteAllDataWarning": "[Нужен перевод]",
+  "back": "Back",
+  "readingDone": "Done",
+  "readingRangeUnavailable": "This passage cannot be opened yet: the prototype has only pages 582–583. Reading the whole Quran comes in the next version.",
+  "stepComingSoon": "This step comes in the next version of the app.",
+  "todaySummary": "Steps done: {count}",
+  "@todaySummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

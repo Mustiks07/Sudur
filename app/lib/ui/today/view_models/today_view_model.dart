@@ -41,15 +41,33 @@ final class TodayViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> start() async {
-    final current = data;
-    if (current == null || current.steps.isEmpty) return;
-    await startAt(current.steps.first.id);
+  /// Starts or continues today: the started step, else the first one not
+  /// done. Returns the step to open, or `null` if there is none or saving
+  /// failed.
+  Future<TodayStepData?> start() async {
+    final next = data?.nextStep;
+    if (next == null) return null;
+    return await startAt(next.id);
   }
 
-  /// Starts the selected visible step.
-  Future<void> startAt(String stepId) async {
-    _accept(await _repository.startToday(stepId));
+  /// Starts the selected step (tap on a row, or extra review) and remembers
+  /// it, so the main action becomes “Continue”. Returns the step to open.
+  Future<TodayStepData?> startAt(String stepId) async {
+    final result = await _repository.startToday(stepId);
+    _accept(result);
+    notifyListeners();
+    if (result is! Ok<TodayDashboardData>) return null;
+    for (final step in [...result.value.steps, ...result.value.extraReview]) {
+      if (step.id == stepId) return step;
+    }
+    return null;
+  }
+
+  /// Called when the screen of [stepId] closes: a finished step is marked
+  /// done (and the day ends when all are); otherwise it stays “Continue”.
+  Future<void> returnedFrom(String stepId, {required bool finished}) async {
+    if (!finished) return;
+    _accept(await _repository.finishTodayStep(stepId));
     notifyListeners();
   }
 

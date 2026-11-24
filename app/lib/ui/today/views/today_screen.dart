@@ -1,7 +1,9 @@
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/data/models/user_models.dart';
 import 'package:sudur/l10n/app_localizations.dart';
+import 'package:sudur/routing/app_router.dart';
 import 'package:sudur/ui/core/theme/app_tokens.dart';
 import 'package:sudur/ui/core/widgets/load_state_widgets.dart';
 import 'package:sudur/ui/today/view_models/today_view_model.dart';
@@ -36,22 +38,32 @@ class TodayScreen extends StatelessWidget {
         const SizedBox(height: AppSpacing.small),
         Text(_condition(l10n, data.condition)),
         const SizedBox(height: AppSpacing.large),
-        if (data.steps.isEmpty)
+        if (data.nextStep == null)
           _DayComplete(
+            doneCount: data.doneCount,
             extraReview: data.extraReview,
             onReview: data.extraReview.isEmpty
                 ? null
-                : () => viewModel.startAt(data.extraReview.first.id),
+                : () => _open(
+                    context,
+                    viewModel,
+                    viewModel.startAt(data.extraReview.first.id),
+                  ),
           )
         else ...[
           for (final step in data.steps)
             Card(
               child: InkWell(
-                onTap: () => viewModel.startAt(step.id),
+                onTap: step.done
+                    ? null
+                    : () =>
+                          _open(context, viewModel, viewModel.startAt(step.id)),
                 onLongPress: () => _confirmSkip(context, viewModel, step.id),
                 borderRadius: BorderRadius.circular(AppRadius.medium),
                 child: ListTile(
-                  leading: Icon(_icon(step.kind)),
+                  leading: Icon(
+                    step.done ? Icons.check_circle : _icon(step.kind),
+                  ),
                   title: Text(_title(l10n, step)),
                   subtitle: Text(_reason(l10n, step.reason)),
                   trailing: step.selfCheck
@@ -66,7 +78,7 @@ class TodayScreen extends StatelessWidget {
           const SizedBox(height: AppSpacing.medium),
           FilledButton.icon(
             key: const ValueKey('today-main-action'),
-            onPressed: viewModel.start,
+            onPressed: () => _open(context, viewModel, viewModel.start()),
             icon: const Icon(Icons.play_arrow),
             label: Text(
               data.inProgress ? l10n.continueAction : l10n.startAction,
@@ -75,6 +87,18 @@ class TodayScreen extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  /// Opens the step [starting] resolves to and reports how it ended.
+  Future<void> _open(
+    BuildContext context,
+    TodayViewModel viewModel,
+    Future<TodayStepData?> starting,
+  ) async {
+    final step = await starting;
+    if (step == null || !context.mounted) return;
+    final finished = await context.push<bool>(locationOfStep(step));
+    await viewModel.returnedFrom(step.id, finished: finished ?? false);
   }
 
   Future<void> _confirmSkip(
@@ -146,7 +170,12 @@ class TodayScreen extends StatelessWidget {
 }
 
 class _DayComplete extends StatelessWidget {
-  const _DayComplete({required this.extraReview, required this.onReview});
+  const _DayComplete({
+    required this.doneCount,
+    required this.extraReview,
+    required this.onReview,
+  });
+  final int doneCount;
   final List<TodayStepData> extraReview;
   final VoidCallback? onReview;
 
@@ -161,6 +190,10 @@ class _DayComplete extends StatelessWidget {
             const Icon(Icons.check_circle_outline, size: AppIconSize.large),
             const SizedBox(height: AppSpacing.medium),
             Text(l10n.dayDone, style: Theme.of(context).textTheme.titleLarge),
+            if (doneCount > 0) ...[
+              const SizedBox(height: AppSpacing.small),
+              Text(l10n.todaySummary(doneCount)),
+            ],
             if (extraReview.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.medium),
               OutlinedButton(onPressed: onReview, child: Text(l10n.reviewMore)),

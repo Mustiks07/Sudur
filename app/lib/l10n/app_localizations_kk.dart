@@ -377,4 +377,21 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get deleteAllDataWarning => '[Нужен перевод]';
+
+  @override
+  String get back => '[Нужен перевод]';
+
+  @override
+  String get readingDone => '[Нужен перевод]';
+
+  @override
+  String get readingRangeUnavailable => '[Нужен перевод]';
+
+  @override
+  String get stepComingSoon => '[Нужен перевод]';
+
+  @override
+  String todaySummary(int count) {
+    return '[Нужен перевод] $count';
+  }
 }

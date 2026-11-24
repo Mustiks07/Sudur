@@ -797,6 +797,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'[Нужен перевод]'**
   String get deleteAllDataWarning;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @readingDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get readingDone;
+
+  /// No description provided for @readingRangeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This passage cannot be opened yet: the prototype has only pages 582–583. Reading the whole Quran comes in the next version.'**
+  String get readingRangeUnavailable;
+
+  /// No description provided for @stepComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'This step comes in the next version of the app.'**
+  String get stepComingSoon;
+
+  /// No description provided for @todaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps done: {count}'**
+  String todaySummary(int count);
 }
 
 class _AppLocalizationsDelegate

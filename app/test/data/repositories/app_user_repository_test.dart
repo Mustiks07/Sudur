@@ -273,6 +273,35 @@ void main() {
     }
   });
 
+  test(
+    'steps carry their words; started and finished steps are saved',
+    () async {
+      _value(await repository.completeOnboarding(draft()));
+      final today = _value(await repository.loadToday());
+      final reading = today.steps.where((s) => s.surah == 78).toList();
+      expect(reading, isNotEmpty);
+      for (final step in reading) {
+        expect(step.from?.surah, 78);
+        expect(step.to?.surah, 78);
+        expect(step.from!.compareTo(step.to!), lessThanOrEqualTo(0));
+        // Both checked just above.
+      }
+
+      final first = today.steps.first;
+      _value(await repository.startToday(first.id));
+      expect(_value(await repository.loadToday()).currentStepId, first.id);
+
+      for (final step in today.steps) {
+        _value(await repository.finishTodayStep(step.id));
+      }
+      final done = _value(await repository.loadToday());
+      expect(done.steps.every((s) => s.done), isTrue);
+      expect(done.condition, TodayCondition.completed);
+      expect(done.nextStep, isNull);
+      expect(done.inProgress, isFalse);
+    },
+  );
+
   test('planner state survives its JSON', () {
     final at = DateTime.utc(2026, 11, 20, 9);
     const memory = PlanMemoryState(

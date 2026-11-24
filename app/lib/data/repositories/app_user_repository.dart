@@ -45,6 +45,9 @@ abstract interface class AppUserRepository {
   /// Marks today's plan as started at [stepId].
   Future<Result<TodayDashboardData>> startToday(String stepId);
 
+  /// Marks [stepId] finished; when every step is finished the day is done.
+  Future<Result<TodayDashboardData>> finishTodayStep(String stepId);
+
   /// Removes one step for today without changing future scheduling.
   Future<Result<TodayDashboardData>> skipTodayStep(String stepId);
 
@@ -407,13 +410,30 @@ final class StorageAppUserRepository implements AppUserRepository {
             !plan.extraReview.any((step) => step.id == stepId)) {
           throw const FormatException('The selected step is not in today.');
         }
-        return TodayDashboardData(
-          date: plan.date,
-          approximateMinutes: plan.approximateMinutes,
-          steps: plan.steps,
-          extraReview: plan.extraReview,
-          condition: plan.condition,
-          inProgress: true,
+        return _copyPlan(plan, inProgress: true, currentStepId: stepId);
+      });
+
+  @override
+  Future<Result<TodayDashboardData>> finishTodayStep(String stepId) =>
+      _changeToday((plan) {
+        final inSteps = plan.steps.any((step) => step.id == stepId);
+        final inExtra = plan.extraReview.any((step) => step.id == stepId);
+        if (!inSteps && !inExtra) {
+          throw const FormatException('The finished step is not in today.');
+        }
+        List<TodayStepData> mark(List<TodayStepData> steps) => [
+          for (final step in steps)
+            if (step.id == stepId) step.withDone(done: true) else step,
+        ];
+        final steps = mark(plan.steps);
+        final allDone = steps.every((step) => step.done);
+        return _copyPlan(
+          plan,
+          steps: steps,
+          extraReview: mark(plan.extraReview),
+          condition: allDone ? TodayCondition.completed : plan.condition,
+          inProgress: !allDone,
+          currentStepId: null,
         );
       });
 
@@ -423,17 +443,37 @@ final class StorageAppUserRepository implements AppUserRepository {
         final remaining = plan.steps
             .where((step) => step.id != stepId)
             .toList(growable: false);
-        return TodayDashboardData(
-          date: plan.date,
+        final allDone = remaining.every((step) => step.done);
+        return _copyPlan(
+          plan,
           approximateMinutes: _minutesFor(remaining),
           steps: remaining,
-          extraReview: plan.extraReview,
-          condition: remaining.isEmpty
-              ? TodayCondition.completed
-              : plan.condition,
-          inProgress: plan.inProgress,
+          condition: allDone ? TodayCondition.completed : plan.condition,
+          currentStepId: plan.currentStepId == stepId
+              ? null
+              : plan.currentStepId,
         );
       });
+
+  TodayDashboardData _copyPlan(
+    TodayDashboardData plan, {
+    int? approximateMinutes,
+    List<TodayStepData>? steps,
+    List<TodayStepData>? extraReview,
+    TodayCondition? condition,
+    bool? inProgress,
+    Object? currentStepId = _keep,
+  }) => TodayDashboardData(
+    date: plan.date,
+    approximateMinutes: approximateMinutes ?? plan.approximateMinutes,
+    steps: steps ?? plan.steps,
+    extraReview: extraReview ?? plan.extraReview,
+    condition: condition ?? plan.condition,
+    inProgress: inProgress ?? plan.inProgress,
+    currentStepId: identical(currentStepId, _keep)
+        ? plan.currentStepId
+        : currentStepId as String?,
+  );
 
   Future<Result<TodayDashboardData>> _changeToday(
     TodayDashboardData Function(TodayDashboardData plan) change,
@@ -485,7 +525,7 @@ final class StorageAppUserRepository implements AppUserRepository {
     );
     final built = _planner.build(request);
     var steps = built.steps
-        .map((step) => _todayStep(step, storedUnits))
+        .map((step) => _todayStep(step, storedUnits, canon))
         .toList(growable: false);
     if (steps.isEmpty) {
       steps = <TodayStepData>[
@@ -509,7 +549,7 @@ final class StorageAppUserRepository implements AppUserRepository {
       approximateMinutes: _minutesFor(steps),
       steps: steps,
       extraReview: built.extraReview
-          .map((step) => _todayStep(step, storedUnits))
+          .map((step) => _todayStep(step, storedUnits, canon))
           .toList(growable: false),
       condition: built.isDiagnostic
           ? TodayCondition.returning
@@ -641,7 +681,11 @@ final class StorageAppUserRepository implements AppUserRepository {
     return card;
   }
 
-  TodayStepData _todayStep(PlanStep step, List<UnitData> units) {
+  TodayStepData _todayStep(
+    PlanStep step,
+    List<UnitData> units,
+    CanonIndex? canon,
+  ) {
     UnitData? unit;
     for (final candidate in units) {
       if (candidate.id == step.unitId) unit = candidate;
@@ -659,12 +703,17 @@ final class StorageAppUserRepository implements AppUserRepository {
       reason: TodayStepReason.values.byName(step.reason.name),
       estimatedSeconds: step.estimatedSeconds,
       surah: unit?.surah,
+      from: _keyOf(canon, unit?.fromWordIndex),
+      to: _keyOf(canon, unit?.toWordIndex ?? unit?.fromWordIndex),
       requiresVoice:
           kind == TodayStepKind.diagnostic ||
           kind == TodayStepKind.passage ||
           kind == TodayStepKind.hardSpot,
     );
   }
+
+  WordKey? _keyOf(CanonIndex? canon, int? wordIndex) =>
+      canon == null || wordIndex == null ? null : canon.keyOf(wordIndex);
 
   Future<TodayDashboardData> _withCurrentLimitState(
     StorageService storage,
@@ -696,13 +745,17 @@ final class StorageAppUserRepository implements AppUserRepository {
             reason: step.reason,
             estimatedSeconds: step.estimatedSeconds,
             surah: step.surah,
+            from: step.from,
+            to: step.to,
             requiresVoice: step.requiresVoice,
             selfCheck: step.requiresVoice && (freeLimitReached || modelMissing),
+            done: step.done,
           ),
       ],
       extraReview: plan.extraReview,
       condition: condition,
       inProgress: plan.inProgress,
+      currentStepId: plan.currentStepId,
     );
   }
 
@@ -725,6 +778,7 @@ final class StorageAppUserRepository implements AppUserRepository {
       'approximateMinutes': plan.approximateMinutes,
       'condition': plan.condition.name,
       'inProgress': plan.inProgress,
+      'currentStepId': plan.currentStepId,
       'steps': plan.steps.map(_encodeStep).toList(),
       'extraReview': plan.extraReview.map(_encodeStep).toList(),
     },
@@ -736,7 +790,10 @@ final class StorageAppUserRepository implements AppUserRepository {
     'reason': step.reason.name,
     'estimatedSeconds': step.estimatedSeconds,
     'surah': step.surah,
+    'from': step.from?.toString(),
+    'to': step.to?.toString(),
     'requiresVoice': step.requiresVoice,
+    'done': step.done,
   };
 
   TodayDashboardData _decodeToday(List<Object?> json) {
@@ -763,7 +820,11 @@ final class StorageAppUserRepository implements AppUserRepository {
               reason: TodayStepReason.values.byName(item['reason']! as String),
               estimatedSeconds: item['estimatedSeconds']! as int,
               surah: item['surah'] as int?,
+              from: _wordKeyOrNull(item['from']),
+              to: _wordKeyOrNull(item['to']),
               requiresVoice: item['requiresVoice']! as bool,
+              // Plans saved before steps could be finished have no `done`.
+              done: item['done'] as bool? ?? false,
             );
           })
           .toList(growable: false);
@@ -776,6 +837,7 @@ final class StorageAppUserRepository implements AppUserRepository {
       extraReview: steps('extraReview'),
       condition: TodayCondition.values.byName(root['condition']! as String),
       inProgress: root['inProgress']! as bool,
+      currentStepId: root['currentStepId'] as String?,
     );
   }
 
@@ -1044,6 +1106,14 @@ Future<Result<T>> _guard<T>(Future<T> Function() operation) async {
 T _unwrap<T>(Result<T> result) => switch (result) {
   Ok<T>(:final value) => value,
   Error<T>(:final error) => throw error,
+};
+
+const Object _keep = Object();
+
+WordKey? _wordKeyOrNull(Object? value) => switch (value) {
+  null => null,
+  final String key => WordKey.parse(key),
+  _ => throw const FormatException('A word key must be a string.'),
 };
 
 String _localDate(DateTime value) {
