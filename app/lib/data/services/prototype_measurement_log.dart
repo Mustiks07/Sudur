@@ -24,9 +24,16 @@ final class PrototypeMeasurementLog {
   var _positionUpdates = 0;
   var _wordsRevealed = 0;
   String? _lastErrorReason;
+  String _behavior = 'gentle';
+  // Kind and current state of every check event: counts only, no text.
+  final Map<String, (CheckKind, CheckState)> _checks = {};
+  var _checkStateChanges = 0;
 
   /// Starts a fresh measurement run.
-  void start({required bool usesWav}) {
+  void start({required bool usesWav, bool strict = false}) {
+    _behavior = strict ? 'strict' : 'gentle';
+    _checks.clear();
+    _checkStateChanges = 0;
     _entries.removeWhere((entry) => entry['type'] != 'MushafPageRendered');
     _input = usesWav ? 'wav' : 'microphone';
     _sessionClockOffsetMs = null;
@@ -52,6 +59,13 @@ final class PrototypeMeasurementLog {
     }
     if (event is PositionUpdate) _positionUpdates += 1;
     if (event is WordRevealed) _wordsRevealed += 1;
+    if (event is CheckEvent) _checks[event.eventId] = (event.kind, event.state);
+    if (event is CheckStateChanged) {
+      _checkStateChanges += 1;
+      if (_checks[event.eventId] case (final kind, _)) {
+        _checks[event.eventId] = (kind, event.to);
+      }
+    }
     final sessionClockOffsetMs = _sessionClockOffsetMs;
     _entries.add(<String, Object?>{
       'type': event.runtimeType.toString(),
@@ -104,6 +118,14 @@ final class PrototypeMeasurementLog {
     });
   }
 
+  Map<String, int> _count(String Function((CheckKind, CheckState)) key) {
+    final counts = <String, int>{};
+    for (final check in _checks.values) {
+      counts.update(key(check), (n) => n + 1, ifAbsent: () => 1);
+    }
+    return counts;
+  }
+
   /// Serializes a readable JSON document for sharing.
   String toJson() =>
       const JsonEncoder.withIndent('  ').convert(<String, Object?>{
@@ -121,6 +143,13 @@ final class PrototypeMeasurementLog {
           'positionUpdates': _positionUpdates,
           'wordsRevealed': _wordsRevealed,
           'lastErrorReason': _lastErrorReason,
+        },
+        'behavior': _behavior,
+        'checks': <String, Object?>{
+          'total': _checks.length,
+          'byKind': _count((check) => check.$1.name),
+          'byState': _count((check) => check.$2.name),
+          'stateChanges': _checkStateChanges,
         },
         'events': _entries,
       });

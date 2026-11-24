@@ -275,6 +275,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Surah {surah}, ayah {ayah}. {text}'**
   String mushafAyahSemantics(int surah, int ayah, String text);
+
+  /// No description provided for @prototypeStrict.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict mode'**
+  String get prototypeStrict;
+
+  /// No description provided for @checkOmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Omission'**
+  String get checkOmission;
+
+  /// No description provided for @checkSubstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'Substitution'**
+  String get checkSubstitution;
+
+  /// No description provided for @checkInsertion.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra word'**
+  String get checkInsertion;
+
+  /// No description provided for @checkJump.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump'**
+  String get checkJump;
+
+  /// No description provided for @checkRepetition.
+  ///
+  /// In en, this message translates to:
+  /// **'Repetition'**
+  String get checkRepetition;
+
+  /// No description provided for @checkHesitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Hesitation'**
+  String get checkHesitation;
+
+  /// No description provided for @checkPreliminary.
+  ///
+  /// In en, this message translates to:
+  /// **'preliminary'**
+  String get checkPreliminary;
+
+  /// No description provided for @checkConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'confirmed'**
+  String get checkConfirmed;
+
+  /// No description provided for @checkCorrected.
+  ///
+  /// In en, this message translates to:
+  /// **'corrected'**
+  String get checkCorrected;
+
+  /// No description provided for @checkUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'could not check'**
+  String get checkUnverified;
+
+  /// No description provided for @checkDisputed.
+  ///
+  /// In en, this message translates to:
+  /// **'disputed'**
+  String get checkDisputed;
+
+  /// No description provided for @prototypeCheckTexts.
+  ///
+  /// In en, this message translates to:
+  /// **'expected: {expected} · heard: {heard}'**
+  String prototypeCheckTexts(String expected, String heard);
 }
 
 class _AppLocalizationsDelegate

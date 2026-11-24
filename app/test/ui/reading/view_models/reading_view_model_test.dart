@@ -204,6 +204,56 @@ void main() {
     expect(viewModel.state, ReadingPrototypeState.finished);
   });
 
+  test('check events are listed with their current state (Q6)', () async {
+    await viewModel.start();
+    sessionFactory.session
+      ..emit(_check('omit', CheckKind.omission, firstWord))
+      ..emit(_check('jump', CheckKind.jump, secondWord, jumpTo: firstWord))
+      ..emit(
+        const CheckStateChanged(
+          sessionId: 'test',
+          atMs: 130,
+          eventId: 'omit',
+          from: CheckState.preliminary,
+          to: CheckState.confirmed,
+          reason: 'context',
+        ),
+      );
+
+    expect(viewModel.checks.map((c) => (c.eventId, c.kind, c.state)), [
+      ('omit', CheckKind.omission, CheckState.confirmed),
+      ('jump', CheckKind.jump, CheckState.preliminary),
+    ]);
+    expect(viewModel.checks.last.jumpTo, firstWord);
+    expect(viewModel.checks.last.heardText, 'heard-test');
+
+    final log = jsonDecode(viewModel.measurementJson) as Map<String, Object?>;
+    expect(log['checks'], <String, Object?>{
+      'total': 2,
+      'byKind': <String, Object?>{'omission': 1, 'jump': 1},
+      'byState': <String, Object?>{'confirmed': 1, 'preliminary': 1},
+      'stateChanges': 1,
+    });
+    expect(viewModel.measurementJson, isNot(contains('heard-test')));
+    expect(viewModel.measurementJson, isNot(contains('expected-test')));
+  });
+
+  test(
+    'strict mode goes into the next start, not into a running one',
+    () async {
+      viewModel.setStrict(value: true);
+      expect(viewModel.strict, isTrue);
+      await viewModel.start();
+      final start = sessionFactory.session.commands.whereType<StartSession>();
+      expect(start.single.behavior, SessionBehavior.strict);
+
+      viewModel.setStrict(value: false);
+      expect(viewModel.strict, isTrue, reason: 'locked while reading');
+      final log = jsonDecode(viewModel.measurementJson) as Map<String, Object?>;
+      expect(log['behavior'], 'strict');
+    },
+  );
+
   test(
     'WAV and model selection pass only through injected boundaries',
     () async {
@@ -422,3 +472,24 @@ void main() {
     expect(viewModel.state, ReadingPrototypeState.running);
   });
 }
+
+CheckEvent _check(String id, CheckKind kind, WordKey word, {WordKey? jumpTo}) =>
+    CheckEvent(
+      sessionId: 'test',
+      atMs: 100,
+      eventId: id,
+      kind: kind,
+      state: CheckState.preliminary,
+      words: [word],
+      expectedText: 'expected-test',
+      heardText: 'heard-test',
+      jumpTo: jumpTo,
+      audioStartMs: 0,
+      audioEndMs: 100,
+      versions: const ReadingVersions(
+        modelId: 'model',
+        modelVersion: '1',
+        rulesVersion: '1',
+        textVersion: '1',
+      ),
+    );

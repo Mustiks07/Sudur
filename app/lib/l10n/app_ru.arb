@@ -28,5 +28,18 @@
   "prototypeShareLog": "Поделиться журналом",
   "prototypeFinishReadingFirst": "Сначала завершите чтение",
   "prototypeMockNotice": "Звук обрабатывается только на телефоне и не сохраняется. После нажатия «Начать» Android запросит доступ к микрофону.",
-  "mushafAyahSemantics": "Сура {surah}, аят {ayah}. {text}"
+  "mushafAyahSemantics": "Сура {surah}, аят {ayah}. {text}",
+  "prototypeStrict": "Строгий режим",
+  "checkOmission": "Пропуск",
+  "checkSubstitution": "Замена",
+  "checkInsertion": "Лишнее слово",
+  "checkJump": "Перескок",
+  "checkRepetition": "Повтор",
+  "checkHesitation": "Запинка",
+  "checkPreliminary": "предварительно",
+  "checkConfirmed": "подтверждено",
+  "checkCorrected": "исправлено",
+  "checkUnverified": "не удалось проверить",
+  "checkDisputed": "оспорено",
+  "prototypeCheckTexts": "ожидалось: {expected} · услышано: {heard}"
 }

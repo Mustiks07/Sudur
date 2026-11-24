@@ -28,5 +28,18 @@
   "prototypeShareLog": "Журналды бөлісу",
   "prototypeFinishReadingFirst": "Алдымен оқуды аяқтаңыз",
   "prototypeMockNotice": "Дыбыс тек телефонда өңделеді және сақталмайды. «Бастау» түймесін басқаннан кейін Android микрофонға рұқсат сұрайды.",
-  "mushafAyahSemantics": "{surah}-сүре, {ayah}-аят. {text}"
+  "mushafAyahSemantics": "{surah}-сүре, {ayah}-аят. {text}",
+  "prototypeStrict": "[Нужен перевод]",
+  "checkOmission": "[Нужен перевод]",
+  "checkSubstitution": "[Нужен перевод]",
+  "checkInsertion": "[Нужен перевод]",
+  "checkJump": "[Нужен перевод]",
+  "checkRepetition": "[Нужен перевод]",
+  "checkHesitation": "[Нужен перевод]",
+  "checkPreliminary": "[Нужен перевод]",
+  "checkConfirmed": "[Нужен перевод]",
+  "checkCorrected": "[Нужен перевод]",
+  "checkUnverified": "[Нужен перевод]",
+  "checkDisputed": "[Нужен перевод]",
+  "prototypeCheckTexts": "[Нужен перевод] {expected} {heard}"
 }

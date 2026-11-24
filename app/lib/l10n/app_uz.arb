@@ -28,5 +28,18 @@
   "prototypeShareLog": "Jurnalni ulashish",
   "prototypeFinishReadingFirst": "Avval o‘qishni yakunlang",
   "prototypeMockNotice": "Audio faqat telefonda qayta ishlanadi va saqlanmaydi. «Boshlash» tugmasidan keyin Android mikrofonga ruxsat so‘raydi.",
-  "mushafAyahSemantics": "{surah}-sura, {ayah}-oyat. {text}"
+  "mushafAyahSemantics": "{surah}-sura, {ayah}-oyat. {text}",
+  "prototypeStrict": "[Нужен перевод]",
+  "checkOmission": "[Нужен перевод]",
+  "checkSubstitution": "[Нужен перевод]",
+  "checkInsertion": "[Нужен перевод]",
+  "checkJump": "[Нужен перевод]",
+  "checkRepetition": "[Нужен перевод]",
+  "checkHesitation": "[Нужен перевод]",
+  "checkPreliminary": "[Нужен перевод]",
+  "checkConfirmed": "[Нужен перевод]",
+  "checkCorrected": "[Нужен перевод]",
+  "checkUnverified": "[Нужен перевод]",
+  "checkDisputed": "[Нужен перевод]",
+  "prototypeCheckTexts": "[Нужен перевод] {expected} {heard}"
 }
