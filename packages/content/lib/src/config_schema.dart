@@ -65,7 +65,7 @@ const Map<String, List<ParamSpec>> configSchema = {
     ParamSpec(
       'segmentEndPauseMs',
       ParamKind.integer,
-      700,
+      300,
       min: 100,
       max: 10000,
     ),
@@ -239,7 +239,7 @@ final class AudioConfig {
     ringBufferSec: 30,
     preRollMs: 300,
     postRollMs: 300,
-    segmentEndPauseMs: 700,
+    segmentEndPauseMs: 300,
     maxSegmentMs: 15000,
     reviewSnippetPadMs: 3000,
     quietDbfs: -42,

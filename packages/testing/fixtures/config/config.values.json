@@ -3,7 +3,7 @@
     "ringBufferSec": 30,
     "preRollMs": 300,
     "postRollMs": 300,
-    "segmentEndPauseMs": 700,
+    "segmentEndPauseMs": 300,
     "maxSegmentMs": 15000,
     "reviewSnippetPadMs": 3000,
     "quietDbfs": -42,
