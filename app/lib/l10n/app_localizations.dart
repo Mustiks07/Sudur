@@ -258,10 +258,16 @@ abstract class AppLocalizations {
   /// **'Share log'**
   String get prototypeShareLog;
 
+  /// No description provided for @prototypeFinishReadingFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish reading first'**
+  String get prototypeFinishReadingFirst;
+
   /// No description provided for @prototypeMockNotice.
   ///
   /// In en, this message translates to:
-  /// **'S05 is not merged yet: the screen uses a scripted session. WAV mode and the real microphone pipeline will connect through ADR 0005.'**
+  /// **'Audio is processed only on this phone and is not saved. Android will request microphone access after you tap Start.'**
   String get prototypeMockNotice;
 
   /// No description provided for @mushafAyahSemantics.

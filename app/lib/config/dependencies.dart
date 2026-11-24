@@ -7,6 +7,7 @@ import 'package:planner/planner.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/config/app_config.dart';
 import 'package:sudur/config/e01_config.dart';
+import 'package:sudur/config/prototype_real_session.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
 import 'package:sudur/data/repositories/prototype_repository.dart';
 import 'package:sudur/data/services/app_file_service.dart';
@@ -67,7 +68,7 @@ class AppDependencies extends StatelessWidget {
         ),
         Provider<AppUserRepository>.value(value: userRepository),
         Provider<PrototypeReadingSessionFactory>.value(
-          value: const ScriptedPrototypeReadingSessionFactory(),
+          value: RealPrototypeReadingSessionFactory(),
         ),
         ChangeNotifierProvider<HomeViewModel>(create: (_) => HomeViewModel()),
         ChangeNotifierProvider<StartViewModel>(

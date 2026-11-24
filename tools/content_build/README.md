@@ -4,7 +4,7 @@
 
 - **Владелец:** Opus
 - **Задача:** [P03](../../docs/tasks/P03-content-build.md)
-- **ТЗ:** 4.8, 4.9, 6.1, 12.2, ПР-02, ПР-04
+- **ТЗ:** 4.8, 4.9, 6.1, 8.10, 12.2, 12.3, ПР-02, ПР-04
 
 Правила: [`AGENTS.md`](../../AGENTS.md). Публичный интерфейс — только `lib/content_build.dart`; внутренности — в `lib/src/`.
 
@@ -33,6 +33,26 @@ dart run tools/content_build/bin/content_build.dart
 Параметры сборки — в [`config/prototype.json`](config/prototype.json): страницы (582–583), адреса источников, лицензии, ожидаемые числа и закреплённая контрольная сумма канона.
 
 Флаги: `--fixture-out <путь>` — копия страниц (так собирается `packages/testing/fixtures/content_p582_583.json`), `--text-fixture-out <путь>` — копия текста всего Корана (`packages/testing/fixtures/quran_text.json`), `--no-fonts`, `--refresh`, `--verbose`.
+
+## Манифест пакетов (O05)
+
+`bin/manifest.dart` собирает манифест по ТЗ 12.3 из готовых архивов и подписывает его Ed25519:
+
+```bash
+dart run tools/content_build/bin/manifest.dart --spec packages.json --files <папка с архивами> --key-id main-2026 --key-file <путь вне репозитория> --out manifest.json
+```
+
+- `packages.json` — что входит в манифест: `{"packages": [{"id", "kind", "version", "file", "url", "license", "minAppVersion", "dependsOn"}]}`. Размер и SHA-256 инструмент считает сам по файлу `file` из `--files`.
+- Подписывается канонический JSON без `signature` (ключи по алфавиту, без пробелов, только целые числа) — то же правило, что у проверки в `packages/content`. Совпадение проверяет тестовый манифест: его делает этот инструмент, а проверяет `content`.
+- **Закрытый ключ — только снаружи** (ТЗ 8.10): файл вне репозитория (`--key-file`) или переменная `SUDUR_MANIFEST_SIGNING_KEY` (base64 от 32 байт). Настоящий ключ из файла внутри репозитория инструмент не примет.
+- `--new-key <путь вне репозитория>` с `--key-id` — создать новый ключ и напечатать открытый ключ для приложения; `--print-public-key` — напечатать открытый ключ существующего.
+- Тестовые ключи (`test-…`) — только с `--allow-test-key`. Так собран тестовый манифест:
+
+  ```bash
+  dart run tools/content_build/bin/manifest.dart --spec packages/testing/fixtures/manifest/packages.test.json --files packages/testing/fixtures/manifest --key-id test-main --key-file packages/testing/fixtures/manifest/test-keys.TEST-ONLY.json --allow-test-key --issued-at 2026-11-18T00:00:00Z --out packages/testing/fixtures/manifest/manifest.test.json
+  ```
+
+Как выпускать пакеты и что делать при компрометации ключа — в README [`packages/content`](../../packages/content/README.md).
 
 ## Проверки
 

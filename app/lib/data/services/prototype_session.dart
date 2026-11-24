@@ -7,6 +7,33 @@ sealed class PrototypeSessionInput {
   const new();
 }
 
+/// Text-free diagnostic signal used only by the prototype measurement log.
+enum PrototypeDiagnosticKind {
+  /// Voice activity opened a speech segment.
+  segmentOpened,
+
+  /// Voice activity closed a speech segment.
+  segmentClosed,
+
+  /// ASR emitted a growing partial hypothesis.
+  recognitionPartial,
+
+  /// ASR emitted a final hypothesis for one segment.
+  recognitionFinal,
+}
+
+/// Safe diagnostic metadata; recognized text and audio are never included.
+final class PrototypeSessionDiagnostic {
+  /// Creates one diagnostic counter input.
+  const new(this.kind, {this.decodeMs});
+
+  /// Pipeline stage that advanced.
+  final PrototypeDiagnosticKind kind;
+
+  /// ASR decode duration, only for recognition results.
+  final int? decodeMs;
+}
+
 /// Uses the microphone once the real S05 session is connected.
 final class PrototypeMicrophoneInput extends PrototypeSessionInput {
   /// Creates microphone input.
@@ -30,6 +57,12 @@ abstract interface class PrototypeReadingSession {
   /// Events consumed by `ReadingViewModel`.
   Stream<SessionEvent> get events;
 
+  /// Terminal worker failures that are not tied to one command.
+  Stream<Exception> get failures;
+
+  /// Text-free pipeline diagnostics consumed by the measurement log.
+  Stream<PrototypeSessionDiagnostic> get diagnostics;
+
   /// Selects the source used by the next [StartSession] command.
   Future<void> configureInput(PrototypeSessionInput input);
 
@@ -43,7 +76,42 @@ abstract interface class PrototypeReadingSession {
 /// Creates sessions for canonical reading-order word lists.
 abstract interface class PrototypeReadingSessionFactory {
   /// Creates one session instance.
-  PrototypeReadingSession create(List<WordKey> words);
+  PrototypeReadingSession create(PrototypeSessionConfiguration configuration);
+}
+
+/// Isolate-sendable inputs required to build the real reading session.
+final class PrototypeSessionConfiguration {
+  /// Creates verified session inputs installed by the prototype repository.
+  const new({
+    required this.words,
+    required this.contentJson,
+    required this.normalizerJson,
+    required this.modelDirectory,
+    required this.vadModelPath,
+    required this.textVersion,
+    required this.rulesVersion,
+  });
+
+  /// Canonical reading range shown by the prototype.
+  final List<WordKey> words;
+
+  /// Canonical content JSON; parsed inside the session worker.
+  final String contentJson;
+
+  /// Normalizer supplied with the selected ASR package.
+  final String normalizerJson;
+
+  /// Verified ASR package directory.
+  final String modelDirectory;
+
+  /// Verified Silero VAD model path.
+  final String vadModelPath;
+
+  /// Canonical content revision used by events.
+  final String textVersion;
+
+  /// Follow/check parameter revision used by events.
+  final String rulesVersion;
 }
 
 /// Scripted session used until S05 is merged and retained for UI tests.
@@ -71,6 +139,13 @@ final class ScriptedPrototypeReadingSession implements PrototypeReadingSession {
 
   @override
   Stream<SessionEvent> get events => _events.stream;
+
+  @override
+  Stream<Exception> get failures => const Stream<Exception>.empty();
+
+  @override
+  Stream<PrototypeSessionDiagnostic> get diagnostics =>
+      const Stream<PrototypeSessionDiagnostic>.empty();
 
   @override
   Future<void> configureInput(PrototypeSessionInput input) async {
@@ -248,8 +323,8 @@ final class ScriptedPrototypeReadingSessionFactory
   const new();
 
   @override
-  PrototypeReadingSession create(List<WordKey> words) =>
-      ScriptedPrototypeReadingSession(words);
+  PrototypeReadingSession create(PrototypeSessionConfiguration configuration) =>
+      ScriptedPrototypeReadingSession(configuration.words);
 }
 
 final class _PrototypeSessionException implements Exception {

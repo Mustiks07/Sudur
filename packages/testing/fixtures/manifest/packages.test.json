@@ -1,0 +1,14 @@
+{
+  "packages": [
+    {
+      "id": "test-hello",
+      "kind": "config",
+      "version": "1.0.0",
+      "file": "hello-1.0.0.zip",
+      "url": "https://cdn.example.invalid/test-hello-1.0.0.zip",
+      "license": "TEST-ONLY",
+      "minAppVersion": "1.0.0",
+      "dependsOn": []
+    }
+  ]
+}

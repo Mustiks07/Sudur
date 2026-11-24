@@ -28,12 +28,20 @@ dependencies:
   provider: 6.1.5+1
   quran_text:
     path: ../packages/quran_text
+  session:
+    path: ../packages/session
   storage:
     path: ../packages/storage
 
 dev_dependencies:
+  check:
+    path: ../packages/check
   flutter_test:
     sdk: flutter
+  follow:
+    path: ../packages/follow
+  testing:
+    path: ../packages/testing
 
 flutter:
   generate: true
