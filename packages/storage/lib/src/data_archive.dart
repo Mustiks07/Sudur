@@ -8,6 +8,10 @@ import 'package:storage/src/json_types.dart';
 import 'package:storage/src/storage_exception.dart';
 
 const _archiveFormat = 'sudur-user-data';
+
+/// The oldest archive schema that can still be imported. Each newer schema
+/// adds its row changes to [_upgradeRow], the same as the database migration.
+const _oldestArchiveVersion = 1;
 const _manifestName = 'manifest.json';
 
 /// Resource limits applied before an imported archive is decoded.
@@ -96,15 +100,26 @@ final class UserDataArchiveService {
         }
 
         final manifest = _decodeObject(entries[_manifestName], _manifestName);
+        final version = manifest['schemaVersion'];
         if (manifest['format'] != _archiveFormat ||
-            manifest['schemaVersion'] != _database.schemaVersion) {
+            version is! int ||
+            version < _oldestArchiveVersion ||
+            version > _database.schemaVersion) {
+          // A newer app wrote it: its rows may mean what this app cannot
+          // know, so it is refused rather than guessed.
           throw const FormatException('Unsupported user-data archive version.');
         }
 
+        // Every row is upgraded to the current schema first, then checked,
+        // and only then written in one transaction.
         final decoded = <_TableSpec, List<Map<String, Object?>>>{};
         for (final table in _tables) {
           final name = '${table.name}.json';
-          decoded[table] = _decodeRows(entries[name], table);
+          decoded[table] = _decodeRows(
+            entries[name],
+            table,
+            upgrade: (row) => _upgradeRow(table, row, from: version),
+          );
         }
 
         await _database.transaction(() async {
@@ -170,10 +185,26 @@ Map<String, Object?> _decodeObject(ArchiveFile? entry, String name) {
   return result;
 }
 
+/// Upgrades one archived [row] of [table] written with schema [from] to the
+/// current schema, as `SudurDatabase.migration` upgrades the database.
+Map<String, Object?> _upgradeRow(
+  _TableSpec table,
+  Map<String, Object?> row, {
+  required int from,
+}) {
+  var upgraded = row;
+  // Schema 2 (O04): the download state `pending` became `queued`.
+  if (from < 2 && table.name == 'download' && row['state'] == 'pending') {
+    upgraded = <String, Object?>{...upgraded, 'state': 'queued'};
+  }
+  return upgraded;
+}
+
 List<Map<String, Object?>> _decodeRows(
   ArchiveFile? entry,
-  _TableSpec table,
-) {
+  _TableSpec table, {
+  required Map<String, Object?> Function(Map<String, Object?> row) upgrade,
+}) {
   final bytes = entry?.readBytes();
   if (bytes == null) {
     throw FormatException('${table.name}.json has no content.');
@@ -194,15 +225,16 @@ List<Map<String, Object?>> _decodeRows(
       }
       row[key] = pair.value;
     }
+    final upgraded = upgrade(row);
     final expected = table.columns.map((column) => column.name).toSet();
-    if (row.keys.toSet().difference(expected).isNotEmpty ||
-        expected.difference(row.keys.toSet()).isNotEmpty) {
+    if (upgraded.keys.toSet().difference(expected).isNotEmpty ||
+        expected.difference(upgraded.keys.toSet()).isNotEmpty) {
       throw FormatException('${table.name}.json has invalid columns.');
     }
     for (final column in table.columns) {
-      column.validateJson(row[column.name]);
+      column.validateJson(upgraded[column.name]);
     }
-    return Map<String, Object?>.unmodifiable(row);
+    return Map<String, Object?>.unmodifiable(upgraded);
   }).toList(growable: false);
 }
 
