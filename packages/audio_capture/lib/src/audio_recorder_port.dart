@@ -30,15 +30,23 @@ abstract interface class AudioRecorderPort {
 }
 
 /// Production adapter around `record`.
+///
+/// The platform recorder is created on first use, not with the adapter: a
+/// session (and its tests) can be built without touching the microphone
+/// plugin, as before the port existed.
 final class RecordAudioRecorderPort implements AudioRecorderPort {
   /// Creates an adapter, optionally around an existing recorder.
-  RecordAudioRecorderPort([AudioRecorder? recorder])
-      : _recorder = recorder ?? AudioRecorder();
+  RecordAudioRecorderPort([AudioRecorder? recorder]) : _created = recorder;
 
-  final AudioRecorder _recorder;
+  AudioRecorder? _created;
+
+  AudioRecorder get _recorder => _created ??= AudioRecorder();
 
   @override
-  Future<void> dispose() => _recorder.dispose();
+  Future<void> dispose() async {
+    // Nothing to release if the recorder was never used.
+    await _created?.dispose();
+  }
 
   @override
   Future<bool> hasPermission() => _recorder.hasPermission();
