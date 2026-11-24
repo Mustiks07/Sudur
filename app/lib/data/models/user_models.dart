@@ -144,6 +144,47 @@ final class OnboardingDraft {
   }
 }
 
+/// Names of a surah as the content package has them; `null` where the
+/// package has no name yet (names are never written in code).
+final class SurahNameData {
+  /// Creates the names.
+  const SurahNameData({
+    required this.number,
+    this.arabic,
+    this.russian,
+    this.kazakh,
+    this.uzbek,
+  });
+
+  /// Surah number.
+  final int number;
+
+  /// Arabic name.
+  final String? arabic;
+
+  /// Russian name.
+  final String? russian;
+
+  /// Kazakh name.
+  final String? kazakh;
+
+  /// Uzbek name.
+  final String? uzbek;
+
+  /// Name in [language], else the Arabic one, else `null`.
+  String? nameIn(AppLanguage language) =>
+      switch (language) {
+        AppLanguage.ru || AppLanguage.en => russian,
+        AppLanguage.kk => kazakh,
+        AppLanguage.uz => uzbek,
+      } ??
+      arabic;
+
+  /// All known names.
+  Iterable<String> get all =>
+      [arabic, russian, kazakh, uzbek].whereType<String>();
+}
+
 /// Profile data exposed to application ViewModels.
 final class AppUserProfile {
   /// Creates an application profile.

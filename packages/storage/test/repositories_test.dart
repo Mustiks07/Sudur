@@ -222,6 +222,26 @@ void main() {
     expect(unwrap(await events.listForSession(sessionId)), hasLength(1));
   });
 
+  test('a removed download is not listed', () async {
+    unwrap(
+      await storage.downloads.put(
+        const (
+          packageId: 'model-1',
+          kind: DownloadKind.model,
+          activeVersion: '1',
+          pendingVersion: null,
+          state: DownloadState.installed,
+          bytesTotal: 1,
+          bytesDone: 1,
+          updatedAt: 1,
+        ),
+      ),
+    );
+    unwrap(await storage.downloads.remove('model-1'));
+    unwrap(await storage.downloads.remove('never-installed'));
+    expect(unwrap(await storage.downloads.list()), isEmpty);
+  });
+
   test('transaction keeps writes of every repository together or not at all',
       () async {
     final failed = await storage.transaction(() async {

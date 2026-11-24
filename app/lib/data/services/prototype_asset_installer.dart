@@ -132,6 +132,14 @@ final class PrototypeAssetInstaller {
     );
   }
 
+  /// The installed, verified content JSON (pages 582–583 with their
+  /// surahs), or `null` before the first install. Never downloads.
+  Future<String?> installedContentPath() async {
+    final root = await _platform.applicationDirectory();
+    final file = File('$root/${_content.relativePath}');
+    return await _isValid(file, _content) ? file.path : null;
+  }
+
   /// Ensures the whole-Quran text (ADR 0004) and the passages derived from
   /// it (D01) are installed. Both are verbatim files from the repository at
   /// pinned commits, checked by SHA-256, like the prototype content.

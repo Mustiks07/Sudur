@@ -78,6 +78,13 @@ final class FakeAppUserRepository implements AppUserRepository {
   @override
   Future<Result<TodayDashboardData>> loadToday() async => Result.ok(today);
 
+  /// Names returned by [loadSurahNames].
+  Map<int, SurahNameData> surahNames = const {};
+
+  @override
+  Future<Result<Map<int, SurahNameData>>> loadSurahNames() async =>
+      Result.ok(surahNames);
+
   @override
   Future<Result<TodayDashboardData>> startToday(String stepId) async {
     today = TodayDashboardData(

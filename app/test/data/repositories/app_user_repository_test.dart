@@ -302,6 +302,10 @@ void main() {
     },
   );
 
+  test('surah names: none before content is installed', () async {
+    expect(_value(await repository.loadSurahNames()), isEmpty);
+  });
+
   test('planner state survives its JSON', () {
     final at = DateTime.utc(2026, 11, 20, 9);
     const memory = PlanMemoryState(

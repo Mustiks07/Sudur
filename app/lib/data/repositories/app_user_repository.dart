@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 // The explicit constructor names keep this storage adapter easy to scan.
@@ -27,6 +28,10 @@ abstract interface class AppUserRepository {
 
   /// Loads the resumable onboarding draft.
   Future<Result<OnboardingDraft>> loadOnboardingDraft();
+
+  /// Surah names from the installed content package, by number; empty
+  /// before content is installed.
+  Future<Result<Map<int, SurahNameData>>> loadSurahNames();
 
   /// Persists the current onboarding step and choices.
   Future<Result<void>> saveOnboardingDraft(OnboardingDraft draft);
@@ -141,6 +146,34 @@ final class StorageAppUserRepository implements AppUserRepository {
       throw const FormatException('The onboarding draft is invalid.');
     }
     return OnboardingDraft.fromJson(raw);
+  });
+
+  @override
+  Future<Result<Map<int, SurahNameData>>> loadSurahNames() => _guard(() async {
+    final path = await _modelInstaller.installedContentPath();
+    if (path == null) return const <int, SurahNameData>{};
+    final root = jsonDecode(await File(path).readAsString());
+    final surahs = root is Map<String, Object?> ? root['surahs'] : null;
+    if (surahs is! List<Object?>) {
+      throw const FormatException('The content has no surah list.');
+    }
+    String? text(Map<String, Object?> json, String key) => switch (json[key]) {
+      final String value when value.trim().isNotEmpty => value,
+      _ => null,
+    };
+    return {
+      for (final entry in surahs)
+        if (entry
+            case {'number': final int number} &&
+                final Map<String, Object?> json)
+          number: SurahNameData(
+            number: number,
+            arabic: text(json, 'nameAr'),
+            russian: text(json, 'nameRu'),
+            kazakh: text(json, 'nameKk'),
+            uzbek: text(json, 'nameUz'),
+          ),
+    };
   });
 
   @override
@@ -932,18 +965,8 @@ final class StorageAppUserRepository implements AppUserRepository {
     for (final download in downloads.where(
       (download) => download.kind == DownloadKind.model,
     )) {
-      _unwrap(
-        await storage.downloads.put((
-          packageId: download.packageId,
-          kind: download.kind,
-          activeVersion: null,
-          pendingVersion: null,
-          state: DownloadState.pending,
-          bytesTotal: 0,
-          bytesDone: 0,
-          updatedAt: _nowMs,
-        )),
-      );
+      // “Not installed” is the absence of a row (docs/tz 11.4).
+      _unwrap(await storage.downloads.remove(download.packageId));
     }
   });
 

@@ -166,7 +166,6 @@ class _SurahStep extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.medium),
         TextField(
-          keyboardType: TextInputType.number,
           decoration: InputDecoration(
             labelText: l10n.searchSurah,
             prefixIcon: const Icon(Icons.search),
@@ -181,6 +180,10 @@ class _SurahStep extends StatelessWidget {
                 CheckboxListTile(
                   value: viewModel.draft.familiarSurahs.contains(number),
                   title: Text(l10n.surahNumber(number)),
+                  subtitle: switch (viewModel.surahName(number)) {
+                    final String name => Text(name),
+                    null => null,
+                  },
                   onChanged: (_) => viewModel.toggleSurah(number),
                 ),
             ],
