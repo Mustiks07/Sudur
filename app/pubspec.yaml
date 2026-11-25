@@ -8,10 +8,12 @@ environment:
   sdk: ^3.14.0
 
 dependencies:
+  app_settings: 9.0.1
   asr_sherpa:
     path: ../packages/asr_sherpa
   audio_capture:
     path: ../packages/audio_capture
+  audioplayers: 6.8.1
   contracts:
     path: ../packages/contracts
   crypto: 3.0.6
@@ -23,11 +25,17 @@ dependencies:
   material_ui: 1.11.0
   mushaf_view:
     path: ../packages/mushaf_view
+  planner:
+    path: ../packages/planner
   provider: 6.1.5+1
   quran_text:
     path: ../packages/quran_text
   session:
     path: ../packages/session
+  share_plus: 13.3.1
+  storage:
+    path: ../packages/storage
+  wakelock_plus: 1.8.2
 
 dev_dependencies:
   check:

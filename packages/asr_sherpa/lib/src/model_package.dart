@@ -46,12 +46,14 @@ final class AsrModelPackage {
       final modelJson = File(_join(directory, 'model.json'));
       final normalizerJson = File(_join(directory, 'normalizer.json'));
       final thresholdsJson = File(_join(directory, 'thresholds.json'));
+      final evaluationJson = File(_join(directory, 'eval.json'));
       final model = File(_join(directory, 'model.int8.onnx'));
       final tokens = File(_join(directory, 'tokens.txt'));
       final requiredFiles = <File>[
         modelJson,
         normalizerJson,
         thresholdsJson,
+        evaluationJson,
         model,
         tokens,
       ];
@@ -70,8 +72,12 @@ final class AsrModelPackage {
       final metadata = await _readJsonObject(modelJson);
       final normalizer = await _readJsonObject(normalizerJson);
       final thresholds = await _readJsonObject(thresholdsJson);
+      final evaluation = await _readJsonObject(evaluationJson);
       _validateNormalizer(normalizer);
       _validateThresholds(thresholds);
+      if (evaluation.isEmpty) {
+        throw const FormatException('eval.json must not be empty.');
+      }
 
       final modelId = _requiredString(metadata, 'modelId');
       final version = _requiredString(metadata, 'version');
@@ -191,6 +197,8 @@ const _thresholdKeys = <String>{
   'ambiguityMargin',
   'ngramSize',
   'stableConfirmations',
+  'openDelayWords',
+  'lostWindowWords',
   'strongMatch',
   'substitutionMax',
   'confirmContextWords',

@@ -22,6 +22,32 @@ void main() {
     await viewModel.initialize();
   });
 
+  test(
+    'a step of Today reads only its range; the rest stays visible',
+    () async {
+      await viewModel.useRange(secondWord, secondWord);
+
+      expect(viewModel.state, ReadingPrototypeState.ready);
+      expect(sessionFactory.configurations.last.words, [secondWord]);
+      expect(viewModel.wordStates[firstWord], MushafWordState.normal);
+      expect(viewModel.wordStates[secondWord], MushafWordState.hidden);
+
+      await viewModel.start();
+      final start = sessionFactory.session.commands.whereType<StartSession>();
+      expect(start.single.fromWordKey, secondWord);
+      expect(start.single.toWordKey, secondWord);
+    },
+  );
+
+  test('a range outside the prototype pages cannot be read', () async {
+    await viewModel.useRange(const WordKey(2, 1, 1), const WordKey(2, 5, 3));
+    expect(viewModel.state, ReadingPrototypeState.rangeUnavailable);
+
+    await viewModel.useRange(null, null);
+    expect(viewModel.state, ReadingPrototypeState.ready);
+    expect(sessionFactory.configurations.last.words, [firstWord, secondWord]);
+  });
+
   test('session events reveal words and commands keep their state', () async {
     expect(viewModel.state, ReadingPrototypeState.ready);
     expect(viewModel.wordStates[firstWord], MushafWordState.hidden);
