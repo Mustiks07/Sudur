@@ -751,11 +751,11 @@ final class StorageAppUserRepository implements AppUserRepository {
                   DateTime.fromMillisecondsSinceEpoch(due, isUtc: true),
                 )
                 .inDays >
-            _config.staleOverdueDays;
+            _planner.staleAfterDays;
     final retrievability = _planner.retrievability(planned);
     if (overdue ||
         (planned.card.lastReview != null &&
-            retrievability < _config.staleRetrievability)) {
+            retrievability < _planner.staleRecallBelow)) {
       return MemoryStatus.stale;
     }
     final last = checks.last;
@@ -764,7 +764,7 @@ final class StorageAppUserRepository implements AppUserRepository {
     final apart = clean.any(
       (a) =>
           last.createdAt - a.createdAt >=
-          Duration.millisecondsPerDay * _config.confirmIntervalDays,
+          Duration.millisecondsPerDay * _planner.confirmedLaterMinDays,
     );
     return apart ? MemoryStatus.confirmed : MemoryStatus.independent;
   }
