@@ -837,4 +837,7 @@ class AppLocalizationsRu extends AppLocalizations {
   ) {
     return 'Сура $surah, аяты $from–$to: самостоятельно $independent, с подсказками $hints, ошибок $errors, не удалось проверить $unverified.';
   }
+
+  @override
+  String get measurementMode => 'Режим замеров';
 }

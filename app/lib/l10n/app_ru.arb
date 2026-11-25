@@ -248,5 +248,6 @@
   "supportedRepeats": "Прочитать по тексту",
   "readOpenSettings": "Открыть настройки",
   "reviewShare": "Поделиться итогом",
-  "reviewShareText": "Сура {surah}, аяты {from}–{to}: самостоятельно {independent}, с подсказками {hints}, ошибок {errors}, не удалось проверить {unverified}."
+  "reviewShareText": "Сура {surah}, аяты {from}–{to}: самостоятельно {independent}, с подсказками {hints}, ошибок {errors}, не удалось проверить {unverified}.",
+  "measurementMode": "Режим замеров"
 }

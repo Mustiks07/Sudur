@@ -32,7 +32,7 @@ import 'package:sudur/ui/today/views/step_coming_soon_screen.dart';
 
 /// Creates a router owned by the application's dependency scope.
 GoRouter createAppRouter(AppConfig config) => GoRouter(
-  initialLocation: config == AppConfig.dev ? '/prototype' : '/',
+  initialLocation: '/',
   routes: [
     GoRoute(path: '/', builder: (context, state) => const RootScreen()),
     GoRoute(

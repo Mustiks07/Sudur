@@ -1603,6 +1603,12 @@ abstract class AppLocalizations {
     int errors,
     int unverified,
   );
+
+  /// No description provided for @measurementMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Measurement mode'**
+  String get measurementMode;
 }
 
 class _AppLocalizationsDelegate

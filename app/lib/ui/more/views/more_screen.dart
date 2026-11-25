@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:sudur/config/app_config.dart';
 import 'package:sudur/data/models/user_models.dart';
 import 'package:sudur/l10n/app_localizations.dart';
 import 'package:sudur/ui/core/theme/app_tokens.dart';
@@ -68,6 +69,14 @@ class MoreScreen extends StatelessWidget {
           title: Text(l10n.reportProblem),
           onTap: () => GoRouter.of(context).push('/report'),
         ),
+        // The development build keeps the owner's measurement screen.
+        if (context.read<AppConfig>() == AppConfig.dev)
+          ListTile(
+            key: const ValueKey('more-measurement'),
+            leading: const Icon(Icons.speed_outlined),
+            title: Text(l10n.measurementMode),
+            onTap: () => GoRouter.of(context).push('/prototype'),
+          ),
         const Divider(),
         _item(
           context,

@@ -818,4 +818,7 @@ class AppLocalizationsKk extends AppLocalizations {
   ) {
     return '[Нужен перевод] $surah $from $to $independent $hints $errors $unverified';
   }
+
+  @override
+  String get measurementMode => '[Нужен перевод]';
 }

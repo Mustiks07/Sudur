@@ -248,5 +248,6 @@
   "supportedRepeats": "[Нужен перевод]",
   "readOpenSettings": "[Нужен перевод]",
   "reviewShare": "[Нужен перевод]",
-  "reviewShareText": "[Нужен перевод] {surah} {from} {to} {independent} {hints} {errors} {unverified}"
+  "reviewShareText": "[Нужен перевод] {surah} {from} {to} {independent} {hints} {errors} {unverified}",
+  "measurementMode": "[Нужен перевод]"
 }

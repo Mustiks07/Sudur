@@ -831,4 +831,7 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return 'Surah $surah, ayahs $from–$to: on my own $independent, with hints $hints, mistakes $errors, could not check $unverified.';
   }
+
+  @override
+  String get measurementMode => 'Measurement mode';
 }

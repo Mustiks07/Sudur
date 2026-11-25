@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
+import 'package:sudur/config/app_config.dart';
 import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/l10n/app_localizations.dart';
 import 'package:sudur/ui/course/view_models/course_view_models.dart';
@@ -52,6 +53,7 @@ Widget _app() {
         create: (_) => CourseViewModel(FakeCourseRepository()),
       ),
       Provider<E01Config>.value(value: const E01Config()),
+      Provider<AppConfig>.value(value: AppConfig.dev),
       ChangeNotifierProvider(create: (_) => ProgressViewModel(repository)),
     ],
     child: const MaterialApp(
