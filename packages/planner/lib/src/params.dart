@@ -28,15 +28,19 @@ final class PlannerParams {
     required this.newLearningMultiplier,
     required this.learnListenRepeats,
     required this.learnSupportedRepeats,
+    required this.exerciseContextWords,
+    required this.junctionWords,
+    required this.junctionRepeats,
+    required this.learnJunctionWords,
     required this.hardHintCount,
     required this.forgotHintCount,
     required this.oldForgotRelearnCount,
     required List<int> hardSpotReviewDays,
     required this.easyConsecutiveCleanAttempts,
     required this.easyMinIntervalDays,
-    required this.memoryOverdueDays,
-    required this.memoryLowProbability,
-    required this.memoryConfirmationIntervalDays,
+    required this.staleAfterDays,
+    required this.staleRecallBelow,
+    required this.confirmedLaterMinDays,
     required this.memoryConfirmationAttempts,
     required this.unfinishedLookbackDays,
     required this.recoveryMinSample,
@@ -69,6 +73,10 @@ final class PlannerParams {
         assert(newLearningMultiplier > 0),
         assert(learnListenRepeats >= 0),
         assert(learnSupportedRepeats >= 0),
+        assert(exerciseContextWords >= 0),
+        assert(junctionWords > 0),
+        assert(junctionRepeats > 0),
+        assert(learnJunctionWords > 0),
         assert(hardHintCount > 0),
         assert(forgotHintCount > hardHintCount),
         assert(oldForgotRelearnCount > 0),
@@ -76,9 +84,9 @@ final class PlannerParams {
         assert(hardSpotReviewDays.every((days) => days > 0)),
         assert(easyConsecutiveCleanAttempts > 1),
         assert(easyMinIntervalDays > 0),
-        assert(memoryOverdueDays > 0),
-        assert(memoryLowProbability >= 0 && memoryLowProbability <= 1),
-        assert(memoryConfirmationIntervalDays > 0),
+        assert(staleAfterDays > 0),
+        assert(staleRecallBelow >= 0 && staleRecallBelow <= 1),
+        assert(confirmedLaterMinDays > 0),
         assert(memoryConfirmationAttempts > 1),
         assert(unfinishedLookbackDays > 0),
         assert(recoveryMinSample > 0),
@@ -111,15 +119,19 @@ final class PlannerParams {
     newLearningMultiplier: 8,
     learnListenRepeats: 3,
     learnSupportedRepeats: 2,
+    exerciseContextWords: 2,
+    junctionWords: 2,
+    junctionRepeats: 3,
+    learnJunctionWords: 2,
     hardHintCount: 1,
     forgotHintCount: 2,
     oldForgotRelearnCount: 2,
     hardSpotReviewDays: [1, 3],
     easyConsecutiveCleanAttempts: 2,
     easyMinIntervalDays: 1,
-    memoryOverdueDays: 7,
-    memoryLowProbability: 0.7,
-    memoryConfirmationIntervalDays: 1,
+    staleAfterDays: 7,
+    staleRecallBelow: 0.7,
+    confirmedLaterMinDays: 1,
     memoryConfirmationAttempts: 2,
     unfinishedLookbackDays: 1,
     recoveryMinSample: 2,
@@ -190,6 +202,18 @@ final class PlannerParams {
         'learnSupportedRepeats',
         defaults.learnSupportedRepeats,
       ),
+      exerciseContextWords: _int(
+        json,
+        'exerciseContextWords',
+        defaults.exerciseContextWords,
+      ),
+      junctionWords: _int(json, 'junctionWords', defaults.junctionWords),
+      junctionRepeats: _int(json, 'junctionRepeats', defaults.junctionRepeats),
+      learnJunctionWords: _int(
+        json,
+        'learnJunctionWords',
+        defaults.learnJunctionWords,
+      ),
       hardHintCount: _int(json, 'hardHintCount', defaults.hardHintCount),
       forgotHintCount: _int(json, 'forgotHintCount', defaults.forgotHintCount),
       oldForgotRelearnCount: _int(
@@ -212,17 +236,16 @@ final class PlannerParams {
         'easyMinIntervalDays',
         defaults.easyMinIntervalDays,
       ),
-      memoryOverdueDays:
-          _int(json, 'memoryOverdueDays', defaults.memoryOverdueDays),
-      memoryLowProbability: _double(
+      staleAfterDays: _int(json, 'staleAfterDays', defaults.staleAfterDays),
+      staleRecallBelow: _double(
         json,
-        'memoryLowProbability',
-        defaults.memoryLowProbability,
+        'staleRecallBelow',
+        defaults.staleRecallBelow,
       ),
-      memoryConfirmationIntervalDays: _int(
+      confirmedLaterMinDays: _int(
         json,
-        'memoryConfirmationIntervalDays',
-        defaults.memoryConfirmationIntervalDays,
+        'confirmedLaterMinDays',
+        defaults.confirmedLaterMinDays,
       ),
       memoryConfirmationAttempts: _int(
         json,
@@ -279,6 +302,19 @@ final class PlannerParams {
   final int learnListenRepeats;
   final int learnSupportedRepeats;
 
+  /// Words on each side of a mistake in «Трудный отрывок» (УП-01, 12.4).
+  final int exerciseContextWords;
+
+  /// Words on each side of an ayah junction (УП-02, 12.4).
+  final int junctionWords;
+
+  /// Hidden readings of an ayah junction (УП-02, 12.4).
+  final int junctionRepeats;
+
+  /// Words on each side of the junction of two passages when learning
+  /// (ЗН-03, 12.4).
+  final int learnJunctionWords;
+
   /// Hint thresholds from the grading table in docs/tz 3.4.
   final int hardHintCount;
   final int forgotHintCount;
@@ -296,13 +332,13 @@ final class PlannerParams {
   final int easyMinIntervalDays;
 
   /// 7 days from the memory-map rule in docs/tz 11.1.
-  final int memoryOverdueDays;
+  final int staleAfterDays;
 
   /// 0.7 from the memory-map rule in docs/tz 11.1.
-  final double memoryLowProbability;
+  final double staleRecallBelow;
 
   /// One-day interval from the memory-map confirmation rule.
-  final int memoryConfirmationIntervalDays;
+  final int confirmedLaterMinDays;
 
   /// Clean attempts required for the confirmed-later memory state.
   final int memoryConfirmationAttempts;
