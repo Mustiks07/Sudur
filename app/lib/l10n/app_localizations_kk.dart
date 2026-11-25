@@ -569,4 +569,7 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get reviewNoEvents => '[Нужен перевод]';
+
+  @override
+  String get readOpenSettings => '[Нужен перевод]';
 }

@@ -175,5 +175,6 @@
   "reviewPractice": "Потренировать это место",
   "reviewNext": "Дальше",
   "reviewAudioSoon": "Своя запись и чтец появятся в следующей версии",
-  "reviewNoEvents": "Событий нет"
+  "reviewNoEvents": "Событий нет",
+  "readOpenSettings": "Открыть настройки"
 }

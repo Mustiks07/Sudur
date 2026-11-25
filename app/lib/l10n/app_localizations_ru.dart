@@ -581,4 +581,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get reviewNoEvents => 'Событий нет';
+
+  @override
+  String get readOpenSettings => 'Открыть настройки';
 }

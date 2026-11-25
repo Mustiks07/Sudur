@@ -575,4 +575,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reviewNoEvents => 'No events';
+
+  @override
+  String get readOpenSettings => 'Open settings';
 }

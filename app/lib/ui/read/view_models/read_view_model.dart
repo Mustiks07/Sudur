@@ -9,6 +9,7 @@ import 'package:sudur/config/prototype_real_session.dart';
 import 'package:sudur/data/models/reading_models.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
 import 'package:sudur/data/repositories/reading_repository.dart';
+import 'package:sudur/data/services/device_service.dart';
 import 'package:sudur/data/services/prototype_session.dart';
 
 // The class names keep the view model easy to scan.
@@ -129,16 +130,20 @@ final class ReadViewModel extends ChangeNotifier {
     required ReadingRepository reading,
     required AppUserRepository user,
     required PrototypeReadingSessionFactory sessionFactory,
+    required DeviceService device,
     DateTime Function()? now,
   }) : _reading = reading,
        _user = user,
        _sessionFactory = sessionFactory,
+       _device = device,
        _now = now ?? DateTime.now;
 
   final ReadingRepository _reading;
   final AppUserRepository _user;
   final PrototypeReadingSessionFactory _sessionFactory;
+  final DeviceService _device;
   final DateTime Function() _now;
+  var _screenOn = false;
 
   PrototypeReadingSession? _session;
   StreamSubscription<SessionEvent>? _events;
@@ -405,7 +410,18 @@ final class ReadViewModel extends ChangeNotifier {
       return;
     }
     if (_state == ReadState.starting) _state = ReadState.listening;
+    _keepScreenOn(on: true);
     notifyListeners();
+  }
+
+  /// «Открыть настройки» after micDenied (13.3).
+  Future<void> openSettings() => _device.openAppSettings();
+
+  /// ЭЧ-09: the screen stays on only while reading.
+  void _keepScreenOn({required bool on}) {
+    if (on == _screenOn) return;
+    _screenOn = on;
+    unawaited(_device.keepScreenOn(on: on));
   }
 
   /// Pauses listening.
@@ -480,6 +496,7 @@ final class ReadViewModel extends ChangeNotifier {
       checks: _checks.values.toList(),
       unlocked: _unlocked,
     );
+    _keepScreenOn(on: false);
     final written = await _user.recordReading(result);
     switch (written) {
       case Ok(:final value):
@@ -612,6 +629,7 @@ final class ReadViewModel extends ChangeNotifier {
   }
 
   void _fail(ReadError reason) {
+    _keepScreenOn(on: false);
     _error = reason;
     _state = ReadState.error;
     if (!_disposed) notifyListeners();
@@ -619,6 +637,7 @@ final class ReadViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _keepScreenOn(on: false);
     _disposed = true;
     _strictTimer?.cancel();
     unawaited(_events?.cancel());

@@ -1157,6 +1157,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No events'**
   String get reviewNoEvents;
+
+  /// No description provided for @readOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get readOpenSettings;
 }
 
 class _AppLocalizationsDelegate

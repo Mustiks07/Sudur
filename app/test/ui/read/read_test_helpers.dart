@@ -1,6 +1,7 @@
 import 'package:contracts/contracts.dart';
 import 'package:sudur/data/models/reading_models.dart';
 import 'package:sudur/data/repositories/reading_repository.dart';
+import 'package:sudur/data/services/device_service.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_session.dart';
 
@@ -123,3 +124,18 @@ SessionFinished finishedEvent() => const SessionFinished(
   durationMs: 100,
   audioWasSuitable: true,
 );
+
+/// Device without a screen or settings: remembers what was asked.
+final class FakeDevice implements DeviceService {
+  /// Whether the screen is kept on now.
+  bool screenOn = false;
+
+  /// Times the settings were opened.
+  int settingsOpened = 0;
+
+  @override
+  Future<void> keepScreenOn({required bool on}) async => screenOn = on;
+
+  @override
+  Future<void> openAppSettings() async => settingsOpened++;
+}
