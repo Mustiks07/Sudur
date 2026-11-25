@@ -13,6 +13,7 @@ import 'package:sudur/data/repositories/plan_state_codec.dart';
 import 'package:sudur/data/services/app_file_service.dart';
 import 'package:sudur/data/services/app_planner_service.dart';
 import 'package:sudur/data/services/app_storage_service.dart';
+import 'package:sudur/data/services/notification_service.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
 
@@ -671,6 +672,59 @@ void main() {
     expect(_value(await repository.loadReminders()), [300, 600]);
   });
 
+  test('11.8: reminders are scheduled for the next days in the interface '
+      'language, and none today once today is done', () async {
+    final notifications = _RecordingNotifications();
+    const platform = _FakePlatform();
+    final withReminders = StorageAppUserRepository(
+      storage: AppStorageService.fromStorage(storage),
+      files: const AppFileService(platform),
+      modelInstaller: PrototypeAssetInstaller(platform),
+      canon: canon,
+      planner: AppPlannerService(clock: clock, random: Random(1)),
+      clock: clock,
+      createId: () =>
+          '00000000-0000-4000-8000-${(nextId++).toString().padLeft(12, '0')}',
+      config: const E01Config(),
+      notifications: notifications,
+      reminderText: (language, minutes) =>
+          ReminderText(body: '${language.name} $minutes', channel: 'c'),
+    );
+    _value(await withReminders.completeOnboarding(draft()));
+    final now = clock.now().toLocal();
+    final early = now.hour * 60 + now.minute - 60;
+    final late = now.hour * 60 + now.minute + 60;
+    _value(await withReminders.saveReminders([late, early]));
+    expect(notifications.text?.body, 'en 10');
+    expect(notifications.at, hasLength(2 * 14 - 1));
+    expect(notifications.at.first.day, now.day);
+
+    final today = _value(await withReminders.loadToday());
+    for (final step in today.steps) {
+      _value(await withReminders.finishTodayStep(step.id));
+    }
+    expect(notifications.at, hasLength(2 * 13));
+    expect(notifications.at.every((m) => m.day != now.day), isTrue);
+
+    _value(await withReminders.saveReminders(const []));
+    expect(notifications.at, isEmpty);
+  });
+
+  test('reminder moments: only ahead, none today when done', () {
+    final now = DateTime(2026, 11, 19, 12);
+    expect(
+      reminderMoments([60, 13 * 60], now: now, todayDone: false, days: 2),
+      [
+        DateTime(2026, 11, 19, 13),
+        DateTime(2026, 11, 20, 1),
+        DateTime(2026, 11, 20, 13),
+      ],
+    );
+    expect(reminderMoments([13 * 60], now: now, todayDone: true, days: 2), [
+      DateTime(2026, 11, 20, 13),
+    ]);
+  });
+
   test('planner state survives its JSON', () {
     final at = DateTime.utc(2026, 11, 20, 9);
     const memory = PlanMemoryState(
@@ -721,4 +775,19 @@ final class _FakePlatform implements PrototypePlatformService {
 
   @override
   Future<void> shareFile(String path) async {}
+}
+
+final class _RecordingNotifications implements NotificationService {
+  List<DateTime> at = const [];
+  ReminderText? text;
+
+  @override
+  Future<Result<bool>> requestPermission() async => const Result.ok(true);
+
+  @override
+  Future<Result<void>> scheduleAt(List<DateTime> at, ReminderText text) async {
+    this.at = at;
+    this.text = text;
+    return const Result.ok(null);
+  }
 }

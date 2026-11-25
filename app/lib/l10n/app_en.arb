@@ -375,10 +375,17 @@
   "progressHints": "Hints: {count}",
   "progressHardSpots": "Hard spots: {count}",
   "progressRepeatNow": "Repeat now",
-  "reminderText": "Time for your session",
+  "reminderText": "Time for your session, about {minutes} minutes",
+  "@reminderText": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "reminderAdd": "Add a time",
   "remindersOff": "Reminders are off",
-  "remindersNotYet": "Reminders will arrive once notifications are added to the app; the times are saved already",
+  "remindersBlocked": "The phone does not allow reminders. You can turn them on in the settings.",
   "@progressLastCheck": {
     "placeholders": {
       "date": {

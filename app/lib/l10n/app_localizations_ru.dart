@@ -785,7 +785,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get progressRepeatNow => 'Повторить сейчас';
 
   @override
-  String get reminderText => 'Время для занятия';
+  String reminderText(int minutes) {
+    return 'Время для занятия — около $minutes минут';
+  }
 
   @override
   String get reminderAdd => 'Добавить время';
@@ -794,8 +796,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get remindersOff => 'Напоминания выключены';
 
   @override
-  String get remindersNotYet =>
-      'Напоминания будут приходить, когда в приложение добавят уведомления; время уже сохраняется';
+  String get remindersBlocked =>
+      'Телефон не разрешает напоминания. Их можно включить в настройках.';
 
   @override
   String get listenRepeats => 'Послушать чтеца';

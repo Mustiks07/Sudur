@@ -1521,8 +1521,8 @@ abstract class AppLocalizations {
   /// No description provided for @reminderText.
   ///
   /// In en, this message translates to:
-  /// **'Time for your session'**
-  String get reminderText;
+  /// **'Time for your session, about {minutes} minutes'**
+  String reminderText(int minutes);
 
   /// No description provided for @reminderAdd.
   ///
@@ -1536,11 +1536,11 @@ abstract class AppLocalizations {
   /// **'Reminders are off'**
   String get remindersOff;
 
-  /// No description provided for @remindersNotYet.
+  /// No description provided for @remindersBlocked.
   ///
   /// In en, this message translates to:
-  /// **'Reminders will arrive once notifications are added to the app; the times are saved already'**
-  String get remindersNotYet;
+  /// **'The phone does not allow reminders. You can turn them on in the settings.'**
+  String get remindersBlocked;
 
   /// No description provided for @listenRepeats.
   ///

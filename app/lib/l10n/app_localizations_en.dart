@@ -779,7 +779,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressRepeatNow => 'Repeat now';
 
   @override
-  String get reminderText => 'Time for your session';
+  String reminderText(int minutes) {
+    return 'Time for your session, about $minutes minutes';
+  }
 
   @override
   String get reminderAdd => 'Add a time';
@@ -788,8 +790,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remindersOff => 'Reminders are off';
 
   @override
-  String get remindersNotYet =>
-      'Reminders will arrive once notifications are added to the app; the times are saved already';
+  String get remindersBlocked =>
+      'The phone does not allow reminders. You can turn them on in the settings.';
 
   @override
   String get listenRepeats => '[Нужен перевод]';

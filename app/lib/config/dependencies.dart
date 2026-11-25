@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:sudur/config/app_config.dart';
 import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/config/prototype_real_session.dart';
+import 'package:sudur/data/models/user_models.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
 import 'package:sudur/data/repositories/course_repository.dart';
 import 'package:sudur/data/repositories/exercise_repository.dart';
@@ -23,6 +24,7 @@ import 'package:sudur/data/services/notification_service.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
 import 'package:sudur/data/services/prototype_session.dart';
+import 'package:sudur/l10n/app_localizations.dart';
 import 'package:sudur/routing/app_router.dart';
 import 'package:sudur/ui/course/view_models/course_view_models.dart';
 import 'package:sudur/ui/home/view_models/home_view_model.dart';
@@ -60,6 +62,8 @@ class AppDependencies extends StatelessWidget {
       createId: () => _uuid(random),
     );
     final repository = LocalPrototypeRepository(installer, platform);
+    final notifications = LocalNotificationService();
+    final device = PluginDeviceService();
     final userRepository = StorageAppUserRepository(
       storage: storage,
       files: files,
@@ -69,6 +73,8 @@ class AppDependencies extends StatelessWidget {
       clock: clock,
       createId: () => _uuid(random),
       config: e01Config,
+      notifications: notifications,
+      reminderText: _reminderText,
     );
     return MultiProvider(
       providers: [
@@ -79,7 +85,7 @@ class AppDependencies extends StatelessWidget {
           dispose: (_, router) => router.dispose(),
         ),
         Provider<PrototypeRepository>.value(value: repository),
-        Provider<DeviceService>.value(value: PluginDeviceService()),
+        Provider<DeviceService>.value(value: device),
         Provider<ReadingRepository>.value(
           value: LocalReadingRepository(installer),
         ),
@@ -127,7 +133,8 @@ class AppDependencies extends StatelessWidget {
           create: (_) {
             final viewModel = RemindersViewModel(
               userRepository,
-              const NoNotificationService(),
+              notifications,
+              device,
               e01Config,
             );
             unawaited(viewModel.load());
@@ -162,4 +169,13 @@ String _uuid(Random random) {
   return '${value.substring(0, 8)}-${value.substring(8, 12)}-'
       '${value.substring(12, 16)}-${value.substring(16, 20)}-'
       '${value.substring(20)}';
+}
+
+/// Reminder words in [language] (11.8), outside any screen.
+ReminderText _reminderText(AppLanguage language, int minutes) {
+  final l10n = lookupAppLocalizations(Locale(language.name));
+  return ReminderText(
+    body: l10n.reminderText(minutes),
+    channel: l10n.reminders,
+  );
 }

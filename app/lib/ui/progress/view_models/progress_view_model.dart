@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/data/models/reading_models.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
+import 'package:sudur/data/services/device_service.dart';
 import 'package:sudur/data/services/notification_service.dart';
 
 // The class names keep the view models easy to scan.
@@ -40,13 +41,19 @@ final class ProgressViewModel extends ChangeNotifier {
   }
 }
 
-/// Reminder settings (docs/tz 11.8, 13.14).
+/// Reminder settings (docs/tz 11.8, 13.14); the repository schedules them.
 final class RemindersViewModel extends ChangeNotifier {
   /// Creates the view model.
-  RemindersViewModel(this._repository, this._notifications, this._config);
+  RemindersViewModel(
+    this._repository,
+    this._notifications,
+    this._device,
+    this._config,
+  );
 
   final AppUserRepository _repository;
   final NotificationService _notifications;
+  final DeviceService _device;
   final E01Config _config;
 
   /// Reminder times, minutes after midnight.
@@ -56,7 +63,11 @@ final class RemindersViewModel extends ChangeNotifier {
   /// Whether another time can be added (at most `maxRemindersPerDay`).
   bool get canAdd => _times.length < _config.maxRemindersPerDay;
 
-  /// Loads the times.
+  /// Whether the phone refused to show reminders.
+  bool get blocked => _blocked;
+  var _blocked = false;
+
+  /// Loads the saved times.
   Future<void> load() async {
     if (await _repository.loadReminders() case Ok(:final value)) {
       _times = value;
@@ -64,19 +75,25 @@ final class RemindersViewModel extends ChangeNotifier {
     }
   }
 
-  /// Adds a time.
-  Future<void> add(int minuteOfDay, String text) =>
-      _save([..._times, minuteOfDay], text);
+  /// Adds a time; the phone is asked to allow reminders first.
+  Future<void> add(int minuteOfDay) async {
+    if (await _notifications.requestPermission() case Ok(:final value)) {
+      _blocked = !value;
+    }
+    await _save([..._times, minuteOfDay]);
+  }
 
   /// Removes a time; with none left reminders are off.
-  Future<void> remove(int minuteOfDay, String text) =>
-      _save([..._times.where((t) => t != minuteOfDay)], text);
+  Future<void> remove(int minuteOfDay) =>
+      _save([..._times.where((t) => t != minuteOfDay)]);
 
-  Future<void> _save(List<int> times, String text) async {
+  /// Opens the phone settings of the app to allow reminders.
+  Future<void> openSettings() => _device.openAppSettings();
+
+  Future<void> _save(List<int> times) async {
     if (await _repository.saveReminders(times) case Ok(:final value)) {
       _times = value;
-      await _notifications.scheduleDaily(value, text);
-      notifyListeners();
     }
+    notifyListeners();
   }
 }

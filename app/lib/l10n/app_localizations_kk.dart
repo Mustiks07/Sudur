@@ -769,7 +769,9 @@ class AppLocalizationsKk extends AppLocalizations {
   String get progressRepeatNow => '[Нужен перевод]';
 
   @override
-  String get reminderText => '[Нужен перевод]';
+  String reminderText(int minutes) {
+    return '[Нужен перевод] $minutes';
+  }
 
   @override
   String get reminderAdd => '[Нужен перевод]';
@@ -778,7 +780,7 @@ class AppLocalizationsKk extends AppLocalizations {
   String get remindersOff => '[Нужен перевод]';
 
   @override
-  String get remindersNotYet => '[Нужен перевод]';
+  String get remindersBlocked => '[Нужен перевод]';
 
   @override
   String get listenRepeats => '[Нужен перевод]';

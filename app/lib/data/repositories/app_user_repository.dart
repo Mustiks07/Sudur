@@ -128,6 +128,8 @@ final class StorageAppUserRepository implements AppUserRepository {
     required Clock clock,
     required AppIdFactory createId,
     required E01Config config,
+    NotificationService notifications = const NoNotificationService(),
+    ReminderText Function(AppLanguage language, int minutes)? reminderText,
   }) : _storageService = storage,
        _files = files,
        _modelInstaller = modelInstaller,
@@ -135,7 +137,9 @@ final class StorageAppUserRepository implements AppUserRepository {
        _planner = planner,
        _clock = clock,
        _createId = createId,
-       _config = config;
+       _config = config,
+       _notifications = notifications,
+       _reminderText = reminderText;
 
   static const _draftKey = 'onboardingDraft';
   static const _languageKey = 'appLanguage';
@@ -158,6 +162,8 @@ final class StorageAppUserRepository implements AppUserRepository {
   final Clock _clock;
   final AppIdFactory _createId;
   final E01Config _config;
+  final NotificationService _notifications;
+  final ReminderText Function(AppLanguage language, int minutes)? _reminderText;
 
   @override
   Future<Result<AppUserProfile?>> loadProfile() => _guard(() async {
@@ -461,6 +467,7 @@ final class StorageAppUserRepository implements AppUserRepository {
     final plan = saved == null
         ? await _createToday(storage, profile, date)
         : _decodeToday(saved.items.toJson());
+    await _syncReminders(storage);
     return await _withCurrentLimitState(storage, plan);
   });
 
@@ -631,6 +638,10 @@ final class StorageAppUserRepository implements AppUserRepository {
   @override
   Future<Result<List<int>>> loadReminders() => _guard(() async {
     final storage = await _storageService.storage;
+    return await _storedReminders(storage);
+  });
+
+  Future<List<int>> _storedReminders(StorageService storage) async {
     final value = _unwrap(await storage.settings.get(_remindersKey))
         ?.value
         .value;
@@ -638,7 +649,7 @@ final class StorageAppUserRepository implements AppUserRepository {
       final List<Object?> list => [...list.whereType<int>()],
       _ => const <int>[],
     };
-  });
+  }
 
   @override
   Future<Result<List<int>>> saveReminders(List<int> minutesOfDay) =>
@@ -649,13 +660,46 @@ final class StorageAppUserRepository implements AppUserRepository {
         ];
         final times = remindersOfDay(
           valid,
-          dayDone: false,
           maxPerDay: _config.maxRemindersPerDay,
         );
         final storage = await _storageService.storage;
         await _putSetting(storage, _remindersKey, times);
+        await _syncReminders(storage);
         return times;
       });
+
+  /// Schedules the reminders of the next days again (11.8): the stored
+  /// times, none today when today's session is done, in the interface
+  /// language; none without a profile.
+  Future<void> _syncReminders(StorageService storage) async {
+    final textOf = _reminderText;
+    if (textOf == null) return;
+    final profiles = _unwrap(await storage.profiles.list());
+    final now = _clock.now();
+    var moments = const <DateTime>[];
+    var text = const ReminderText(body: '', channel: '');
+    if (profiles.isNotEmpty) {
+      final stored = profiles.first;
+      final saved = _unwrap(await storage.dailyPlans.get(_localDate(now)));
+      final todayDone =
+          saved != null &&
+          _decodeToday(saved.items.toJson()).condition ==
+              TodayCondition.completed;
+      moments = reminderMoments(
+        await _storedReminders(storage),
+        now: now,
+        todayDone: todayDone,
+        days: _config.reminderDaysAhead,
+      );
+      text = textOf(
+        await _language(storage, stored.uiLanguage),
+        stored.dailyMinutes,
+      );
+    }
+    // A reminder the phone refuses must not fail the plan or the settings;
+    // the next sync tries again.
+    await _notifications.scheduleAt(moments, text);
+  }
 
   @override
   Future<Result<List<SurahProgress>>> loadProgress() => _guard(() async {
@@ -1138,6 +1182,7 @@ final class StorageAppUserRepository implements AppUserRepository {
     if (saved == null) throw const FormatException('Today has no plan.');
     final changed = change(_decodeToday(saved.items.toJson()));
     await _saveToday(storage, changed);
+    await _syncReminders(storage);
     return await _withCurrentLimitState(storage, changed);
   });
 
@@ -1592,6 +1637,7 @@ final class StorageAppUserRepository implements AppUserRepository {
     _unwrap(await storage.profiles.put(changed));
     await _putSetting(storage, _listenRepeatsKey, listenRepeats);
     await _putSetting(storage, _supportedRepeatsKey, supportedRepeats);
+    await _syncReminders(storage);
     return MoreSettingsData(
       profile: _profile(changed, language),
       listenRepeats: listenRepeats,
@@ -1617,6 +1663,7 @@ final class StorageAppUserRepository implements AppUserRepository {
         );
         _unwrap(await storage.profiles.put(changed));
         await _putSetting(storage, _languageKey, language.name);
+        await _syncReminders(storage);
         return _profile(changed, language);
       });
 
@@ -1662,6 +1709,7 @@ final class StorageAppUserRepository implements AppUserRepository {
     if (bytes == null) return false;
     final storage = await _storageService.storage;
     _unwrap(await storage.importData(bytes));
+    await _syncReminders(storage);
     return true;
   });
 
@@ -1669,6 +1717,7 @@ final class StorageAppUserRepository implements AppUserRepository {
   Future<Result<void>> eraseAllUserData() => _guard(() async {
     final storage = await _storageService.storage;
     _unwrap(await storage.eraseAll(_files));
+    await _syncReminders(storage);
   });
 
   Future<AppUserProfile> _requiredProfile(StorageService storage) async {

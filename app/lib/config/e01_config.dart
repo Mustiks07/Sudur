@@ -14,6 +14,7 @@ final class E01Config {
     this.courseStages = 10,
     this.firstPaidStage = 4,
     this.maxRemindersPerDay = 2,
+    this.reminderDaysAhead = 14,
   });
 
   /// Delay before a loading skeleton is shown (spec section 13).
@@ -44,4 +45,9 @@ final class E01Config {
 
   /// `maxRemindersPerDay` (12.4, 11.8).
   final int maxRemindersPerDay;
+
+  /// Days of reminders scheduled ahead (11.8); each opening of the app
+  /// schedules them again. Not in 12.4 yet (question to the owner); 14 days
+  /// of two reminders stay under the iOS limit of 64 pending ones.
+  final int reminderDaysAhead;
 }
