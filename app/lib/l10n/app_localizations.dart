@@ -732,12 +732,6 @@ abstract class AppLocalizations {
   /// **'[Нужен перевод]'**
   String get showFirstWord;
 
-  /// No description provided for @memorizationRepeats.
-  ///
-  /// In en, this message translates to:
-  /// **'[Нужен перевод]'**
-  String get memorizationRepeats;
-
   /// No description provided for @save.
   ///
   /// In en, this message translates to:
@@ -1439,6 +1433,44 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mark the words with the rule'**
   String get lessonFindRule;
+
+  /// No description provided for @listenRepeats.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get listenRepeats;
+
+  /// No description provided for @supportedRepeats.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get supportedRepeats;
+
+  /// No description provided for @readOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get readOpenSettings;
+
+  /// No description provided for @reviewShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the result'**
+  String get reviewShare;
+
+  /// No description provided for @reviewShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah {surah}, ayahs {from}–{to}: on my own {independent}, with hints {hints}, mistakes {errors}, could not check {unverified}.'**
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  );
 }
 
 class _AppLocalizationsDelegate

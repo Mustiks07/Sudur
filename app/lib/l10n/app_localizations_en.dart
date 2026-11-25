@@ -344,9 +344,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showFirstWord => '[Нужен перевод]';
 
   @override
-  String get memorizationRepeats => '[Нужен перевод]';
-
-  @override
   String get save => '[Нужен перевод]';
 
   @override
@@ -732,4 +729,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonFindRule => 'Mark the words with the rule';
+
+  @override
+  String get listenRepeats => '[Нужен перевод]';
+
+  @override
+  String get supportedRepeats => '[Нужен перевод]';
+
+  @override
+  String get readOpenSettings => 'Open settings';
+
+  @override
+  String get reviewShare => 'Share the result';
+
+  @override
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  ) {
+    return 'Surah $surah, ayahs $from–$to: on my own $independent, with hints $hints, mistakes $errors, could not check $unverified.';
+  }
 }

@@ -105,7 +105,6 @@
   "dailyTime": "Время на день",
   "strictMode": "Строго останавливаться при ошибке",
   "showFirstWord": "Показывать первое слово",
-  "memorizationRepeats": "Повторов при заучивании",
   "save": "Сохранить",
   "noModels": "Модель ещё не загружена",
   "speechModel": "Модель проверки чтения",
@@ -222,5 +221,10 @@
   "lessonQuizScore": "Мини-проверка: {percent}%",
   "lessonOption": "Вариант {number}",
   "lessonBuild": "Нажимайте по порядку",
-  "lessonFindRule": "Отметьте слова с правилом"
+  "lessonFindRule": "Отметьте слова с правилом",
+  "listenRepeats": "Послушать чтеца",
+  "supportedRepeats": "Прочитать по тексту",
+  "readOpenSettings": "Открыть настройки",
+  "reviewShare": "Поделиться итогом",
+  "reviewShareText": "Сура {surah}, аяты {from}–{to}: самостоятельно {independent}, с подсказками {hints}, ошибок {errors}, не удалось проверить {unverified}."
 }

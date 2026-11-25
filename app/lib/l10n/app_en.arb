@@ -145,7 +145,6 @@
   "dailyTime": "[Нужен перевод]",
   "strictMode": "[Нужен перевод]",
   "showFirstWord": "[Нужен перевод]",
-  "memorizationRepeats": "[Нужен перевод]",
   "save": "[Нужен перевод]",
   "noModels": "[Нужен перевод]",
   "speechModel": "[Нужен перевод]",
@@ -358,6 +357,36 @@
   "@lessonOption": {
     "placeholders": {
       "number": {
+        "type": "int"
+      }
+    }
+  },
+  "listenRepeats": "[Нужен перевод]",
+  "supportedRepeats": "[Нужен перевод]",
+  "readOpenSettings": "Open settings",
+  "reviewShare": "Share the result",
+  "reviewShareText": "Surah {surah}, ayahs {from}–{to}: on my own {independent}, with hints {hints}, mistakes {errors}, could not check {unverified}.",
+  "@reviewShareText": {
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      },
+      "independent": {
+        "type": "int"
+      },
+      "hints": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      },
+      "unverified": {
         "type": "int"
       }
     }

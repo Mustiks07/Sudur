@@ -8,11 +8,9 @@ final class E01Config {
     this.skeletonDelay = const Duration(milliseconds: 300),
     this.freeVoiceLimit = const Duration(minutes: 10),
     this.defaultDailyMinutes = 10,
-    this.defaultMemorizationRepeats = 3,
     this.firstSurah = 1,
     this.firstShortSurah = 114,
     this.lastShortSurah = 78,
-    this.learnJunctionWords = 2,
     this.courseStages = 10,
     this.firstPaidStage = 4,
   });
@@ -26,9 +24,6 @@ final class E01Config {
   /// Initial study budget.
   final int defaultDailyMinutes;
 
-  /// Initial number of repetitions when learning new material.
-  final int defaultMemorizationRepeats;
-
   /// Surah of the start “Al-Fatiha” (docs/tz 13.1).
   final int firstSurah;
 
@@ -39,10 +34,6 @@ final class E01Config {
 
   /// Last surah of the short surahs from the end (СТ-09: 114 → 78).
   final int lastShortSurah;
-
-  /// Words on each side of the junction of two passages (ЗН-03); the spec
-  /// gives no number yet (question to the owner).
-  final int learnJunctionWords;
 
   /// Stages of the reading course (docs/tz 3.1, УЧ-08: stages 1–10).
   final int courseStages;

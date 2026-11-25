@@ -19,14 +19,14 @@ void main() {
 
   test('every exercise ends with a check of the place (УП-07)', () {
     for (final kind in ExerciseKind.values) {
-      final steps = exerciseSteps(kind, ExerciseParams.defaults);
+      final steps = exerciseSteps(kind, PlannerParams.defaults);
       expect(steps, isNotEmpty, reason: kind.name);
       expect(steps.last.span, isNot(ExerciseSpan.other), reason: kind.name);
     }
   });
 
   test('УП-01 goes from support to hidden and widens to the ayah', () {
-    expect(exerciseSteps(ExerciseKind.hardPassage, ExerciseParams.defaults), [
+    expect(exerciseSteps(ExerciseKind.hardPassage, PlannerParams.defaults), [
       (span: ExerciseSpan.place, mode: ExerciseReadMode.supported),
       (span: ExerciseSpan.place, mode: ExerciseReadMode.recall),
       (span: ExerciseSpan.ayah, mode: ExerciseReadMode.test),
@@ -36,9 +36,9 @@ void main() {
   test('УП-02 reads the junction hidden as often as the parameter says', () {
     final steps = exerciseSteps(
       ExerciseKind.transition,
-      ExerciseParams.defaults,
+      PlannerParams.defaults,
     );
-    expect(steps, hasLength(ExerciseParams.defaults.junctionRepeats));
+    expect(steps, hasLength(PlannerParams.defaults.junctionRepeats));
     expect(steps.toSet(), {
       (span: ExerciseSpan.junction, mode: ExerciseReadMode.test),
     });
@@ -48,7 +48,7 @@ void main() {
     expect(
       exerciseSteps(
         ExerciseKind.fadingHelp,
-        ExerciseParams.defaults,
+        PlannerParams.defaults,
       ).map((s) => s.mode),
       [
         ExerciseReadMode.supported,
