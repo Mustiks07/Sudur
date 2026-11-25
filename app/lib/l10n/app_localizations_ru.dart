@@ -671,4 +671,71 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get learnLearned => 'Отрывок выучен. Повторим завтра';
+
+  @override
+  String courseAvailable(int count) {
+    return 'Доступно уроков: $count';
+  }
+
+  @override
+  String courseStage(int stage) {
+    return 'Этап $stage';
+  }
+
+  @override
+  String get courseSoon => 'Уроки этого этапа готовятся';
+
+  @override
+  String get coursePaid => 'По подписке';
+
+  @override
+  String get courseTajweed => 'Справочник таджвида';
+
+  @override
+  String get tajweedSoon => 'Справочник появится вместе с содержанием курса';
+
+  @override
+  String get lessonRight => 'Верно';
+
+  @override
+  String get lessonWrong =>
+      'Неверно — посмотрите правильный ответ в объяснении';
+
+  @override
+  String get lessonGotIt => 'Получилось';
+
+  @override
+  String get lessonNotQuite => 'Не совсем';
+
+  @override
+  String get lessonRepeatCompare => 'Повтори и сравни';
+
+  @override
+  String get lessonAudioSoon =>
+      'Звук образца появится вместе с содержанием курса';
+
+  @override
+  String get lessonPassed => 'Урок пройден';
+
+  @override
+  String get lessonFailed => 'Повторим трудное';
+
+  @override
+  String get lessonRepeat => 'Повторить';
+
+  @override
+  String lessonQuizScore(int percent) {
+    return 'Мини-проверка: $percent%';
+  }
+
+  @override
+  String lessonOption(int number) {
+    return 'Вариант $number';
+  }
+
+  @override
+  String get lessonBuild => 'Нажимайте по порядку';
+
+  @override
+  String get lessonFindRule => 'Отметьте слова с правилом';
 }

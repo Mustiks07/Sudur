@@ -211,6 +211,15 @@ final class PrototypeAssetInstaller {
     return await _isValid(file, _content) ? file.path : null;
   }
 
+  /// Ensures the test lesson package (K01, `TODO_CONTENT` only) is
+  /// installed; real stages come with the content manifest (O05).
+  Future<String> installLessons() async {
+    final root = Directory(await _platform.applicationDirectory());
+    await root.create(recursive: true);
+    await _ensureAll(root, const [_lessons], (_) {});
+    return '${root.path}/${_lessons.relativePath}';
+  }
+
   /// Ensures the whole-Quran text (ADR 0004) and the passages derived from
   /// it (D01) are installed. Both are verbatim files from the repository at
   /// pinned commits, checked by SHA-256, like the prototype content.
@@ -396,6 +405,18 @@ const _content = _RemoteResource(
       'packages/testing/fixtures/content_p582_583.json',
   sha256: '928326595eea80edfac7733b7cb9c5b596457ab5627b9ccf3888cb3537c075d5',
   size: 73326,
+);
+
+// The test lesson package of K01: structure only, every text TODO_CONTENT.
+const _lessons = _RemoteResource(
+  displayName: 'lessons-test-stage1',
+  relativePath: 'content/lessons_test_stage1.json',
+  url:
+      'https://raw.githubusercontent.com/Mustiks07/Sudur/'
+      'b8cb9c60ce87d3787312938114cc47d1e6ec6f08/'
+      'packages/testing/fixtures/lessons_test_stage1.json',
+  sha256: '7bbf3f059d4e74cd54b65d21496d5f8dd87b4ef27aac4806c1fefe22df776754',
+  size: 5204,
 );
 
 // Tanzil text, verbatim (ADR 0004), at a pinned commit of `main`.

@@ -1325,6 +1325,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Passage learned. We will repeat it tomorrow'**
   String get learnLearned;
+
+  /// No description provided for @courseAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons available: {count}'**
+  String courseAvailable(int count);
+
+  /// No description provided for @courseStage.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage {stage}'**
+  String courseStage(int stage);
+
+  /// No description provided for @courseSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Lessons of this stage are being prepared'**
+  String get courseSoon;
+
+  /// No description provided for @coursePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'With subscription'**
+  String get coursePaid;
+
+  /// No description provided for @courseTajweed.
+  ///
+  /// In en, this message translates to:
+  /// **'Tajweed reference'**
+  String get courseTajweed;
+
+  /// No description provided for @tajweedSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'The reference comes with the course content'**
+  String get tajweedSoon;
+
+  /// No description provided for @lessonRight.
+  ///
+  /// In en, this message translates to:
+  /// **'Right'**
+  String get lessonRight;
+
+  /// No description provided for @lessonWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Not right — see the right answer in the explanation'**
+  String get lessonWrong;
+
+  /// No description provided for @lessonGotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get lessonGotIt;
+
+  /// No description provided for @lessonNotQuite.
+  ///
+  /// In en, this message translates to:
+  /// **'Not quite'**
+  String get lessonNotQuite;
+
+  /// No description provided for @lessonRepeatCompare.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat and compare'**
+  String get lessonRepeatCompare;
+
+  /// No description provided for @lessonAudioSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'The sample sound comes with the course content'**
+  String get lessonAudioSoon;
+
+  /// No description provided for @lessonPassed.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesson passed'**
+  String get lessonPassed;
+
+  /// No description provided for @lessonFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s repeat the hard parts'**
+  String get lessonFailed;
+
+  /// No description provided for @lessonRepeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat'**
+  String get lessonRepeat;
+
+  /// No description provided for @lessonQuizScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Mini-check: {percent}%'**
+  String lessonQuizScore(int percent);
+
+  /// No description provided for @lessonOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Option {number}'**
+  String lessonOption(int number);
+
+  /// No description provided for @lessonBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap in order'**
+  String get lessonBuild;
+
+  /// No description provided for @lessonFindRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark the words with the rule'**
+  String get lessonFindRule;
 }
 
 class _AppLocalizationsDelegate

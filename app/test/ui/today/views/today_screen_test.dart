@@ -137,14 +137,14 @@ void _flowTests() {
     expect(find.text('Сделано шагов: 1'), findsOneWidget);
   });
 
-  test('a step without words opens the coming-soon screen', () {
+  test('a lesson step opens the course', () {
     const lesson = TodayStepData(
       id: 'lesson:first',
       kind: TodayStepKind.lesson,
       reason: TodayStepReason.courseLesson,
       estimatedSeconds: 60,
     );
-    expect(locationOfStep(lesson), '/soon');
+    expect(locationOfStep(lesson), '/course');
   });
 }
 

@@ -314,5 +314,52 @@
   "learnTest": "Check yourself",
   "learnJunction": "Junction with the previous passage",
   "learnCombined": "Both passages in a row",
-  "learnLearned": "Passage learned. We will repeat it tomorrow"
+  "learnLearned": "Passage learned. We will repeat it tomorrow",
+  "courseAvailable": "Lessons available: {count}",
+  "courseStage": "Stage {stage}",
+  "courseSoon": "Lessons of this stage are being prepared",
+  "coursePaid": "With subscription",
+  "courseTajweed": "Tajweed reference",
+  "tajweedSoon": "The reference comes with the course content",
+  "lessonRight": "Right",
+  "lessonWrong": "Not right — see the right answer in the explanation",
+  "lessonGotIt": "Got it",
+  "lessonNotQuite": "Not quite",
+  "lessonRepeatCompare": "Repeat and compare",
+  "lessonAudioSoon": "The sample sound comes with the course content",
+  "lessonPassed": "Lesson passed",
+  "lessonFailed": "Let's repeat the hard parts",
+  "lessonRepeat": "Repeat",
+  "lessonQuizScore": "Mini-check: {percent}%",
+  "lessonOption": "Option {number}",
+  "lessonBuild": "Tap in order",
+  "lessonFindRule": "Mark the words with the rule",
+  "@courseAvailable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@courseStage": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "@lessonQuizScore": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "@lessonOption": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  }
 }

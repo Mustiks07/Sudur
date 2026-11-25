@@ -13,6 +13,8 @@ final class E01Config {
     this.firstShortSurah = 114,
     this.lastShortSurah = 78,
     this.learnJunctionWords = 2,
+    this.courseStages = 10,
+    this.firstPaidStage = 4,
   });
 
   /// Delay before a loading skeleton is shown (spec section 13).
@@ -41,4 +43,10 @@ final class E01Config {
   /// Words on each side of the junction of two passages (ЗН-03); the spec
   /// gives no number yet (question to the owner).
   final int learnJunctionWords;
+
+  /// Stages of the reading course (docs/tz 3.1, УЧ-08: stages 1–10).
+  final int courseStages;
+
+  /// First paid stage (13.9: «этап 4 и дальше»).
+  final int firstPaidStage;
 }

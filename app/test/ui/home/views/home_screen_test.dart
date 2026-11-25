@@ -3,12 +3,14 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/l10n/app_localizations.dart';
+import 'package:sudur/ui/course/view_models/course_view_models.dart';
 import 'package:sudur/ui/home/view_models/home_view_model.dart';
 import 'package:sudur/ui/home/views/home_screen.dart';
 import 'package:sudur/ui/more/view_models/more_view_model.dart';
 import 'package:sudur/ui/today/view_models/today_view_model.dart';
 
 import '../../../test_helpers/fake_app_user_repository.dart';
+import '../../../test_helpers/fake_course_repository.dart';
 
 void main() {
   testWidgets('shows all five destinations in English', (tester) async {
@@ -45,6 +47,10 @@ Widget _app() {
         create: (_) => TodayViewModel(repository, const E01Config()),
       ),
       ChangeNotifierProvider(create: (_) => MoreViewModel(repository)),
+      ChangeNotifierProvider(
+        create: (_) => CourseViewModel(FakeCourseRepository()),
+      ),
+      Provider<E01Config>.value(value: const E01Config()),
     ],
     child: const MaterialApp(
       locale: Locale('en'),

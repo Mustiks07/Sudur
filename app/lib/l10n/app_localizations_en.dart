@@ -665,4 +665,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get learnLearned => 'Passage learned. We will repeat it tomorrow';
+
+  @override
+  String courseAvailable(int count) {
+    return 'Lessons available: $count';
+  }
+
+  @override
+  String courseStage(int stage) {
+    return 'Stage $stage';
+  }
+
+  @override
+  String get courseSoon => 'Lessons of this stage are being prepared';
+
+  @override
+  String get coursePaid => 'With subscription';
+
+  @override
+  String get courseTajweed => 'Tajweed reference';
+
+  @override
+  String get tajweedSoon => 'The reference comes with the course content';
+
+  @override
+  String get lessonRight => 'Right';
+
+  @override
+  String get lessonWrong =>
+      'Not right — see the right answer in the explanation';
+
+  @override
+  String get lessonGotIt => 'Got it';
+
+  @override
+  String get lessonNotQuite => 'Not quite';
+
+  @override
+  String get lessonRepeatCompare => 'Repeat and compare';
+
+  @override
+  String get lessonAudioSoon =>
+      'The sample sound comes with the course content';
+
+  @override
+  String get lessonPassed => 'Lesson passed';
+
+  @override
+  String get lessonFailed => 'Let\'s repeat the hard parts';
+
+  @override
+  String get lessonRepeat => 'Repeat';
+
+  @override
+  String lessonQuizScore(int percent) {
+    return 'Mini-check: $percent%';
+  }
+
+  @override
+  String lessonOption(int number) {
+    return 'Option $number';
+  }
+
+  @override
+  String get lessonBuild => 'Tap in order';
+
+  @override
+  String get lessonFindRule => 'Mark the words with the rule';
 }

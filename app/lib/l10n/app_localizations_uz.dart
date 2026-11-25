@@ -657,4 +657,69 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get learnLearned => '[Нужен перевод]';
+
+  @override
+  String courseAvailable(int count) {
+    return '[Нужен перевод] $count';
+  }
+
+  @override
+  String courseStage(int stage) {
+    return '[Нужен перевод] $stage';
+  }
+
+  @override
+  String get courseSoon => '[Нужен перевод]';
+
+  @override
+  String get coursePaid => '[Нужен перевод]';
+
+  @override
+  String get courseTajweed => '[Нужен перевод]';
+
+  @override
+  String get tajweedSoon => '[Нужен перевод]';
+
+  @override
+  String get lessonRight => '[Нужен перевод]';
+
+  @override
+  String get lessonWrong => '[Нужен перевод]';
+
+  @override
+  String get lessonGotIt => '[Нужен перевод]';
+
+  @override
+  String get lessonNotQuite => '[Нужен перевод]';
+
+  @override
+  String get lessonRepeatCompare => '[Нужен перевод]';
+
+  @override
+  String get lessonAudioSoon => '[Нужен перевод]';
+
+  @override
+  String get lessonPassed => '[Нужен перевод]';
+
+  @override
+  String get lessonFailed => '[Нужен перевод]';
+
+  @override
+  String get lessonRepeat => '[Нужен перевод]';
+
+  @override
+  String lessonQuizScore(int percent) {
+    return '[Нужен перевод] $percent';
+  }
+
+  @override
+  String lessonOption(int number) {
+    return '[Нужен перевод] $number';
+  }
+
+  @override
+  String get lessonBuild => '[Нужен перевод]';
+
+  @override
+  String get lessonFindRule => '[Нужен перевод]';
 }

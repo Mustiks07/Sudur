@@ -4,6 +4,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/l10n/app_localizations.dart';
 import 'package:sudur/ui/core/widgets/section_placeholder.dart';
+import 'package:sudur/ui/course/view_models/course_view_models.dart';
+import 'package:sudur/ui/course/views/course_screens.dart';
 import 'package:sudur/ui/home/view_models/home_view_model.dart';
 import 'package:sudur/ui/more/view_models/more_view_model.dart';
 import 'package:sudur/ui/more/views/more_screen.dart';
@@ -27,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
       unawaited(context.read<TodayViewModel>().initialize());
       unawaited(context.read<MoreViewModel>().initialize());
+      unawaited(context.read<CourseViewModel>().load());
     });
   }
 
@@ -46,11 +49,15 @@ class _HomeScreenState extends State<HomeScreen> {
             index: viewModel.selectedIndex,
             children: [
               const TodayScreen(),
-              for (final destination in destinations.skip(1).take(3))
-                SectionPlaceholder(
-                  icon: destination.icon,
-                  title: destination.label,
-                ),
+              SectionPlaceholder(
+                icon: destinations[1].icon,
+                title: destinations[1].label,
+              ),
+              const CourseScreen(),
+              SectionPlaceholder(
+                icon: destinations[3].icon,
+                title: destinations[3].label,
+              ),
               const MoreScreen(),
             ],
           ),

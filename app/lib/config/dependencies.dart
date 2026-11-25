@@ -3,12 +3,14 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lessons/lessons.dart';
 import 'package:planner/planner.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/config/app_config.dart';
 import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/config/prototype_real_session.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
+import 'package:sudur/data/repositories/course_repository.dart';
 import 'package:sudur/data/repositories/exercise_repository.dart';
 import 'package:sudur/data/repositories/prototype_repository.dart';
 import 'package:sudur/data/repositories/reading_repository.dart';
@@ -20,6 +22,7 @@ import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
 import 'package:sudur/data/services/prototype_session.dart';
 import 'package:sudur/routing/app_router.dart';
+import 'package:sudur/ui/course/view_models/course_view_models.dart';
 import 'package:sudur/ui/home/view_models/home_view_model.dart';
 import 'package:sudur/ui/more/view_models/more_view_model.dart';
 import 'package:sudur/ui/reading/view_models/reading_view_model.dart';
@@ -47,6 +50,12 @@ class AppDependencies extends StatelessWidget {
     const files = AppFileService(platform);
     final installer = PrototypeAssetInstaller(platform);
     final canon = InstalledCanonService(installer);
+    final courseRepository = LocalCourseRepository(
+      installer: installer,
+      storage: storage,
+      clock: clock,
+      createId: () => _uuid(random),
+    );
     final repository = LocalPrototypeRepository(installer, platform);
     final userRepository = StorageAppUserRepository(
       storage: storage,
@@ -99,6 +108,16 @@ class AppDependencies extends StatelessWidget {
         ),
         ChangeNotifierProvider<MoreViewModel>(
           create: (_) => MoreViewModel(userRepository),
+        ),
+        Provider<CourseRepository>.value(value: courseRepository),
+        Provider<LessonEngine>.value(
+          value: LessonEngine(
+            params: LessonParams.defaults,
+            clock: () => clock.now(),
+          ),
+        ),
+        ChangeNotifierProvider<CourseViewModel>(
+          create: (_) => CourseViewModel(courseRepository),
         ),
         ChangeNotifierProvider<ReadingViewModel>(
           create: (context) {

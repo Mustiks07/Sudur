@@ -2,13 +2,18 @@ import 'dart:async';
 
 import 'package:contracts/contracts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lessons/lessons.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/config/app_config.dart';
 import 'package:sudur/data/models/user_models.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
+import 'package:sudur/data/repositories/course_repository.dart';
 import 'package:sudur/data/repositories/exercise_repository.dart';
 import 'package:sudur/data/repositories/reading_repository.dart';
 import 'package:sudur/data/services/prototype_session.dart';
+import 'package:sudur/ui/course/view_models/course_view_models.dart';
+import 'package:sudur/ui/course/views/course_screens.dart';
 import 'package:sudur/ui/exercise/view_models/exercise_view_model.dart';
 import 'package:sudur/ui/exercise/views/exercise_screen.dart';
 import 'package:sudur/ui/learn/view_models/learn_view_model.dart';
@@ -128,6 +133,36 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
       },
     ),
     GoRoute(
+      path: '/course',
+      builder: (context, state) =>
+          Scaffold(appBar: AppBar(), body: const CourseScreen()),
+    ),
+    GoRoute(
+      path: '/lesson',
+      builder: (context, state) {
+        final lessonId = state.extra;
+        final course = context.read<CourseViewModel>().data;
+        if (lessonId is! String || course == null) {
+          return const StepComingSoonScreen();
+        }
+        return ChangeNotifierProvider<LessonViewModel>(
+          create: (context) {
+            final viewModel = LessonViewModel(
+              context.read<CourseRepository>(),
+              context.read<LessonEngine>(),
+            );
+            unawaited(viewModel.start(course, lessonId));
+            return viewModel;
+          },
+          child: const LessonScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/tajweed',
+      builder: (context, state) => const TajweedScreen(),
+    ),
+    GoRoute(
       path: '/soon',
       builder: (context, state) => const StepComingSoonScreen(),
     ),
@@ -139,6 +174,9 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
 String locationOfStep(TodayStepData step) {
   final from = step.from;
   final to = step.to;
+  if (step.kind == TodayStepKind.lesson || step.kind == TodayStepKind.skill) {
+    return '/course';
+  }
   if (from == null || to == null) return '/soon';
   // New material is learned step by step (13.6, ЗН-01).
   if (!step.selfCheck &&
