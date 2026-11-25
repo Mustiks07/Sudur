@@ -83,7 +83,8 @@ abstract interface class AppUserRepository {
     required int dailyMinutes,
     required bool strictBehavior,
     required bool showFirstWord,
-    required int memorizationRepeats,
+    required int listenRepeats,
+    required int supportedRepeats,
   });
 
   /// Updates the current interface language.
@@ -131,7 +132,8 @@ final class StorageAppUserRepository implements AppUserRepository {
   static const _selectedSurahsKey = 'selectedSurahs';
   static const _startPointKey = 'startPoint';
   static const _modelDeferredKey = 'modelDeferred';
-  static const _memorizationRepeatsKey = 'memorizationRepeats';
+  static const _listenRepeatsKey = 'learnListenRepeats';
+  static const _supportedRepeatsKey = 'learnSupportedRepeats';
   static const _letterKnowledgeKey = 'letterKnowledge';
   static const _nextCardIdKey = 'nextFsrsCardId';
   static const _courseEntrySkill = 'course-entry';
@@ -282,11 +284,6 @@ final class StorageAppUserRepository implements AppUserRepository {
             storage,
             _modelDeferredKey,
             draft.downloadModelNow == false,
-          );
-          await _putSetting(
-            storage,
-            _memorizationRepeatsKey,
-            _config.defaultMemorizationRepeats,
           );
           if (path == AppLearningPath.learnReading) {
             await _ensureCourseUnit(storage, id);
@@ -636,7 +633,7 @@ final class StorageAppUserRepository implements AppUserRepository {
     }
     final first = canon.keyOf(from);
     final last = canon.keyOf(to);
-    final repeats = _planner.learningRepeats;
+    final repeats = await _learnRepeats(storage);
     final steps = <LearnStep>[
       for (var i = 0; i < repeats.listen; i++)
         LearnStep(kind: LearnStepKind.listen, from: first, to: last),
@@ -657,7 +654,7 @@ final class StorageAppUserRepository implements AppUserRepository {
         .firstOrNull
         ?.fromWordIndex;
     if (previousStart != null) {
-      final junction = _config.learnJunctionWords;
+      final junction = _planner.learnJunctionWords;
       steps
         ..add(
           LearnStep(
@@ -683,6 +680,21 @@ final class StorageAppUserRepository implements AppUserRepository {
       startIndex: saved.clamp(0, steps.length - 1),
     );
   });
+
+  /// ЗН-01 repetitions set under «Ещё»; the planner parameters by default.
+  Future<({int listen, int supported})> _learnRepeats(
+    StorageService storage,
+  ) async {
+    final defaults = _planner.learningRepeats;
+    return (
+      listen: await _settingInt(storage, _listenRepeatsKey, defaults.listen),
+      supported: await _settingInt(
+        storage,
+        _supportedRepeatsKey,
+        defaults.supported,
+      ),
+    );
+  }
 
   @override
   Future<Result<void>> saveLearnProgress(String unitId, int stepIndex) =>
@@ -1390,12 +1402,12 @@ final class StorageAppUserRepository implements AppUserRepository {
   Future<Result<MoreSettingsData>> loadMoreSettings() => _guard(() async {
     final storage = await _storageService.storage;
     final profile = await _requiredProfile(storage);
-    final repeats = await _settingInt(
-      storage,
-      _memorizationRepeatsKey,
-      _config.defaultMemorizationRepeats,
+    final repeats = await _learnRepeats(storage);
+    return MoreSettingsData(
+      profile: profile,
+      listenRepeats: repeats.listen,
+      supportedRepeats: repeats.supported,
     );
-    return MoreSettingsData(profile: profile, memorizationRepeats: repeats);
   });
 
   @override
@@ -1403,9 +1415,10 @@ final class StorageAppUserRepository implements AppUserRepository {
     required int dailyMinutes,
     required bool strictBehavior,
     required bool showFirstWord,
-    required int memorizationRepeats,
+    required int listenRepeats,
+    required int supportedRepeats,
   }) => _guard(() async {
-    if (dailyMinutes <= 0 || memorizationRepeats <= 0) {
+    if (dailyMinutes <= 0 || listenRepeats <= 0 || supportedRepeats <= 0) {
       throw const FormatException('Study settings must be positive.');
     }
     final storage = await _storageService.storage;
@@ -1425,10 +1438,12 @@ final class StorageAppUserRepository implements AppUserRepository {
       showFirstWord: showFirstWord,
     );
     _unwrap(await storage.profiles.put(changed));
-    await _putSetting(storage, _memorizationRepeatsKey, memorizationRepeats);
+    await _putSetting(storage, _listenRepeatsKey, listenRepeats);
+    await _putSetting(storage, _supportedRepeatsKey, supportedRepeats);
     return MoreSettingsData(
       profile: _profile(changed, language),
-      memorizationRepeats: memorizationRepeats,
+      listenRepeats: listenRepeats,
+      supportedRepeats: supportedRepeats,
     );
   });
 

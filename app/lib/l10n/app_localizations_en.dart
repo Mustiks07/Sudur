@@ -344,7 +344,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showFirstWord => '[Нужен перевод]';
 
   @override
-  String get memorizationRepeats => '[Нужен перевод]';
+  String get listenRepeats => '[Нужен перевод]';
+
+  @override
+  String get supportedRepeats => '[Нужен перевод]';
 
   @override
   String get save => '[Нужен перевод]';

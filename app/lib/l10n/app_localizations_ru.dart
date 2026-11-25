@@ -349,7 +349,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get showFirstWord => 'Показывать первое слово';
 
   @override
-  String get memorizationRepeats => 'Повторов при заучивании';
+  String get listenRepeats => 'Послушать чтеца';
+
+  @override
+  String get supportedRepeats => 'Прочитать по тексту';
 
   @override
   String get save => 'Сохранить';

@@ -368,14 +368,18 @@ final class MoreSettingsData {
   /// Creates settings data.
   const MoreSettingsData({
     required this.profile,
-    required this.memorizationRepeats,
+    required this.listenRepeats,
+    required this.supportedRepeats,
   });
 
   /// Profile-backed settings.
   final AppUserProfile profile;
 
-  /// Number of repetitions for new material.
-  final int memorizationRepeats;
+  /// «Послушать чтеца»: listenings of a new passage (ЗН-01).
+  final int listenRepeats;
+
+  /// «Прочитать по тексту»: readings with the text of a new passage (ЗН-01).
+  final int supportedRepeats;
 }
 
 /// Installed download shown in “Downloads”.

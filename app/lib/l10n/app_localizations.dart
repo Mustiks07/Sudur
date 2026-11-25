@@ -732,11 +732,17 @@ abstract class AppLocalizations {
   /// **'[Нужен перевод]'**
   String get showFirstWord;
 
-  /// No description provided for @memorizationRepeats.
+  /// No description provided for @listenRepeats.
   ///
   /// In en, this message translates to:
   /// **'[Нужен перевод]'**
-  String get memorizationRepeats;
+  String get listenRepeats;
+
+  /// No description provided for @supportedRepeats.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get supportedRepeats;
 
   /// No description provided for @save.
   ///
