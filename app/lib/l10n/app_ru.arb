@@ -182,5 +182,16 @@
   "selfHowWasIt": "Как получилось?",
   "selfRemembered": "Вспомнил",
   "selfDifficulty": "С трудом",
-  "selfForgot": "Не вспомнил"
+  "selfForgot": "Не вспомнил",
+  "exerciseTitle": "Упражнение",
+  "exerciseProgress": "Шаг {step} из {total}",
+  "exerciseClosed": "Место закреплено",
+  "exerciseAgain": "Вернёмся к нему завтра",
+  "exerciseUnverifiedPairs": "Похожие места подобраны автоматически и не проверены специалистом",
+  "exerciseHardPassage": "Трудное место",
+  "exerciseTransition": "Переход между аятами",
+  "exerciseStartInMiddle": "Начало с середины",
+  "exerciseFadingHelp": "Меньше подсказок",
+  "exerciseSimilar": "Похожие аяты",
+  "exerciseReread": "Прочитать ещё раз"
 }

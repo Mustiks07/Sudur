@@ -9,6 +9,7 @@ import 'package:sudur/config/app_config.dart';
 import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/config/prototype_real_session.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
+import 'package:sudur/data/repositories/exercise_repository.dart';
 import 'package:sudur/data/repositories/prototype_repository.dart';
 import 'package:sudur/data/repositories/reading_repository.dart';
 import 'package:sudur/data/services/app_canon_service.dart';
@@ -45,12 +46,13 @@ class AppDependencies extends StatelessWidget {
     final storage = AppStorageService(platform);
     const files = AppFileService(platform);
     final installer = PrototypeAssetInstaller(platform);
+    final canon = InstalledCanonService(installer);
     final repository = LocalPrototypeRepository(installer, platform);
     final userRepository = StorageAppUserRepository(
       storage: storage,
       files: files,
       modelInstaller: installer,
-      canon: InstalledCanonService(installer),
+      canon: canon,
       planner: AppPlannerService(clock: clock, random: random),
       clock: clock,
       createId: () => _uuid(random),
@@ -67,6 +69,14 @@ class AppDependencies extends StatelessWidget {
         Provider<PrototypeRepository>.value(value: repository),
         Provider<ReadingRepository>.value(
           value: LocalReadingRepository(installer),
+        ),
+        Provider<ExerciseRepository>.value(
+          value: LocalExerciseRepository(
+            canon: canon,
+            storage: storage,
+            clock: clock,
+            createId: () => _uuid(random),
+          ),
         ),
         Provider<AppStorageService>(
           create: (_) => storage,

@@ -1199,6 +1199,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Did not remember'**
   String get selfForgot;
+
+  /// No description provided for @exerciseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise'**
+  String get exerciseTitle;
+
+  /// No description provided for @exerciseProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {step} of {total}'**
+  String exerciseProgress(int step, int total);
+
+  /// No description provided for @exerciseClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'The place is fixed'**
+  String get exerciseClosed;
+
+  /// No description provided for @exerciseAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'We will come back to it tomorrow'**
+  String get exerciseAgain;
+
+  /// No description provided for @exerciseUnverifiedPairs.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar places were found automatically and not checked by a specialist'**
+  String get exerciseUnverifiedPairs;
+
+  /// No description provided for @exerciseHardPassage.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard place'**
+  String get exerciseHardPassage;
+
+  /// No description provided for @exerciseTransition.
+  ///
+  /// In en, this message translates to:
+  /// **'Transition between ayahs'**
+  String get exerciseTransition;
+
+  /// No description provided for @exerciseStartInMiddle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start from the middle'**
+  String get exerciseStartInMiddle;
+
+  /// No description provided for @exerciseFadingHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Fewer hints'**
+  String get exerciseFadingHelp;
+
+  /// No description provided for @exerciseSimilar.
+  ///
+  /// In en, this message translates to:
+  /// **'Similar ayahs'**
+  String get exerciseSimilar;
+
+  /// No description provided for @exerciseReread.
+  ///
+  /// In en, this message translates to:
+  /// **'Read again'**
+  String get exerciseReread;
 }
 
 class _AppLocalizationsDelegate

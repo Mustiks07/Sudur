@@ -6,8 +6,11 @@ import 'package:provider/provider.dart';
 import 'package:sudur/config/app_config.dart';
 import 'package:sudur/data/models/user_models.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
+import 'package:sudur/data/repositories/exercise_repository.dart';
 import 'package:sudur/data/repositories/reading_repository.dart';
 import 'package:sudur/data/services/prototype_session.dart';
+import 'package:sudur/ui/exercise/view_models/exercise_view_model.dart';
+import 'package:sudur/ui/exercise/views/exercise_screen.dart';
 import 'package:sudur/ui/read/view_models/read_view_model.dart';
 import 'package:sudur/ui/read/views/read_screen.dart';
 import 'package:sudur/ui/reading/views/reading_screen.dart';
@@ -49,7 +52,14 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
               sessionFactory: context.read<PrototypeReadingSessionFactory>(),
             );
             unawaited(
-              viewModel.open(from: from, to: to, stepId: query['step']),
+              viewModel.open(
+                from: from,
+                to: to,
+                stepId: query['step'],
+                mode: ReadMode.values
+                    .where((m) => m.name == query['mode'])
+                    .firstOrNull,
+              ),
             );
             return viewModel;
           },
@@ -82,6 +92,25 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
       },
     ),
     GoRoute(
+      path: '/exercise',
+      builder: (context, state) {
+        final extra = state.extra;
+        if (extra is! (CheckEvent, String?)) {
+          return const StepComingSoonScreen();
+        }
+        return ChangeNotifierProvider<ExerciseViewModel>(
+          create: (context) {
+            final viewModel = ExerciseViewModel(
+              context.read<ExerciseRepository>(),
+            );
+            unawaited(viewModel.open(extra.$1, parentUnitId: extra.$2));
+            return viewModel;
+          },
+          child: const ExerciseScreen(),
+        );
+      },
+    ),
+    GoRoute(
       path: '/soon',
       builder: (context, state) => const StepComingSoonScreen(),
     ),
@@ -109,9 +138,15 @@ String selfCheckLocation(
   WordKey to, {
   String? stepId,
   String path = '/self',
+  String? mode,
 }) => Uri(
   path: path,
-  queryParameters: {'from': '$from', 'to': '$to', 'step': ?stepId},
+  queryParameters: {
+    'from': '$from',
+    'to': '$to',
+    'step': ?stepId,
+    'mode': ?mode,
+  },
 ).toString();
 
 /// A link is outside data: a malformed key opens the whole prototype.

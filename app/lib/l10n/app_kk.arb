@@ -182,5 +182,16 @@
   "selfHowWasIt": "[Нужен перевод]",
   "selfRemembered": "[Нужен перевод]",
   "selfDifficulty": "[Нужен перевод]",
-  "selfForgot": "[Нужен перевод]"
+  "selfForgot": "[Нужен перевод]",
+  "exerciseTitle": "[Нужен перевод]",
+  "exerciseProgress": "[Нужен перевод] {step} {total}",
+  "exerciseClosed": "[Нужен перевод]",
+  "exerciseAgain": "[Нужен перевод]",
+  "exerciseUnverifiedPairs": "[Нужен перевод]",
+  "exerciseHardPassage": "[Нужен перевод]",
+  "exerciseTransition": "[Нужен перевод]",
+  "exerciseStartInMiddle": "[Нужен перевод]",
+  "exerciseFadingHelp": "[Нужен перевод]",
+  "exerciseSimilar": "[Нужен перевод]",
+  "exerciseReread": "[Нужен перевод]"
 }

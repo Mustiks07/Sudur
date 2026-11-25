@@ -598,4 +598,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get selfForgot => 'Did not remember';
+
+  @override
+  String get exerciseTitle => 'Exercise';
+
+  @override
+  String exerciseProgress(int step, int total) {
+    return 'Step $step of $total';
+  }
+
+  @override
+  String get exerciseClosed => 'The place is fixed';
+
+  @override
+  String get exerciseAgain => 'We will come back to it tomorrow';
+
+  @override
+  String get exerciseUnverifiedPairs =>
+      'Similar places were found automatically and not checked by a specialist';
+
+  @override
+  String get exerciseHardPassage => 'Hard place';
+
+  @override
+  String get exerciseTransition => 'Transition between ayahs';
+
+  @override
+  String get exerciseStartInMiddle => 'Start from the middle';
+
+  @override
+  String get exerciseFadingHelp => 'Fewer hints';
+
+  @override
+  String get exerciseSimilar => 'Similar ayahs';
+
+  @override
+  String get exerciseReread => 'Read again';
 }

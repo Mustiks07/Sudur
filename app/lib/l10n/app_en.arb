@@ -283,5 +283,26 @@
         "type": "int"
       }
     }
+  },
+  "exerciseTitle": "Exercise",
+  "exerciseProgress": "Step {step} of {total}",
+  "exerciseClosed": "The place is fixed",
+  "exerciseAgain": "We will come back to it tomorrow",
+  "exerciseUnverifiedPairs": "Similar places were found automatically and not checked by a specialist",
+  "exerciseHardPassage": "Hard place",
+  "exerciseTransition": "Transition between ayahs",
+  "exerciseStartInMiddle": "Start from the middle",
+  "exerciseFadingHelp": "Fewer hints",
+  "exerciseSimilar": "Similar ayahs",
+  "exerciseReread": "Read again",
+  "@exerciseProgress": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

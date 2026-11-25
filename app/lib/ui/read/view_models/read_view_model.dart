@@ -152,6 +152,10 @@ final class ReadViewModel extends ChangeNotifier {
   /// Step of “Today” being read, if any.
   String? get stepId => _stepId;
 
+  /// A step of an exercise (13.5): its mode is set and cannot change.
+  bool get exercise => _fixedMode != null;
+  ReadMode? _fixedMode;
+
   /// Current state.
   ReadState get state => _state;
   ReadState _state = ReadState.preparing;
@@ -201,6 +205,9 @@ final class ReadViewModel extends ChangeNotifier {
   ReadingResult? get result => _result;
   ReadingResult? _result;
   RecordedReading? _recorded;
+
+  /// Plan unit the written reading was for, if any.
+  String? get unitId => _recorded?.unitId;
 
   /// Counts of the summary (РБ-05).
   ReviewSummary get summary {
@@ -300,8 +307,10 @@ final class ReadViewModel extends ChangeNotifier {
     required WordKey from,
     required WordKey to,
     String? stepId,
+    ReadMode? mode,
   }) async {
     _stepId = stepId;
+    _fixedMode = mode;
     _state = ReadState.preparing;
     _error = null;
     notifyListeners();
@@ -310,6 +319,7 @@ final class ReadViewModel extends ChangeNotifier {
       _strict = profile.strictBehavior;
       _showFirstWord = profile.showFirstWord;
     }
+    if (mode != null) _mode = mode;
     final prepared = await _reading.prepare(from: from, to: to);
     if (_disposed) return;
     switch (prepared) {
@@ -350,7 +360,7 @@ final class ReadViewModel extends ChangeNotifier {
 
   /// Chooses the mode before the start.
   void setMode(ReadMode value) {
-    if (_state != ReadState.ready || value == _mode) return;
+    if (_state != ReadState.ready || value == _mode || exercise) return;
     _mode = value;
     _resetWords();
     notifyListeners();

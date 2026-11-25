@@ -276,25 +276,26 @@ final class _Options extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.small),
       child: Column(
         children: [
-          SegmentedButton<ReadMode>(
-            key: const ValueKey('read-mode'),
-            segments: [
-              ButtonSegment(
-                value: ReadMode.supported,
-                label: Text(l10n.readModeSupported),
-              ),
-              ButtonSegment(
-                value: ReadMode.recall,
-                label: Text(l10n.readModeRecall),
-              ),
-              ButtonSegment(
-                value: ReadMode.test,
-                label: Text(l10n.readModeTest),
-              ),
-            ],
-            selected: {viewModel.mode},
-            onSelectionChanged: (value) => viewModel.setMode(value.first),
-          ),
+          if (!viewModel.exercise)
+            SegmentedButton<ReadMode>(
+              key: const ValueKey('read-mode'),
+              segments: [
+                ButtonSegment(
+                  value: ReadMode.supported,
+                  label: Text(l10n.readModeSupported),
+                ),
+                ButtonSegment(
+                  value: ReadMode.recall,
+                  label: Text(l10n.readModeRecall),
+                ),
+                ButtonSegment(
+                  value: ReadMode.test,
+                  label: Text(l10n.readModeTest),
+                ),
+              ],
+              selected: {viewModel.mode},
+              onSelectionChanged: (value) => viewModel.setMode(value.first),
+            ),
           Wrap(
             spacing: AppSpacing.medium,
             crossAxisAlignment: WrapCrossAlignment.center,
@@ -515,7 +516,10 @@ final class _ReviewBody extends StatelessWidget {
           padding: const EdgeInsets.all(AppSpacing.medium),
           child: FilledButton(
             key: const ValueKey('review-next'),
-            onPressed: () => Navigator.of(context).pop(true),
+            // A step of an exercise returns whether it was clean (УП-07).
+            onPressed: () =>
+                Navigator.of(context)
+                    .pop(!viewModel.exercise || viewModel.clean),
             child: Text(l10n.reviewNext),
           ),
         ),
@@ -579,8 +583,9 @@ final class _ReviewEvent extends StatelessWidget {
               ),
             OutlinedButton(
               key: ValueKey('review-practice-${check.eventId}'),
-              // The exercise screen comes with Q10.
-              onPressed: () => GoRouter.of(context).push('/soon'),
+              onPressed: () =>
+                  GoRouter.of(context)
+                      .push('/exercise', extra: (check, viewModel.unitId)),
               child: Text(l10n.reviewPractice),
             ),
           ],

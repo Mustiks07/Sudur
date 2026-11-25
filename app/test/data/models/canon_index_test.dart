@@ -64,4 +64,16 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('similar pairs give the other place of an overlapping range', () {
+    final derived = jsonDecode(_ayahPassages(_text)) as Map<String, Object?>;
+    derived['similarPairs'] = [
+      [10, 14, 500, 504],
+    ];
+    final withPairs = CanonIndex.parse(_text, jsonEncode(derived));
+    expect(withPairs.similarTo(12, 20), [(500, 504)]);
+    expect(withPairs.similarTo(501, 501), [(10, 14)]);
+    expect(withPairs.similarTo(15, 20), isEmpty);
+    expect(withPairs.ayahOf(1).ayah, 1);
+  });
 }

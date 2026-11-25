@@ -53,13 +53,38 @@ final class CanonPassage {
   final int toWordIndex;
 }
 
+/// A pair of similar places from D01 (`similar_pair`, not yet checked by a
+/// specialist): word ranges [aFrom]–[aTo] and [bFrom]–[bTo].
+@immutable
+final class CanonSimilarPair {
+  /// Creates the pair.
+  const CanonSimilarPair(this.aFrom, this.aTo, this.bFrom, this.bTo);
+
+  /// First place.
+  final int aFrom;
+
+  /// End of the first place.
+  final int aTo;
+
+  /// Second place.
+  final int bFrom;
+
+  /// End of the second place.
+  final int bTo;
+}
+
 /// Where every ayah and default passage is in the canonical text.
 ///
 /// Holds positions only, never the Arabic words: screens read the text
 /// itself from the content package.
 @immutable
 final class CanonIndex {
-  const CanonIndex._(this._ayahs, this._passages, this._surahStarts);
+  const CanonIndex._(
+    this._ayahs,
+    this._passages,
+    this._surahStarts, [
+    this._similar = const [],
+  ]);
 
   /// Reads the whole-Quran text JSON (format 2, ADR 0004) and the derived
   /// content JSON (D01). Throws [FormatException] if either is not in that
@@ -139,10 +164,20 @@ final class CanonIndex {
     if (expected != next) {
       throw const FormatException('Passages do not cover the whole text.');
     }
+    final similar = <CanonSimilarPair>[
+      for (final entry in switch (derived['similarPairs']) {
+        final List<Object?> list => list,
+        _ => const <Object?>[],
+      })
+        if (entry case [final int a, final int aTo, final int b, final int bTo]
+            when a <= aTo && b <= bTo && bTo < next)
+          CanonSimilarPair(a, aTo, b, bTo),
+    ];
     return CanonIndex._(
       List.unmodifiable(ayahs),
       List.unmodifiable(passages),
       Map.unmodifiable(surahStarts),
+      List.unmodifiable(similar),
     );
   }
 
@@ -155,6 +190,22 @@ final class CanonIndex {
   final List<CanonAyah> _ayahs;
   final List<CanonPassage> _passages;
   final Map<int, int> _surahStarts;
+  final List<CanonSimilarPair> _similar;
+
+  /// The other place of every similar pair that overlaps [from]–[to].
+  List<(int, int)> similarTo(int from, int to) => [
+    for (final pair in _similar)
+      if (pair.aFrom <= to && from <= pair.aTo)
+        (pair.bFrom, pair.bTo)
+      else if (pair.bFrom <= to && from <= pair.bTo)
+        (pair.aFrom, pair.aTo),
+  ];
+
+  /// The ayah that holds `word_index` [wordIndex].
+  CanonAyah ayahOf(int wordIndex) {
+    final key = keyOf(wordIndex);
+    return ayahsOf(key.surah)[key.ayah - 1];
+  }
 
   /// Number of words in the text.
   int get wordCount => _ayahs.last.lastWordIndex;

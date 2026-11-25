@@ -592,4 +592,39 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get selfForgot => '[Нужен перевод]';
+
+  @override
+  String get exerciseTitle => '[Нужен перевод]';
+
+  @override
+  String exerciseProgress(int step, int total) {
+    return '[Нужен перевод] $step $total';
+  }
+
+  @override
+  String get exerciseClosed => '[Нужен перевод]';
+
+  @override
+  String get exerciseAgain => '[Нужен перевод]';
+
+  @override
+  String get exerciseUnverifiedPairs => '[Нужен перевод]';
+
+  @override
+  String get exerciseHardPassage => '[Нужен перевод]';
+
+  @override
+  String get exerciseTransition => '[Нужен перевод]';
+
+  @override
+  String get exerciseStartInMiddle => '[Нужен перевод]';
+
+  @override
+  String get exerciseFadingHelp => '[Нужен перевод]';
+
+  @override
+  String get exerciseSimilar => '[Нужен перевод]';
+
+  @override
+  String get exerciseReread => '[Нужен перевод]';
 }

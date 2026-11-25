@@ -604,4 +604,40 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get selfForgot => 'Не вспомнил';
+
+  @override
+  String get exerciseTitle => 'Упражнение';
+
+  @override
+  String exerciseProgress(int step, int total) {
+    return 'Шаг $step из $total';
+  }
+
+  @override
+  String get exerciseClosed => 'Место закреплено';
+
+  @override
+  String get exerciseAgain => 'Вернёмся к нему завтра';
+
+  @override
+  String get exerciseUnverifiedPairs =>
+      'Похожие места подобраны автоматически и не проверены специалистом';
+
+  @override
+  String get exerciseHardPassage => 'Трудное место';
+
+  @override
+  String get exerciseTransition => 'Переход между аятами';
+
+  @override
+  String get exerciseStartInMiddle => 'Начало с середины';
+
+  @override
+  String get exerciseFadingHelp => 'Меньше подсказок';
+
+  @override
+  String get exerciseSimilar => 'Похожие аяты';
+
+  @override
+  String get exerciseReread => 'Прочитать ещё раз';
 }
