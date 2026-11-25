@@ -12,8 +12,12 @@
   "prototypeDownloadProgress": "Downloading {resource}: {percent}%",
   "@prototypeDownloadProgress": {
     "placeholders": {
-      "resource": {"type": "String"},
-      "percent": {"type": "int"}
+      "resource": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
     }
   },
   "prototypeRetry": "Try again",
@@ -25,14 +29,24 @@
   "prototypePhoneResult": "Speed ratio: {ratio}; decode: {decodeMs} ms",
   "@prototypePhoneResult": {
     "placeholders": {
-      "ratio": {"type": "String"},
-      "decodeMs": {"type": "int"}
+      "ratio": {
+        "type": "String"
+      },
+      "decodeMs": {
+        "type": "int"
+      }
     }
   },
   "prototypeChooseWav": "Choose WAV",
   "prototypeUseMicrophone": "Use microphone",
   "prototypeWavSelected": "Measurement input: {fileName}",
-  "@prototypeWavSelected": {"placeholders": {"fileName": {"type": "String"}}},
+  "@prototypeWavSelected": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
   "prototypeStart": "Start",
   "prototypePause": "Pause",
   "prototypeResume": "Resume",
@@ -44,9 +58,337 @@
   "mushafAyahSemantics": "Surah {surah}, ayah {ayah}. {text}",
   "@mushafAyahSemantics": {
     "placeholders": {
-      "surah": {"type": "int"},
-      "ayah": {"type": "int"},
-      "text": {"type": "String"}
+      "surah": {
+        "type": "int"
+      },
+      "ayah": {
+        "type": "int"
+      },
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "retry": "[Нужен перевод]",
+  "loadError": "[Нужен перевод]",
+  "networkError": "[Нужен перевод]",
+  "startTitle": "[Нужен перевод]",
+  "chooseLanguage": "[Нужен перевод]",
+  "languageRussian": "[Нужен перевод]",
+  "languageKazakh": "[Нужен перевод]",
+  "languageUzbek": "[Нужен перевод]",
+  "languageEnglish": "[Нужен перевод]",
+  "choosePath": "[Нужен перевод]",
+  "pathLearnReading": "[Нужен перевод]",
+  "pathMemorize": "[Нужен перевод]",
+  "pathRestore": "[Нужен перевод]",
+  "chooseFamiliarSurahs": "[Нужен перевод]",
+  "searchSurah": "[Нужен перевод]",
+  "surahNumber": "[Нужен перевод] {number}",
+  "skip": "[Нужен перевод]",
+  "continueAction": "[Нужен перевод]",
+  "chooseDailyTime": "[Нужен перевод]",
+  "minutesCount": "[Нужен перевод] {count}",
+  "customTime": "[Нужен перевод]",
+  "minutes": "[Нужен перевод]",
+  "cancel": "[Нужен перевод]",
+  "modelTitle": "[Нужен перевод]",
+  "downloadModel": "[Нужен перевод]",
+  "downloadLater": "[Нужен перевод]",
+  "modelDownloading": "[Нужен перевод]",
+  "chooseStartPoint": "[Нужен перевод]",
+  "startFirstSurah": "[Нужен перевод]",
+  "startShortSurahs": "[Нужен перевод]",
+  "knowLetters": "[Нужен перевод]",
+  "lettersNo": "[Нужен перевод]",
+  "lettersALittle": "[Нужен перевод]",
+  "todayAroundMinutes": "[Нужен перевод] {minutes}",
+  "todayFirstDay": "[Нужен перевод]",
+  "todayNormal": "[Нужен перевод]",
+  "todayReturning": "[Нужен перевод]",
+  "todayCompleted": "[Нужен перевод]",
+  "todayFreeLimit": "[Нужен перевод]",
+  "todayModelMissing": "[Нужен перевод]",
+  "stepDiagnostic": "[Нужен перевод]",
+  "stepPassage": "[Нужен перевод]",
+  "stepSurah": "[Нужен перевод] {number}",
+  "stepHardSpot": "[Нужен перевод]",
+  "stepLesson": "[Нужен перевод]",
+  "stepSkill": "[Нужен перевод]",
+  "reasonReturnDiagnosis": "[Нужен перевод]",
+  "reasonYesterdayNew": "[Нужен перевод]",
+  "reasonYesterdayError": "[Нужен перевод]",
+  "reasonRecentDue": "[Нужен перевод]",
+  "reasonLongUnchecked": "[Нужен перевод]",
+  "reasonNewMaterial": "[Нужен перевод]",
+  "reasonCourseLesson": "[Нужен перевод]",
+  "reasonSkillDue": "[Нужен перевод]",
+  "reasonUserAdded": "[Нужен перевод]",
+  "selfCheck": "[Нужен перевод]",
+  "startAction": "[Нужен перевод]",
+  "skipTodayTitle": "[Нужен перевод]",
+  "skipTodayBody": "[Нужен перевод]",
+  "skipToday": "[Нужен перевод]",
+  "dayDone": "[Нужен перевод]",
+  "reviewMore": "[Нужен перевод]",
+  "activities": "[Нужен перевод]",
+  "language": "[Нужен перевод]",
+  "downloads": "[Нужен перевод]",
+  "myData": "[Нужен перевод]",
+  "subscription": "[Нужен перевод]",
+  "reminders": "[Нужен перевод]",
+  "improveChecking": "[Нужен перевод]",
+  "reportProblem": "[Нужен перевод]",
+  "comingSoon": "[Нужен перевод]",
+  "aboutApp": "[Нужен перевод]",
+  "sourcesLicenses": "[Нужен перевод]",
+  "dailyTime": "[Нужен перевод]",
+  "strictMode": "[Нужен перевод]",
+  "showFirstWord": "[Нужен перевод]",
+  "save": "[Нужен перевод]",
+  "noModels": "[Нужен перевод]",
+  "speechModel": "[Нужен перевод]",
+  "megabytes": "[Нужен перевод] {value}",
+  "deleteAction": "[Нужен перевод]",
+  "close": "[Нужен перевод]",
+  "exportData": "[Нужен перевод]",
+  "importData": "[Нужен перевод]",
+  "deleteAllData": "[Нужен перевод]",
+  "deleteAllDataWarning": "[Нужен перевод]",
+  "back": "Back",
+  "readingDone": "Done",
+  "readingRangeUnavailable": "This passage cannot be opened yet: the prototype has only pages 582–583. Reading the whole Quran comes in the next version.",
+  "stepComingSoon": "This step comes in the next version of the app.",
+  "todaySummary": "Steps done: {count}",
+  "@todaySummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readPreparing": "Preparing…",
+  "readReady": "Start reading",
+  "readModeSupported": "With support",
+  "readModeRecall": "Try to recall",
+  "readModeTest": "Test myself",
+  "readStart": "Start",
+  "readHint": "Hint",
+  "readPause": "Pause",
+  "readResume": "Continue",
+  "readFinish": "Finish",
+  "readPaused": "Paused",
+  "readMicDenied": "Microphone access is needed",
+  "readWithoutMic": "Without microphone",
+  "readModelMissing": "The model is not downloaded",
+  "readDownload": "Download",
+  "readWithoutVoice": "Without voice",
+  "readDeviceTooSlow": "The phone cannot check in time. Let's continue without checking",
+  "readFailed": "Could not prepare reading",
+  "readUnlock": "Open without penalty",
+  "readStrictAgain": "Read this word again",
+  "readOfferHint": "Show a hint?",
+  "readChecksNotice": "Words are checked. Vowel marks and tajweed are not checked yet",
+  "readTitle": "Surah {surah}, ayahs {from}–{to}",
+  "readShowFirstWord": "First word visible",
+  "readStrict": "Strict mode",
+  "readTextView": "Temporary text view: there is no page layout for this place yet",
+  "readSaving": "Saving the result…",
+  "@readTitle": {
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "reviewTitle": "Review",
+  "reviewClean": "Read cleanly",
+  "reviewIndependent": "On your own: {count}",
+  "reviewWithHints": "With hints: {count}",
+  "reviewErrors": "Mistakes: {count}",
+  "reviewUnverified": "Could not check: {count}",
+  "reviewFilterAll": "All",
+  "reviewFilterErrors": "Mistakes",
+  "reviewFilterCorrections": "Corrections",
+  "reviewFilterUnverified": "Not heard",
+  "reviewKindOmission": "word skipped",
+  "reviewKindSubstitution": "another word",
+  "reviewKindInsertion": "extra word",
+  "reviewKindJump": "moved to a similar ayah",
+  "reviewKindRepetition": "repetition",
+  "reviewKindHesitation": "hesitation",
+  "reviewStatePreliminary": "preliminary",
+  "reviewStateConfirmed": "confirmed",
+  "reviewStateCorrected": "corrected",
+  "reviewStateUnverified": "could not check",
+  "reviewStateDisputed": "disputed",
+  "reviewListenSelf": "Listen to myself",
+  "reviewListenReciter": "Listen to the reciter",
+  "reviewDispute": "I disagree",
+  "reviewPractice": "Practise this place",
+  "reviewNext": "Next",
+  "reviewAudioSoon": "Your recording and the reciter come in the next version",
+  "reviewNoEvents": "No events",
+  "@reviewIndependent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@reviewWithHints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@reviewErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@reviewUnverified": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selfTitle": "Self-check",
+  "selfPrompt": "Read surah {surah}, ayahs {from}–{to} to yourself",
+  "selfDone": "Done",
+  "selfHowWasIt": "How did it go?",
+  "selfRemembered": "Remembered",
+  "selfDifficulty": "With difficulty",
+  "selfForgot": "Did not remember",
+  "@selfPrompt": {
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
+  },
+  "exerciseTitle": "Exercise",
+  "exerciseProgress": "Step {step} of {total}",
+  "exerciseClosed": "The place is fixed",
+  "exerciseAgain": "We will come back to it tomorrow",
+  "exerciseUnverifiedPairs": "Similar places were found automatically and not checked by a specialist",
+  "exerciseHardPassage": "Hard place",
+  "exerciseTransition": "Transition between ayahs",
+  "exerciseStartInMiddle": "Start from the middle",
+  "exerciseFadingHelp": "Fewer hints",
+  "exerciseSimilar": "Similar ayahs",
+  "exerciseReread": "Read again",
+  "@exerciseProgress": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "learnTitle": "Learning",
+  "learnListen": "Listen to the reciter",
+  "learnListenUnavailable": "There are no reciter recordings in the app yet — their rights are not obtained yet",
+  "learnSkipListening": "Skip listening",
+  "learnSupported": "Read with the text",
+  "learnRecall": "Try to recall",
+  "learnTest": "Check yourself",
+  "learnJunction": "Junction with the previous passage",
+  "learnCombined": "Both passages in a row",
+  "learnLearned": "Passage learned. We will repeat it tomorrow",
+  "courseAvailable": "Lessons available: {count}",
+  "courseStage": "Stage {stage}",
+  "courseSoon": "Lessons of this stage are being prepared",
+  "coursePaid": "With subscription",
+  "courseTajweed": "Tajweed reference",
+  "tajweedSoon": "The reference comes with the course content",
+  "lessonRight": "Right",
+  "lessonWrong": "Not right — see the right answer in the explanation",
+  "lessonGotIt": "Got it",
+  "lessonNotQuite": "Not quite",
+  "lessonRepeatCompare": "Repeat and compare",
+  "lessonAudioSoon": "The sample sound comes with the course content",
+  "lessonPassed": "Lesson passed",
+  "lessonFailed": "Let's repeat the hard parts",
+  "lessonRepeat": "Repeat",
+  "lessonQuizScore": "Mini-check: {percent}%",
+  "lessonOption": "Option {number}",
+  "lessonBuild": "Tap in order",
+  "lessonFindRule": "Mark the words with the rule",
+  "@courseAvailable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@courseStage": {
+    "placeholders": {
+      "stage": {
+        "type": "int"
+      }
+    }
+  },
+  "@lessonQuizScore": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "@lessonOption": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "listenRepeats": "[Нужен перевод]",
+  "supportedRepeats": "[Нужен перевод]",
+  "readOpenSettings": "Open settings",
+  "reviewShare": "Share the result",
+  "reviewShareText": "Surah {surah}, ayahs {from}–{to}: on my own {independent}, with hints {hints}, mistakes {errors}, could not check {unverified}.",
+  "@reviewShareText": {
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      },
+      "independent": {
+        "type": "int"
+      },
+      "hints": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      },
+      "unverified": {
+        "type": "int"
+      }
     }
   }
 }
