@@ -403,6 +403,29 @@ void main() {
     );
   });
 
+  test('I disagree: the event is disputed and the unit is due again', () async {
+    _value(await repository.completeOnboarding(draft()));
+    final step = _value(await repository.loadToday()).steps
+        .firstWhere((s) => s.unitId != null);
+    final recorded = _value(
+      await repository.recordReading(
+        reading(step, checks: [confirmed(step.from!)]),
+      ),
+    );
+    final stored = recorded.eventIds['e1']!;
+    // The reading above had event e1.
+    clock.advance(const Duration(hours: 1));
+
+    _value(await repository.disputeCheck(stored, unitId: recorded.unitId));
+
+    final event = _value(await storage.checkEvents.get(stored))!;
+    // Just written above.
+    expect(event.state, CheckState.disputed);
+    expect(event.heardText, 'heard-test');
+    final state = _value(await storage.units.getState(step.unitId!))!;
+    expect(state.dueAt, clock.now().millisecondsSinceEpoch);
+  });
+
   test('reading with support gives no rating', () async {
     _value(await repository.completeOnboarding(draft()));
     final step = _value(await repository.loadToday()).steps

@@ -488,4 +488,97 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get readSaving => 'Сохраняю результат…';
+
+  @override
+  String get reviewTitle => 'Разбор';
+
+  @override
+  String get reviewClean => 'Прочитано чисто';
+
+  @override
+  String reviewIndependent(int count) {
+    return 'Самостоятельно: $count';
+  }
+
+  @override
+  String reviewWithHints(int count) {
+    return 'С подсказками: $count';
+  }
+
+  @override
+  String reviewErrors(int count) {
+    return 'Ошибок: $count';
+  }
+
+  @override
+  String reviewUnverified(int count) {
+    return 'Не удалось проверить: $count';
+  }
+
+  @override
+  String get reviewFilterAll => 'Все';
+
+  @override
+  String get reviewFilterErrors => 'Ошибки';
+
+  @override
+  String get reviewFilterCorrections => 'Исправления';
+
+  @override
+  String get reviewFilterUnverified => 'Не расслышал';
+
+  @override
+  String get reviewKindOmission => 'пропущено слово';
+
+  @override
+  String get reviewKindSubstitution => 'другое слово';
+
+  @override
+  String get reviewKindInsertion => 'лишнее слово';
+
+  @override
+  String get reviewKindJump => 'перешли на похожий аят';
+
+  @override
+  String get reviewKindRepetition => 'повтор';
+
+  @override
+  String get reviewKindHesitation => 'запинка';
+
+  @override
+  String get reviewStatePreliminary => 'предварительно';
+
+  @override
+  String get reviewStateConfirmed => 'подтверждено';
+
+  @override
+  String get reviewStateCorrected => 'исправлено';
+
+  @override
+  String get reviewStateUnverified => 'не удалось проверить';
+
+  @override
+  String get reviewStateDisputed => 'оспорено';
+
+  @override
+  String get reviewListenSelf => 'Послушать себя';
+
+  @override
+  String get reviewListenReciter => 'Послушать чтеца';
+
+  @override
+  String get reviewDispute => 'Не согласен';
+
+  @override
+  String get reviewPractice => 'Потренировать это место';
+
+  @override
+  String get reviewNext => 'Дальше';
+
+  @override
+  String get reviewAudioSoon =>
+      'Своя запись и чтец появятся в следующей версии';
+
+  @override
+  String get reviewNoEvents => 'Событий нет';
 }

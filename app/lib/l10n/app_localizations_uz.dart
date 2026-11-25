@@ -477,4 +477,96 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get readSaving => '[Нужен перевод]';
+
+  @override
+  String get reviewTitle => '[Нужен перевод]';
+
+  @override
+  String get reviewClean => '[Нужен перевод]';
+
+  @override
+  String reviewIndependent(int count) {
+    return '[Нужен перевод] $count';
+  }
+
+  @override
+  String reviewWithHints(int count) {
+    return '[Нужен перевод] $count';
+  }
+
+  @override
+  String reviewErrors(int count) {
+    return '[Нужен перевод] $count';
+  }
+
+  @override
+  String reviewUnverified(int count) {
+    return '[Нужен перевод] $count';
+  }
+
+  @override
+  String get reviewFilterAll => '[Нужен перевод]';
+
+  @override
+  String get reviewFilterErrors => '[Нужен перевод]';
+
+  @override
+  String get reviewFilterCorrections => '[Нужен перевод]';
+
+  @override
+  String get reviewFilterUnverified => '[Нужен перевод]';
+
+  @override
+  String get reviewKindOmission => '[Нужен перевод]';
+
+  @override
+  String get reviewKindSubstitution => '[Нужен перевод]';
+
+  @override
+  String get reviewKindInsertion => '[Нужен перевод]';
+
+  @override
+  String get reviewKindJump => '[Нужен перевод]';
+
+  @override
+  String get reviewKindRepetition => '[Нужен перевод]';
+
+  @override
+  String get reviewKindHesitation => '[Нужен перевод]';
+
+  @override
+  String get reviewStatePreliminary => '[Нужен перевод]';
+
+  @override
+  String get reviewStateConfirmed => '[Нужен перевод]';
+
+  @override
+  String get reviewStateCorrected => '[Нужен перевод]';
+
+  @override
+  String get reviewStateUnverified => '[Нужен перевод]';
+
+  @override
+  String get reviewStateDisputed => '[Нужен перевод]';
+
+  @override
+  String get reviewListenSelf => '[Нужен перевод]';
+
+  @override
+  String get reviewListenReciter => '[Нужен перевод]';
+
+  @override
+  String get reviewDispute => '[Нужен перевод]';
+
+  @override
+  String get reviewPractice => '[Нужен перевод]';
+
+  @override
+  String get reviewNext => '[Нужен перевод]';
+
+  @override
+  String get reviewAudioSoon => '[Нужен перевод]';
+
+  @override
+  String get reviewNoEvents => '[Нужен перевод]';
 }

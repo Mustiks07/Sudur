@@ -73,6 +73,9 @@ abstract interface class CheckEventRepository {
 
   /// Returns events for [sessionId] in creation order.
   Future<Result<List<CheckEventData>>> listForSession(String sessionId);
+
+  /// Returns the event [id], if present.
+  Future<Result<CheckEventData?>> get(String id);
 }
 
 /// Reading-session persistence.
@@ -339,6 +342,15 @@ final class DriftCheckEventRepository implements CheckEventRepository {
             (row) => OrderingTerm.asc(row.createdAt),
           ]);
         return _mappedList(query.get(), _checkEventData);
+      });
+
+  @override
+  Future<Result<CheckEventData?>> get(String id) => _guard(() async {
+        _validateUuid(id, 'check_event.id');
+        final row = await (_database.select(_database.checkEvents)
+              ..where((row) => row.id.equals(id)))
+            .getSingleOrNull();
+        return row == null ? null : _checkEventData(row);
       });
 
   @override

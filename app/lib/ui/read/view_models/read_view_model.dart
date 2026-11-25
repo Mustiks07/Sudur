@@ -35,7 +35,7 @@ enum ReadState {
   /// «Закончить» pressed: waiting for the result and writing it.
   finishing,
 
-  /// The result is written.
+  /// The result is written; the screen shows «Разбор» (13.4).
   finished,
 
   /// Something prevents reading (see [ReadViewModel.error]).
@@ -70,6 +70,44 @@ enum ReadMode {
 
   /// Text hidden, nothing appears until «Закончить».
   test,
+}
+
+/// Filter of the event list in «Разбор» (РБ-01).
+enum ReviewFilter {
+  /// Every event.
+  all,
+
+  /// Confirmed mistakes.
+  errors,
+
+  /// Mistakes the reader corrected.
+  corrections,
+
+  /// Places that could not be checked.
+  unverified,
+}
+
+/// Summary of a read passage (РБ-05).
+final class ReviewSummary {
+  /// Creates the summary.
+  const ReviewSummary({
+    required this.independent,
+    required this.withHints,
+    required this.errors,
+    required this.unverified,
+  });
+
+  /// Words read without help.
+  final int independent;
+
+  /// Words opened by a hint.
+  final int withHints;
+
+  /// Words with a confirmed mistake.
+  final int errors;
+
+  /// Words that could not be checked.
+  final int unverified;
 }
 
 /// Sound indicator dot (docs/tz 13.3).
@@ -159,6 +197,78 @@ final class ReadViewModel extends ChangeNotifier {
   /// The result written for the passage, after [ReadState.finished].
   ReadingResult? get result => _result;
   ReadingResult? _result;
+  RecordedReading? _recorded;
+
+  /// Counts of the summary (РБ-05).
+  ReviewSummary get summary {
+    final words = _result?.words ?? const <SessionWordResult>[];
+    var independent = 0;
+    var hinted = 0;
+    var errors = 0;
+    var unverified = 0;
+    for (final word in words) {
+      if (_unlocked.contains(word.wordKey)) {
+        unverified++;
+        continue;
+      }
+      switch (word.outcome) {
+        case SessionWordOutcome.read || SessionWordOutcome.corrected:
+          independent++;
+        case SessionWordOutcome.readWithHint:
+          hinted++;
+        case SessionWordOutcome.error:
+          errors++;
+        case SessionWordOutcome.unverified || SessionWordOutcome.notRead:
+          unverified++;
+      }
+    }
+    return ReviewSummary(
+      independent: independent,
+      withHints: hinted,
+      errors: errors,
+      unverified: unverified,
+    );
+  }
+
+  /// No confirmed mistakes: «Прочитано чисто» (13.4).
+  bool get clean => !_checks.values.any(
+    (c) => _isMistake(c.kind) && c.state == CheckState.confirmed,
+  );
+
+  /// Filter of the event list.
+  ReviewFilter get reviewFilter => _reviewFilter;
+  ReviewFilter _reviewFilter = ReviewFilter.all;
+
+  /// Changes the filter.
+  void setReviewFilter(ReviewFilter value) {
+    _reviewFilter = value;
+    notifyListeners();
+  }
+
+  /// Events of the passage for the list, in order, filtered.
+  List<CheckEvent> get reviewChecks => [
+    for (final check in _checks.values)
+      if (switch (_reviewFilter) {
+        ReviewFilter.all => true,
+        ReviewFilter.errors => check.state == CheckState.confirmed,
+        ReviewFilter.corrections => check.state == CheckState.corrected,
+        ReviewFilter.unverified => check.state == CheckState.unverified,
+      })
+        check,
+  ];
+
+  /// «Не согласен» (РБ-03): the event becomes disputed, its plan unit needs a
+  /// new check.
+  Future<void> dispute(String eventId) async {
+    final stored = _recorded?.eventIds[eventId];
+    final check = _checks[eventId];
+    if (stored == null || check == null) return;
+    final done = await _user.disputeCheck(stored, unitId: _recorded?.unitId);
+    if (done case Error()) return;
+    _checks[eventId] = _withState(check, CheckState.disputed);
+    _markCheck(check.words, CheckState.disputed);
+    notifyListeners();
+  }
 
   /// Visual state of every word of the passage.
   Map<WordKey, MushafWordState> get wordStates {
@@ -371,9 +481,16 @@ final class ReadViewModel extends ChangeNotifier {
       unlocked: _unlocked,
     );
     final written = await _user.recordReading(result);
-    if (written case Error(:final error)) {
-      _fail(_errorOf(error));
-      return;
+    switch (written) {
+      case Ok(:final value):
+        _recorded = value;
+      case Error(:final error):
+        _fail(_errorOf(error));
+        return;
+    }
+    // «Проверяю себя» showed nothing while reading: the marks appear now.
+    for (final check in _checks.values) {
+      if (_isMistake(check.kind)) _markCheck(check.words, check.state);
     }
     _result = result;
     _state = ReadState.finished;

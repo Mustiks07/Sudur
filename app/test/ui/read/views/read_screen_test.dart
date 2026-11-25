@@ -1,3 +1,4 @@
+import 'package:contracts/contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
@@ -67,6 +68,35 @@ void main() {
     expect(find.byKey(const ValueKey('read-mode')), findsOneWidget);
   });
 
+  testWidgets('review lists events; I disagree marks one disputed', (
+    tester,
+  ) async {
+    final viewModel = await pump(tester);
+    await tester.tap(find.byKey(const ValueKey('read-start')));
+    await tester.pumpAndSettle();
+    sessions.session.emit(
+      check('c1', w2, kind: CheckKind.omission, state: CheckState.confirmed),
+    );
+    await tester.tap(find.byKey(const ValueKey('read-finish')));
+    await tester.pump();
+    sessions.session.emit(finishedEvent());
+    await tester.pumpAndSettle();
+
+    expect(viewModel.clean, isFalse);
+    expect(find.byKey(const ValueKey('review-clean')), findsNothing);
+    expect(
+      find.text('2:255:2 · пропущено слово · подтверждено'),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('review-event-c1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('review-dispute-c1')));
+    await tester.pumpAndSettle();
+
+    expect(user.disputed, [('stored-c1', 'unit-1')]);
+    expect(find.text('2:255:2 · пропущено слово · оспорено'), findsOneWidget);
+  });
+
   testWidgets('modelMissing offers download and reading without voice', (
     tester,
   ) async {
@@ -98,6 +128,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(user.readings, hasLength(1));
+    expect(find.byKey(const ValueKey('review')), findsOneWidget);
+    expect(find.byKey(const ValueKey('review-clean')), findsOneWidget);
+    expect(find.text('Самостоятельно: 3'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('review-next')));
+    await tester.pumpAndSettle();
     expect(find.byType(ReadScreen), findsNothing, reason: 'returned to Today');
   });
 }

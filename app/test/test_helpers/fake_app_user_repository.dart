@@ -104,8 +104,26 @@ final class FakeAppUserRepository implements AppUserRepository {
   final List<ReadingResult> readings = <ReadingResult>[];
 
   @override
-  Future<Result<void>> recordReading(ReadingResult result) async {
+  Future<Result<RecordedReading>> recordReading(ReadingResult result) async {
     readings.add(result);
+    return Result.ok(
+      RecordedReading(
+        sessionId: 'stored-session',
+        eventIds: {
+          for (final check in result.checks)
+            check.eventId: 'stored-${check.eventId}',
+        },
+        unitId: 'unit-1',
+      ),
+    );
+  }
+
+  /// Events disputed through [disputeCheck], with their unit.
+  final List<(String, String?)> disputed = [];
+
+  @override
+  Future<Result<void>> disputeCheck(String eventId, {String? unitId}) async {
+    disputed.add((eventId, unitId));
     return const Result.ok(null);
   }
 

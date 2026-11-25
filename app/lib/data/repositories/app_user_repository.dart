@@ -53,7 +53,11 @@ abstract interface class AppUserRepository {
 
   /// Writes one reading: the session, its check events, the attempt and the
   /// new state of the step's plan unit, in one transaction (НФ-21, ПЛ-12).
-  Future<Result<void>> recordReading(ReadingResult result);
+  Future<Result<RecordedReading>> recordReading(ReadingResult result);
+
+  /// «Не согласен» (РБ-03): the stored event [eventId] becomes disputed and
+  /// [unitId], if given, needs a new check (it is due now).
+  Future<Result<void>> disputeCheck(String eventId, {String? unitId});
 
   /// Marks [stepId] finished; when every step is finished the day is done.
   Future<Result<TodayDashboardData>> finishTodayStep(String stepId);
@@ -452,142 +456,206 @@ final class StorageAppUserRepository implements AppUserRepository {
       });
 
   @override
-  Future<Result<void>> recordReading(ReadingResult result) => _guard(() async {
-    final canon = await _canon.load();
-    final storage = await _storageService.storage;
-    final profile = await _requiredProfile(storage);
-    final unitId = result.stepId == null
-        ? null
-        : await _unitOfStep(storage, result.stepId!);
-    // stepId is checked in the condition just above.
-    final now = _clock.now().toUtc();
-    final sessionId = _createId();
-    final versions = result.checks.isEmpty
-        ? null
-        : result.checks.first.versions;
-    final eventIds = <String>[];
-    final events = <CheckEventData>[
-      for (final check in result.checks)
-        (
-          id: (eventIds..add(_createId())).last,
-          sessionId: sessionId,
-          kind: check.kind,
-          state: check.state,
-          wordIndexes: WordIndexes.fromJson([
-            for (final word in check.words) canon.indexOf(word),
-          ]),
-          expectedText: check.expectedText,
-          heardText: check.heardText,
-          jumpFromWordIndex: check.kind == CheckKind.jump
-              ? canon.indexOf(check.words.first)
-              : null,
-          jumpToWordIndex: switch (check.jumpTo) {
-            final WordKey to => canon.indexOf(to),
-            null => null,
-          },
-          audioStartMs: check.audioStartMs,
-          audioEndMs: check.audioEndMs,
-          versions: check.versions,
-          createdAt: now.millisecondsSinceEpoch,
-          updatedAt: now.millisecondsSinceEpoch,
-        ),
-    ];
-    final outcome = _outcome(result);
-    final storedMode = switch (result.mode) {
-      SessionMode.supported => StoredReadingMode.supported,
-      SessionMode.recall => StoredReadingMode.recall,
-      SessionMode.test => StoredReadingMode.test,
-    };
-    final hints = result.hints.values.fold(0, (sum, n) => sum + n);
-    final written = await storage.transaction(() async {
-      _unwrap(
-        await storage.sessions.put((
-          id: sessionId,
-          profileId: profile.id,
-          fromWordIndex: canon.indexOf(result.from),
-          toWordIndex: canon.indexOf(result.to),
-          mode: storedMode,
-          behavior: result.behavior == SessionBehavior.strict
-              ? ReadingBehavior.strict
-              : ReadingBehavior.gentle,
-          startedAt: result.startedAt.toUtc().millisecondsSinceEpoch,
-          endedAt: now.millisecondsSinceEpoch,
-          listeningMs: result.duration.inMilliseconds,
-          signalOkRatio: null,
-          summary: SessionSummary.fromJson({
-            'words': result.words.length,
-            'unlocked': result.unlocked.length,
-            'outcome': outcome.name,
-          }),
-        )),
-      );
-      if (unitId == null) {
-        for (final event in events) {
-          _unwrap(await storage.checkEvents.put(event));
-        }
-        return;
-      }
-      final unit = _unwrap(await storage.units.listForProfile(profile.id))
-          .firstWhere((u) => u.id == unitId);
-      final state = _unwrap(await storage.units.getState(unitId));
-      final attempts = _unwrap(await storage.attempts.listForUnit(unitId));
-      final before = await _plannerUnit(storage, canon, unit, state, attempts);
-      final attempt = Attempt(
-        unitId: unitId,
-        at: now,
-        mode: _attemptMode(storedMode),
-        result: _attemptResult(outcome),
-        hints: hints,
-        verification: VerificationMethod.voice,
-        duration: result.duration,
-        wordCount: result.words.isEmpty ? 1 : result.words.length,
-      );
-      final after = _planner.applyReading(before, attempt);
-      final rating = after.history.last.assessment.rating;
-      _unwrap(
-        await storage.attempts.recordPassage(
-          PassageWrite(
-            attempt: (
-              id: _createId(),
-              unitId: unitId,
+  Future<Result<RecordedReading>> recordReading(ReadingResult result) =>
+      _guard(() async {
+        final canon = await _canon.load();
+        final storage = await _storageService.storage;
+        final profile = await _requiredProfile(storage);
+        final unitId = result.stepId == null
+            ? null
+            : await _unitOfStep(storage, result.stepId!);
+        // stepId is checked in the condition just above.
+        final now = _clock.now().toUtc();
+        final sessionId = _createId();
+        final versions = result.checks.isEmpty
+            ? null
+            : result.checks.first.versions;
+        final storedIds = <String, String>{
+          for (final check in result.checks) check.eventId: _createId(),
+        };
+        final eventIds = storedIds.values.toList();
+        final events = <CheckEventData>[
+          for (final check in result.checks)
+            (
+              // Every check has an id in the map built just above.
+              id: storedIds[check.eventId]!,
               sessionId: sessionId,
-              mode: storedMode,
-              outcome: outcome,
-              hints: HintCounts.fromJson({
-                for (final MapEntry(:key, :value) in result.hints.entries)
-                  key.name: value,
-              }),
-              errorEventIds: ErrorEventIds.fromJson(eventIds),
-              rating: rating == null ? null : _storedRating(rating),
-              method: CheckMethod.voice,
-              durationMs: result.duration.inMilliseconds,
-              words: result.words.length,
-              modelId: versions?.modelId ?? 'unknown',
-              modelVersion: versions?.modelVersion ?? 'unknown',
-              rulesVersion: versions?.rulesVersion ?? 'unknown',
-              textVersion: versions?.textVersion ?? 'unknown',
+              kind: check.kind,
+              state: check.state,
+              wordIndexes: WordIndexes.fromJson([
+                for (final word in check.words) canon.indexOf(word),
+              ]),
+              expectedText: check.expectedText,
+              heardText: check.heardText,
+              jumpFromWordIndex: check.kind == CheckKind.jump
+                  ? canon.indexOf(check.words.first)
+                  : null,
+              jumpToWordIndex: switch (check.jumpTo) {
+                final WordKey to => canon.indexOf(to),
+                null => null,
+              },
+              audioStartMs: check.audioStartMs,
+              audioEndMs: check.audioEndMs,
+              versions: check.versions,
               createdAt: now.millisecondsSinceEpoch,
-            ),
-            checkEvents: events,
-            unitState: (
-              unitId: unitId,
-              queue: _storedQueue(after),
-              memoryState: JsonObjectData.fromJson(
-                PlanMemoryState.of(after).toJson(),
-              ),
-              fsrsCard: JsonObjectData.fromJson(encodeFsrsCard(after.card)),
-              dueAt: after.due.toUtc().millisecondsSinceEpoch,
-              recentSince: after.recentStartedAt?.millisecondsSinceEpoch,
-              lastAttemptAt: now.millisecondsSinceEpoch,
-              lastMethod: CheckMethod.voice,
               updatedAt: now.millisecondsSinceEpoch,
             ),
-          ),
-        ),
-      );
-    });
-    _unwrap(written);
-  });
+        ];
+        final outcome = _outcome(result);
+        final storedMode = switch (result.mode) {
+          SessionMode.supported => StoredReadingMode.supported,
+          SessionMode.recall => StoredReadingMode.recall,
+          SessionMode.test => StoredReadingMode.test,
+        };
+        final hints = result.hints.values.fold(0, (sum, n) => sum + n);
+        final written = await storage.transaction(() async {
+          _unwrap(
+            await storage.sessions.put((
+              id: sessionId,
+              profileId: profile.id,
+              fromWordIndex: canon.indexOf(result.from),
+              toWordIndex: canon.indexOf(result.to),
+              mode: storedMode,
+              behavior: result.behavior == SessionBehavior.strict
+                  ? ReadingBehavior.strict
+                  : ReadingBehavior.gentle,
+              startedAt: result.startedAt.toUtc().millisecondsSinceEpoch,
+              endedAt: now.millisecondsSinceEpoch,
+              listeningMs: result.duration.inMilliseconds,
+              signalOkRatio: null,
+              summary: SessionSummary.fromJson({
+                'words': result.words.length,
+                'unlocked': result.unlocked.length,
+                'outcome': outcome.name,
+              }),
+            )),
+          );
+          if (unitId == null) {
+            for (final event in events) {
+              _unwrap(await storage.checkEvents.put(event));
+            }
+            return;
+          }
+          final unit = _unwrap(await storage.units.listForProfile(profile.id))
+              .firstWhere((u) => u.id == unitId);
+          final state = _unwrap(await storage.units.getState(unitId));
+          final attempts = _unwrap(await storage.attempts.listForUnit(unitId));
+          final before = await _plannerUnit(
+            storage,
+            canon,
+            unit,
+            state,
+            attempts,
+          );
+          final attempt = Attempt(
+            unitId: unitId,
+            at: now,
+            mode: _attemptMode(storedMode),
+            result: _attemptResult(outcome),
+            hints: hints,
+            verification: VerificationMethod.voice,
+            duration: result.duration,
+            wordCount: result.words.isEmpty ? 1 : result.words.length,
+          );
+          final after = _planner.applyReading(before, attempt);
+          final rating = after.history.last.assessment.rating;
+          _unwrap(
+            await storage.attempts.recordPassage(
+              PassageWrite(
+                attempt: (
+                  id: _createId(),
+                  unitId: unitId,
+                  sessionId: sessionId,
+                  mode: storedMode,
+                  outcome: outcome,
+                  hints: HintCounts.fromJson({
+                    for (final MapEntry(:key, :value) in result.hints.entries)
+                      key.name: value,
+                  }),
+                  errorEventIds: ErrorEventIds.fromJson(eventIds),
+                  rating: rating == null ? null : _storedRating(rating),
+                  method: CheckMethod.voice,
+                  durationMs: result.duration.inMilliseconds,
+                  words: result.words.length,
+                  modelId: versions?.modelId ?? 'unknown',
+                  modelVersion: versions?.modelVersion ?? 'unknown',
+                  rulesVersion: versions?.rulesVersion ?? 'unknown',
+                  textVersion: versions?.textVersion ?? 'unknown',
+                  createdAt: now.millisecondsSinceEpoch,
+                ),
+                checkEvents: events,
+                unitState: (
+                  unitId: unitId,
+                  queue: _storedQueue(after),
+                  memoryState: JsonObjectData.fromJson(
+                    PlanMemoryState.of(after).toJson(),
+                  ),
+                  fsrsCard: JsonObjectData.fromJson(encodeFsrsCard(after.card)),
+                  dueAt: after.due.toUtc().millisecondsSinceEpoch,
+                  recentSince: after.recentStartedAt?.millisecondsSinceEpoch,
+                  lastAttemptAt: now.millisecondsSinceEpoch,
+                  lastMethod: CheckMethod.voice,
+                  updatedAt: now.millisecondsSinceEpoch,
+                ),
+              ),
+            ),
+          );
+        });
+        _unwrap(written);
+        return RecordedReading(
+          sessionId: sessionId,
+          eventIds: storedIds,
+          unitId: unitId,
+        );
+      });
+
+  @override
+  Future<Result<void>> disputeCheck(String eventId, {String? unitId}) =>
+      _guard(() async {
+        final storage = await _storageService.storage;
+        final now = _nowMs;
+        final done = await storage.transaction(() async {
+          final event = _unwrap(await storage.checkEvents.get(eventId));
+          if (event == null) throw StateError('No check event $eventId.');
+          _unwrap(
+            await storage.checkEvents.put((
+              id: event.id,
+              sessionId: event.sessionId,
+              kind: event.kind,
+              state: CheckState.disputed,
+              wordIndexes: event.wordIndexes,
+              expectedText: event.expectedText,
+              heardText: event.heardText,
+              jumpFromWordIndex: event.jumpFromWordIndex,
+              jumpToWordIndex: event.jumpToWordIndex,
+              audioStartMs: event.audioStartMs,
+              audioEndMs: event.audioEndMs,
+              versions: event.versions,
+              createdAt: event.createdAt,
+              updatedAt: now,
+            )),
+          );
+          if (unitId == null) return;
+          final state = _unwrap(await storage.units.getState(unitId));
+          if (state == null) return;
+          _unwrap(
+            await storage.units.putState((
+              unitId: state.unitId,
+              queue: state.queue == UnitQueue.closed
+                  ? UnitQueue.learning
+                  : state.queue,
+              memoryState: state.memoryState,
+              fsrsCard: state.fsrsCard,
+              dueAt: now,
+              recentSince: state.recentSince,
+              lastAttemptAt: state.lastAttemptAt,
+              lastMethod: state.lastMethod,
+              updatedAt: now,
+            )),
+          );
+        });
+        _unwrap(done);
+      });
 
   Future<String?> _unitOfStep(StorageService storage, String stepId) async {
     final saved = _unwrap(

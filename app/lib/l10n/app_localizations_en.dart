@@ -482,4 +482,97 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readSaving => 'Saving the result…';
+
+  @override
+  String get reviewTitle => 'Review';
+
+  @override
+  String get reviewClean => 'Read cleanly';
+
+  @override
+  String reviewIndependent(int count) {
+    return 'On your own: $count';
+  }
+
+  @override
+  String reviewWithHints(int count) {
+    return 'With hints: $count';
+  }
+
+  @override
+  String reviewErrors(int count) {
+    return 'Mistakes: $count';
+  }
+
+  @override
+  String reviewUnverified(int count) {
+    return 'Could not check: $count';
+  }
+
+  @override
+  String get reviewFilterAll => 'All';
+
+  @override
+  String get reviewFilterErrors => 'Mistakes';
+
+  @override
+  String get reviewFilterCorrections => 'Corrections';
+
+  @override
+  String get reviewFilterUnverified => 'Not heard';
+
+  @override
+  String get reviewKindOmission => 'word skipped';
+
+  @override
+  String get reviewKindSubstitution => 'another word';
+
+  @override
+  String get reviewKindInsertion => 'extra word';
+
+  @override
+  String get reviewKindJump => 'moved to a similar ayah';
+
+  @override
+  String get reviewKindRepetition => 'repetition';
+
+  @override
+  String get reviewKindHesitation => 'hesitation';
+
+  @override
+  String get reviewStatePreliminary => 'preliminary';
+
+  @override
+  String get reviewStateConfirmed => 'confirmed';
+
+  @override
+  String get reviewStateCorrected => 'corrected';
+
+  @override
+  String get reviewStateUnverified => 'could not check';
+
+  @override
+  String get reviewStateDisputed => 'disputed';
+
+  @override
+  String get reviewListenSelf => 'Listen to myself';
+
+  @override
+  String get reviewListenReciter => 'Listen to the reciter';
+
+  @override
+  String get reviewDispute => 'I disagree';
+
+  @override
+  String get reviewPractice => 'Practise this place';
+
+  @override
+  String get reviewNext => 'Next';
+
+  @override
+  String get reviewAudioSoon =>
+      'Your recording and the reciter come in the next version';
+
+  @override
+  String get reviewNoEvents => 'No events';
 }

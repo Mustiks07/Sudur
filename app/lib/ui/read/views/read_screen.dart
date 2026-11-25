@@ -1,4 +1,5 @@
 import 'package:contracts/contracts.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mushaf_view/mushaf_view.dart';
 import 'package:provider/provider.dart';
@@ -10,8 +11,9 @@ import 'package:sudur/ui/read/view_models/read_view_model.dart';
 // The class names keep the screen easy to scan.
 // ignore_for_file: unnecessary_type_name_in_constructor
 
-/// The reading screen (docs/tz 13.3). Returns `true` to “Today” when the
-/// passage was read and written, `false` when it was left.
+/// The reading screen (docs/tz 13.3) and, after «Закончить», «Разбор»
+/// (13.4). Returns `true` to “Today” with «Дальше» after the passage was
+/// read and written, `false` when it was left.
 final class ReadScreen extends StatefulWidget {
   /// Creates the screen.
   const ReadScreen({super.key});
@@ -22,27 +24,6 @@ final class ReadScreen extends StatefulWidget {
 
 final class _ReadScreenState extends State<ReadScreen> {
   late final ReadViewModel _viewModel = context.read<ReadViewModel>();
-  var _closed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _viewModel.addListener(_onChange);
-  }
-
-  void _onChange() {
-    // Until «Разбор» (Q8) the written result returns to “Today”.
-    if (_viewModel.state == ReadState.finished && !_closed && mounted) {
-      _closed = true;
-      Navigator.of(context).pop(true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _viewModel.removeListener(_onChange);
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +58,11 @@ final class _ReadScreenState extends State<ReadScreen> {
                 busy: true,
               ),
               ReadState.error => _ErrorBody(viewModel: viewModel),
-              ReadState.finishing ||
-              ReadState.finished => _Message(text: l10n.readSaving, busy: true),
+              ReadState.finishing => _Message(
+                text: l10n.readSaving,
+                busy: true,
+              ),
+              ReadState.finished => _ReviewBody(viewModel: viewModel),
               _ => _ReadingBody(viewModel: viewModel),
             },
           ),
@@ -531,6 +515,160 @@ final class _Controls extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// «Разбор» (13.4, РБ-01…05): summary, marked words, events and actions.
+final class _ReviewBody extends StatelessWidget {
+  const new({required this.viewModel});
+
+  final ReadViewModel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final passage = viewModel.passage;
+    final summary = viewModel.summary;
+    final checks = viewModel.reviewChecks;
+    return Column(
+      key: const ValueKey('review'),
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.medium),
+          child: Column(
+            children: [
+              Text(l10n.reviewTitle, style: theme.textTheme.titleLarge),
+              if (viewModel.clean)
+                Text(
+                  l10n.reviewClean,
+                  key: const ValueKey('review-clean'),
+                  style: theme.textTheme.titleMedium,
+                ),
+              Wrap(
+                spacing: AppSpacing.medium,
+                alignment: WrapAlignment.center,
+                children: [
+                  Text(l10n.reviewIndependent(summary.independent)),
+                  Text(l10n.reviewWithHints(summary.withHints)),
+                  Text(l10n.reviewErrors(summary.errors)),
+                  Text(l10n.reviewUnverified(summary.unverified)),
+                ],
+              ),
+            ],
+          ),
+        ),
+        if (passage != null)
+          Expanded(
+            flex: 3,
+            child: passage.pages == null
+                ? _TextView(passage: passage, states: viewModel.wordStates)
+                : _PagesView(passage: passage, states: viewModel.wordStates),
+          ),
+        Wrap(
+          spacing: AppSpacing.small,
+          children: [
+            for (final filter in ReviewFilter.values)
+              ChoiceChip(
+                label: Text(switch (filter) {
+                  ReviewFilter.all => l10n.reviewFilterAll,
+                  ReviewFilter.errors => l10n.reviewFilterErrors,
+                  ReviewFilter.corrections => l10n.reviewFilterCorrections,
+                  ReviewFilter.unverified => l10n.reviewFilterUnverified,
+                }),
+                selected: viewModel.reviewFilter == filter,
+                onSelected: (_) => viewModel.setReviewFilter(filter),
+              ),
+          ],
+        ),
+        Expanded(
+          flex: 2,
+          child: checks.isEmpty
+              ? Center(child: Text(l10n.reviewNoEvents))
+              : ListView(
+                  key: const ValueKey('review-events'),
+                  children: [
+                    for (final check in checks)
+                      _ReviewEvent(viewModel: viewModel, check: check),
+                  ],
+                ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.medium),
+          child: FilledButton(
+            key: const ValueKey('review-next'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.reviewNext),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+final class _ReviewEvent extends StatelessWidget {
+  const new({required this.viewModel, required this.check});
+
+  final ReadViewModel viewModel;
+  final CheckEvent check;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final kind = switch (check.kind) {
+      CheckKind.omission => l10n.reviewKindOmission,
+      CheckKind.substitution => l10n.reviewKindSubstitution,
+      CheckKind.insertion => l10n.reviewKindInsertion,
+      CheckKind.jump => l10n.reviewKindJump,
+      CheckKind.repetition => l10n.reviewKindRepetition,
+      CheckKind.hesitation => l10n.reviewKindHesitation,
+    };
+    final state = switch (check.state) {
+      CheckState.preliminary => l10n.reviewStatePreliminary,
+      CheckState.confirmed => l10n.reviewStateConfirmed,
+      CheckState.corrected => l10n.reviewStateCorrected,
+      CheckState.unverified => l10n.reviewStateUnverified,
+      CheckState.disputed => l10n.reviewStateDisputed,
+    };
+    final place = check.words.isEmpty ? '' : '${check.words.first} · ';
+    return ExpansionTile(
+      key: ValueKey('review-event-${check.eventId}'),
+      title: Text('$place$kind · $state'),
+      children: [
+        Wrap(
+          spacing: AppSpacing.small,
+          alignment: WrapAlignment.center,
+          children: [
+            Tooltip(
+              message: l10n.reviewAudioSoon,
+              child: OutlinedButton(
+                onPressed: null,
+                child: Text(l10n.reviewListenSelf),
+              ),
+            ),
+            Tooltip(
+              message: l10n.reviewAudioSoon,
+              child: OutlinedButton(
+                onPressed: null,
+                child: Text(l10n.reviewListenReciter),
+              ),
+            ),
+            if (check.state != CheckState.disputed)
+              OutlinedButton(
+                key: ValueKey('review-dispute-${check.eventId}'),
+                onPressed: () => viewModel.dispute(check.eventId),
+                child: Text(l10n.reviewDispute),
+              ),
+            OutlinedButton(
+              key: ValueKey('review-practice-${check.eventId}'),
+              // The exercise screen comes with Q10.
+              onPressed: () => GoRouter.of(context).push('/soon'),
+              child: Text(l10n.reviewPractice),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

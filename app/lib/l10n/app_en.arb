@@ -207,5 +207,61 @@
         "type": "int"
       }
     }
+  },
+  "reviewTitle": "Review",
+  "reviewClean": "Read cleanly",
+  "reviewIndependent": "On your own: {count}",
+  "reviewWithHints": "With hints: {count}",
+  "reviewErrors": "Mistakes: {count}",
+  "reviewUnverified": "Could not check: {count}",
+  "reviewFilterAll": "All",
+  "reviewFilterErrors": "Mistakes",
+  "reviewFilterCorrections": "Corrections",
+  "reviewFilterUnverified": "Not heard",
+  "reviewKindOmission": "word skipped",
+  "reviewKindSubstitution": "another word",
+  "reviewKindInsertion": "extra word",
+  "reviewKindJump": "moved to a similar ayah",
+  "reviewKindRepetition": "repetition",
+  "reviewKindHesitation": "hesitation",
+  "reviewStatePreliminary": "preliminary",
+  "reviewStateConfirmed": "confirmed",
+  "reviewStateCorrected": "corrected",
+  "reviewStateUnverified": "could not check",
+  "reviewStateDisputed": "disputed",
+  "reviewListenSelf": "Listen to myself",
+  "reviewListenReciter": "Listen to the reciter",
+  "reviewDispute": "I disagree",
+  "reviewPractice": "Practise this place",
+  "reviewNext": "Next",
+  "reviewAudioSoon": "Your recording and the reciter come in the next version",
+  "reviewNoEvents": "No events",
+  "@reviewIndependent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@reviewWithHints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@reviewErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@reviewUnverified": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

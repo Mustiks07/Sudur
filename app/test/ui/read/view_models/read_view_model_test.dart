@@ -191,6 +191,45 @@ void main() {
     },
   );
 
+  test('review: summary, filter, and the marks of test mode', () async {
+    viewModel.setMode(ReadMode.test);
+    await viewModel.start();
+    sessions.session
+      ..emit(check('a', w2, state: CheckState.confirmed))
+      ..emit(check('b', w3, state: CheckState.corrected));
+    expect(viewModel.wordStates[w2], MushafWordState.hidden);
+    final finishing = viewModel.finish();
+    sessions.session.emit(
+      const SessionFinished(
+        sessionId: 's',
+        atMs: 100,
+        words: [
+          SessionWordResult(wordKey: w1, outcome: SessionWordOutcome.read),
+          SessionWordResult(wordKey: w2, outcome: SessionWordOutcome.error),
+          SessionWordResult(wordKey: w3, outcome: SessionWordOutcome.corrected),
+        ],
+        eventIds: ['a', 'b'],
+        durationMs: 100,
+        audioWasSuitable: true,
+      ),
+    );
+    await finishing;
+
+    expect(viewModel.state, ReadState.finished);
+    expect(viewModel.wordStates[w2], MushafWordState.error);
+    expect(viewModel.clean, isFalse);
+    final summary = viewModel.summary;
+    expect((summary.independent, summary.withHints, summary.errors), (2, 0, 1));
+    viewModel.setReviewFilter(ReviewFilter.corrections);
+    expect(viewModel.reviewChecks.map((c) => c.eventId), ['b']);
+    viewModel.setReviewFilter(ReviewFilter.errors);
+    expect(viewModel.reviewChecks.map((c) => c.eventId), ['a']);
+
+    await viewModel.dispute('a');
+    expect(user.disputed, [('stored-a', 'unit-1')]);
+    expect(viewModel.reviewChecks, isEmpty, reason: 'no longer confirmed');
+  });
+
   test('microphone denied is shown as micDenied', () async {
     await viewModel.start();
     sessions.session.emitFailure(

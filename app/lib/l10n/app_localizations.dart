@@ -989,6 +989,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saving the result…'**
   String get readSaving;
+
+  /// No description provided for @reviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get reviewTitle;
+
+  /// No description provided for @reviewClean.
+  ///
+  /// In en, this message translates to:
+  /// **'Read cleanly'**
+  String get reviewClean;
+
+  /// No description provided for @reviewIndependent.
+  ///
+  /// In en, this message translates to:
+  /// **'On your own: {count}'**
+  String reviewIndependent(int count);
+
+  /// No description provided for @reviewWithHints.
+  ///
+  /// In en, this message translates to:
+  /// **'With hints: {count}'**
+  String reviewWithHints(int count);
+
+  /// No description provided for @reviewErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Mistakes: {count}'**
+  String reviewErrors(int count);
+
+  /// No description provided for @reviewUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check: {count}'**
+  String reviewUnverified(int count);
+
+  /// No description provided for @reviewFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get reviewFilterAll;
+
+  /// No description provided for @reviewFilterErrors.
+  ///
+  /// In en, this message translates to:
+  /// **'Mistakes'**
+  String get reviewFilterErrors;
+
+  /// No description provided for @reviewFilterCorrections.
+  ///
+  /// In en, this message translates to:
+  /// **'Corrections'**
+  String get reviewFilterCorrections;
+
+  /// No description provided for @reviewFilterUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not heard'**
+  String get reviewFilterUnverified;
+
+  /// No description provided for @reviewKindOmission.
+  ///
+  /// In en, this message translates to:
+  /// **'word skipped'**
+  String get reviewKindOmission;
+
+  /// No description provided for @reviewKindSubstitution.
+  ///
+  /// In en, this message translates to:
+  /// **'another word'**
+  String get reviewKindSubstitution;
+
+  /// No description provided for @reviewKindInsertion.
+  ///
+  /// In en, this message translates to:
+  /// **'extra word'**
+  String get reviewKindInsertion;
+
+  /// No description provided for @reviewKindJump.
+  ///
+  /// In en, this message translates to:
+  /// **'moved to a similar ayah'**
+  String get reviewKindJump;
+
+  /// No description provided for @reviewKindRepetition.
+  ///
+  /// In en, this message translates to:
+  /// **'repetition'**
+  String get reviewKindRepetition;
+
+  /// No description provided for @reviewKindHesitation.
+  ///
+  /// In en, this message translates to:
+  /// **'hesitation'**
+  String get reviewKindHesitation;
+
+  /// No description provided for @reviewStatePreliminary.
+  ///
+  /// In en, this message translates to:
+  /// **'preliminary'**
+  String get reviewStatePreliminary;
+
+  /// No description provided for @reviewStateConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'confirmed'**
+  String get reviewStateConfirmed;
+
+  /// No description provided for @reviewStateCorrected.
+  ///
+  /// In en, this message translates to:
+  /// **'corrected'**
+  String get reviewStateCorrected;
+
+  /// No description provided for @reviewStateUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'could not check'**
+  String get reviewStateUnverified;
+
+  /// No description provided for @reviewStateDisputed.
+  ///
+  /// In en, this message translates to:
+  /// **'disputed'**
+  String get reviewStateDisputed;
+
+  /// No description provided for @reviewListenSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to myself'**
+  String get reviewListenSelf;
+
+  /// No description provided for @reviewListenReciter.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to the reciter'**
+  String get reviewListenReciter;
+
+  /// No description provided for @reviewDispute.
+  ///
+  /// In en, this message translates to:
+  /// **'I disagree'**
+  String get reviewDispute;
+
+  /// No description provided for @reviewPractice.
+  ///
+  /// In en, this message translates to:
+  /// **'Practise this place'**
+  String get reviewPractice;
+
+  /// No description provided for @reviewNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get reviewNext;
+
+  /// No description provided for @reviewAudioSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Your recording and the reciter come in the next version'**
+  String get reviewAudioSoon;
+
+  /// No description provided for @reviewNoEvents.
+  ///
+  /// In en, this message translates to:
+  /// **'No events'**
+  String get reviewNoEvents;
 }
 
 class _AppLocalizationsDelegate

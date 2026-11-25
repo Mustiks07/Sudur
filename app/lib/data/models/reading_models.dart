@@ -99,6 +99,25 @@ final class ReadingPassage {
   ];
 }
 
+/// Where a written reading is stored: ids for later actions in «Разбор».
+final class RecordedReading {
+  /// Creates the record.
+  RecordedReading({
+    required this.sessionId,
+    required Map<String, String> eventIds,
+    this.unitId,
+  }) : eventIds = Map.unmodifiable(eventIds);
+
+  /// Stored session id.
+  final String sessionId;
+
+  /// Stored check event id by the event id of the session.
+  final Map<String, String> eventIds;
+
+  /// Plan unit the reading was for, if any.
+  final String? unitId;
+}
+
 /// How a passage was read, as the screen saw it; written by
 /// `AppUserRepository.recordReading` (docs/tz НФ-21, ПЛ-12).
 final class ReadingResult {
