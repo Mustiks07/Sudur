@@ -488,4 +488,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get readSaving => 'Сохраняю результат…';
+
+  @override
+  String get readOpenSettings => 'Открыть настройки';
 }

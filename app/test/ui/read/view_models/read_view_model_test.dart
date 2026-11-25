@@ -13,15 +13,18 @@ void main() {
   late FakeAppUserRepository user;
   late ManualPrototypeSessionFactory sessions;
   late ReadViewModel viewModel;
+  late FakeDevice device;
 
   setUp(() async {
     reading = FakeReadingRepository();
     user = FakeAppUserRepository();
     sessions = ManualPrototypeSessionFactory();
+    device = FakeDevice();
     viewModel = ReadViewModel(
       reading: reading,
       user: user,
       sessionFactory: sessions,
+      device: device,
     );
     await viewModel.open(from: w1, to: w3, stepId: 'step-1');
   });
@@ -191,6 +194,16 @@ void main() {
     },
   );
 
+  test('ЭЧ-09: the screen stays on only while reading', () async {
+    expect(device.screenOn, isFalse);
+    await viewModel.start();
+    expect(device.screenOn, isTrue);
+    final finishing = viewModel.finish();
+    sessions.session.emit(finishedEvent());
+    await finishing;
+    expect(device.screenOn, isFalse);
+  });
+
   test('microphone denied is shown as micDenied', () async {
     await viewModel.start();
     sessions.session.emitFailure(
@@ -198,5 +211,8 @@ void main() {
     );
     expect(viewModel.state, ReadState.error);
     expect(viewModel.error, ReadError.micDenied);
+    expect(device.screenOn, isFalse);
+    await viewModel.openSettings();
+    expect(device.settingsOpened, 1);
   });
 }

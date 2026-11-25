@@ -143,7 +143,14 @@ final class _ErrorBody extends StatelessWidget {
     final (text, actions) = switch (viewModel.error) {
       ReadError.micDenied => (
         l10n.readMicDenied,
-        [OutlinedButton(onPressed: leave, child: Text(l10n.readWithoutMic))],
+        [
+          FilledButton(
+            key: const ValueKey('read-open-settings'),
+            onPressed: viewModel.openSettings,
+            child: Text(l10n.readOpenSettings),
+          ),
+          OutlinedButton(onPressed: leave, child: Text(l10n.readWithoutMic)),
+        ],
       ),
       ReadError.modelMissing => (
         l10n.readModelMissing,

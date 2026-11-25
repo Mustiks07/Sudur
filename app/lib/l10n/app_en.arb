@@ -207,5 +207,6 @@
         "type": "int"
       }
     }
-  }
+  },
+  "readOpenSettings": "Open settings"
 }

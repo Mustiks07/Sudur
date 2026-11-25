@@ -989,6 +989,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saving the result…'**
   String get readSaving;
+
+  /// No description provided for @readOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get readOpenSettings;
 }
 
 class _AppLocalizationsDelegate

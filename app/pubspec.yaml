@@ -8,6 +8,7 @@ environment:
   sdk: ^3.14.0
 
 dependencies:
+  app_settings: 9.0.1
   asr_sherpa:
     path: ../packages/asr_sherpa
   audio_capture:
@@ -32,6 +33,7 @@ dependencies:
     path: ../packages/session
   storage:
     path: ../packages/storage
+  wakelock_plus: 1.8.2
 
 dev_dependencies:
   check:

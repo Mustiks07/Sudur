@@ -482,4 +482,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get readSaving => 'Saving the result…';
+
+  @override
+  String get readOpenSettings => 'Open settings';
 }

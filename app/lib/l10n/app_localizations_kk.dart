@@ -477,4 +477,7 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get readSaving => '[Нужен перевод]';
+
+  @override
+  String get readOpenSettings => '[Нужен перевод]';
 }
