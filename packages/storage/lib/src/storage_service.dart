@@ -100,6 +100,19 @@ final class StorageService {
   /// Future sync-outbox repository.
   final OutboxRepository outbox;
 
+  /// Runs [body] in one database transaction: every write it makes through
+  /// the repositories above is kept together or not at all. If [body]
+  /// throws, nothing it wrote is kept and the error is returned. Repository
+  /// calls return `Result`, so [body] must throw on an `Error` result for
+  /// the transaction to roll back.
+  Future<Result<T>> transaction<T>(Future<T> Function() body) async {
+    try {
+      return Result.ok(await _database.transaction(body));
+    } on Exception catch (error) {
+      return Result.error(error);
+    }
+  }
+
   /// Exports every user table as JSON inside a zip archive.
   Future<Result<Uint8List>> exportData() => UserDataArchiveService(
         _database,

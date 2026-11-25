@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -47,6 +48,37 @@ void main() {
     expect(_errorCode(failedNew.result), 'workerStopped');
   });
 
+  test('loads an active directory through the content package interface',
+      () async {
+    final recognizer = SherpaCtcRecognizer(
+      sessionId: 'content-source',
+      workerEntrypoint: _runDelayedWorker,
+    );
+    addTearDown(recognizer.dispose);
+    final source = _FakeModelPackages('/installed/asr/1.0.0');
+
+    expect(
+      await recognizer.loadInstalled(source, 'quran-asr-small'),
+      isA<Ok<void>>(),
+    );
+    expect(source.requested, 'quran-asr-small');
+  });
+
+  test('model loading leaves the root isolate responsive', () async {
+    final recognizer = SherpaCtcRecognizer(
+      sessionId: 'non-blocking',
+      workerEntrypoint: _runDelayedWorker,
+    );
+    addTearDown(recognizer.dispose);
+    var rootTimerRan = false;
+    final loading = recognizer.load('/installed/model');
+    Timer.run(() => rootTimerRan = true);
+
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    expect(rootTimerRan, isTrue);
+    expect(await loading, isA<Ok<void>>());
+  });
+
   final modelDirectory = Platform.environment['SUDUR_ASR_MODEL_DIR'];
   test(
     'loads and decodes in the worker isolate with a real model',
@@ -72,6 +104,51 @@ void main() {
     },
     skip: modelDirectory == null ? 'Set SUDUR_ASR_MODEL_DIR to run.' : false,
   );
+}
+
+final class _FakeModelPackages implements AsrModelPackageSource {
+  _FakeModelPackages(this.directory);
+
+  final String directory;
+  String? requested;
+
+  @override
+  Future<Result<String>> activeDirectory(String packageId) async {
+    requested = packageId;
+    return Result.ok(directory);
+  }
+}
+
+void _runDelayedWorker(SendPort ownerPort) {
+  final requests = ReceivePort();
+  ownerPort.send(requests.sendPort);
+  requests.listen((message) async {
+    if (message is! Map<String, Object?>) return;
+    final requestId = message['requestId'];
+    final operation = message['operation'];
+    if (requestId is! int || operation is! String) return;
+    if (operation == 'load') {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      ownerPort.send(<String, Object?>{
+        'requestId': requestId,
+        'ok': true,
+        'value': <String, Object?>{
+          'modelId': 'test/model',
+          'modelVersion': '1',
+          'output': 'uthmaniLettersNoDiacritics',
+          'isStreaming': false,
+          'hasTokenTimes': true,
+        },
+      });
+      return;
+    }
+    ownerPort.send(<String, Object?>{
+      'requestId': requestId,
+      'ok': true,
+      'value': null,
+    });
+    if (operation == 'dispose') requests.close();
+  });
 }
 
 void _runFailingWorker(SendPort ownerPort) {
