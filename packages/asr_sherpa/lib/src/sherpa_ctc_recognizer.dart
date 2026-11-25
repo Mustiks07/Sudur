@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:asr_sherpa/src/device_benchmark.dart';
 import 'package:asr_sherpa/src/isolate_protocol.dart';
+import 'package:asr_sherpa/src/model_package_source.dart';
 import 'package:asr_sherpa/src/recognizer_config.dart';
 import 'package:asr_sherpa/src/recognizer_exception.dart';
 import 'package:asr_sherpa/src/recognizer_worker.dart';
@@ -117,6 +118,20 @@ final class SherpaCtcRecognizer implements SpeechRecognizer {
           'The recognizer isolate could not start.',
         ),
       );
+    }
+  }
+
+  /// Resolves an active package installed by `content` and loads it.
+  Future<Result<void>> loadInstalled(
+    AsrModelPackageSource packages,
+    String packageId,
+  ) async {
+    final resolved = await packages.activeDirectory(packageId);
+    switch (resolved) {
+      case Error<String>(:final error):
+        return Result<void>.error(error);
+      case Ok<String>(:final value):
+        return await load(value);
     }
   }
 
