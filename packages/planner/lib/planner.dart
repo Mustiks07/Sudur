@@ -4,6 +4,7 @@
 library;
 
 export 'src/clock.dart';
+export 'src/exercises.dart';
 export 'src/grading.dart';
 export 'src/learning.dart';
 export 'src/memory.dart';

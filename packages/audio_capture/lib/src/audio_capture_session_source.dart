@@ -11,24 +11,38 @@ final class AudioCaptureSessionSource implements SessionAudioSource {
     required AudioCaptureService capture,
     required String vadModelPath,
     required bool permissionExplanationShown,
+    Future<void> Function(capture.CapturePaused event)? onAutomaticPause,
   })  : _capture = capture,
         _vadModelPath = vadModelPath,
-        _permissionExplanationShown = permissionExplanationShown;
+        _permissionExplanationShown = permissionExplanationShown,
+        _onAutomaticPause = onAutomaticPause;
 
   final AudioCaptureService _capture;
   final String _vadModelPath;
   final bool _permissionExplanationShown;
+  final Future<void> Function(capture.CapturePaused event)? _onAutomaticPause;
   final StreamController<Result<SessionAudioEvent>> _events =
       StreamController<Result<SessionAudioEvent>>.broadcast(sync: true);
+  final StreamController<capture.CapturePaused> _interruptions =
+      StreamController<capture.CapturePaused>.broadcast(sync: true);
   final AudioCaptureSessionEventMapper _mapper =
       AudioCaptureSessionEventMapper();
 
   StreamSubscription<Result<Object>>? _subscription;
   String? _sessionId;
   var _disposed = false;
+  var _systemPaused = false;
+  var _pauseRequested = false;
 
   @override
   Stream<Result<SessionAudioEvent>> get events => _events.stream;
+
+  /// System pause reasons for the screen/session coordinator.
+  ///
+  /// `onAutomaticPause` should execute the session `Pause` command so the
+  /// session changes to `paused` and saves its checkpoint. Calling [pause]
+  /// afterwards is idempotent because capture has already stopped.
+  Stream<capture.CapturePaused> get interruptions => _interruptions.stream;
 
   @override
   Future<Result<void>> start(String sessionId) async {
@@ -67,6 +81,16 @@ final class AudioCaptureSessionSource implements SessionAudioSource {
       case Error<Object>(:final error):
         _events.add(Result<SessionAudioEvent>.error(error));
       case Ok<Object>(:final value):
+        if (value case final capture.CapturePaused paused
+            when paused.reason != capture.CapturePauseReason.playback &&
+                !_pauseRequested) {
+          _systemPaused = true;
+          _interruptions.add(paused);
+          final callback = _onAutomaticPause;
+          if (callback != null) {
+            unawaited(_notifyAutomaticPause(callback, paused));
+          }
+        }
         final mapped = _map(value);
         if (mapped != null) _events.add(Result.ok(mapped));
     }
@@ -76,11 +100,50 @@ final class AudioCaptureSessionSource implements SessionAudioSource {
       _sessionId == null ? null : _mapper.map(event);
 
   @override
-  Future<Result<void>> pause() =>
-      _capture.notifyInterruption(capture.CapturePauseReason.background);
+  Future<Result<void>> pause() async {
+    if (_systemPaused) {
+      return const Result<void>.ok(null);
+    }
+    _pauseRequested = true;
+    try {
+      return await _capture.notifyInterruption(
+        capture.CapturePauseReason.background,
+      );
+    } finally {
+      _pauseRequested = false;
+    }
+  }
 
   @override
-  Future<Result<void>> resume() => _capture.resumeMicrophone();
+  Future<Result<void>> resume() async {
+    final result = await _capture.resumeMicrophone();
+    if (result is Ok<void>) _systemPaused = false;
+    return result;
+  }
+
+  /// Suppresses microphone/recognition input while reciter playback is on.
+  Future<Result<void>> setPlaybackActive(bool active) =>
+      _capture.setPlaybackActive(active);
+
+  Future<void> _notifyAutomaticPause(
+    Future<void> Function(capture.CapturePaused event) callback,
+    capture.CapturePaused event,
+  ) async {
+    try {
+      await callback(event);
+    } on Object {
+      if (!_events.isClosed) {
+        _events.add(
+          const Result<SessionAudioEvent>.error(
+            AudioCaptureSessionSourceException(
+              'automaticPauseFailed',
+              'The session coordinator could not apply an automatic pause.',
+            ),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Future<Result<void>> stop() => _capture.stop();
@@ -91,6 +154,7 @@ final class AudioCaptureSessionSource implements SessionAudioSource {
     _disposed = true;
     await _subscription?.cancel();
     await _capture.dispose();
+    await _interruptions.close();
     await _events.close();
   }
 }
