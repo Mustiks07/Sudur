@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:contracts/contracts.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mushaf_view/mushaf_view.dart';
@@ -10,8 +11,19 @@ import 'package:sudur/ui/reading/view_models/reading_view_model.dart';
 
 /// Standalone surah 78 reading and measurement prototype.
 final class ReadingScreen extends StatefulWidget {
-  /// Creates the reading screen.
-  const new({super.key});
+  /// Creates the reading screen; [from]–[to] and [stepId] when it reads a
+  /// step of “Today”.
+  const new({super.key, this.from, this.to, this.stepId});
+
+  /// First word of today's step, or `null` for the whole prototype passage.
+  final WordKey? from;
+
+  /// Last word of today's step.
+  final WordKey? to;
+
+  /// Step of “Today” being read: when it is set, a finished reading offers
+  /// «Готово», which returns `true` to “Today”.
+  final String? stepId;
 
   @override
   State<ReadingScreen> createState() => _ReadingScreenState();
@@ -20,6 +32,14 @@ final class ReadingScreen extends StatefulWidget {
 final class _ReadingScreenState extends State<ReadingScreen> {
   final Map<int, MushafPageController> _pageControllers =
       <int, MushafPageController>{};
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(
+      context.read<ReadingViewModel>().useRange(widget.from, widget.to),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,8 +56,13 @@ final class _ReadingScreenState extends State<ReadingScreen> {
                 viewModel: viewModel,
               ),
               ReadingPrototypeState.error => _ErrorBody(viewModel: viewModel),
+              ReadingPrototypeState.rangeUnavailable =>
+                const _UnavailableBody(),
               _ => _ReadyBody(
                 viewModel: viewModel,
+                onDone: widget.stepId == null
+                    ? null
+                    : () => Navigator.of(context).pop(true),
                 pageControllers: _pageControllers,
               ),
             },
@@ -123,10 +148,45 @@ final class _ErrorBody extends StatelessWidget {
   }
 }
 
+final class _UnavailableBody extends StatelessWidget {
+  const new();
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Icon(Icons.menu_book_outlined, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              localizations.readingRangeUnavailable,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(localizations.back),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 final class _ReadyBody extends StatelessWidget {
-  const new({required this.viewModel, required this.pageControllers});
+  const new({
+    required this.viewModel,
+    required this.pageControllers,
+    required this.onDone,
+  });
 
   final ReadingViewModel viewModel;
+  final VoidCallback? onDone;
   final Map<int, MushafPageController> pageControllers;
 
   @override
@@ -220,7 +280,7 @@ final class _ReadyBody extends StatelessWidget {
             },
           ),
         ),
-        _SessionControls(viewModel: viewModel),
+        _SessionControls(viewModel: viewModel, onDone: onDone),
       ],
     );
   }
@@ -263,9 +323,10 @@ final class _ModelSelector extends StatelessWidget {
 }
 
 final class _SessionControls extends StatelessWidget {
-  const new({required this.viewModel});
+  const new({required this.viewModel, required this.onDone});
 
   final ReadingViewModel viewModel;
+  final VoidCallback? onDone;
 
   @override
   Widget build(BuildContext context) {
@@ -277,6 +338,14 @@ final class _SessionControls extends StatelessWidget {
         spacing: 8,
         runSpacing: 8,
         children: <Widget>[
+          if (onDone case final done?
+              when viewModel.state == ReadingPrototypeState.finished)
+            FilledButton.icon(
+              key: const ValueKey('reading-done'),
+              onPressed: done,
+              icon: const Icon(Icons.check),
+              label: Text(localizations.readingDone),
+            ),
           FilledButton.icon(
             onPressed: switch (viewModel.state) {
               ReadingPrototypeState.ready ||

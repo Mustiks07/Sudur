@@ -33,6 +33,24 @@ final class PrototypeBundle {
 
   /// Verified resources used to build the real session in its worker.
   final PrototypeSessionConfiguration sessionConfiguration;
+
+  /// The same bundle reading only [words] (a range of [sessionWords]).
+  PrototypeBundle withWords(List<WordKey> words) => PrototypeBundle(
+    pages: pages,
+    fontFamilies: fontFamilies,
+    sessionWords: List.unmodifiable(words),
+    modelDirectory: modelDirectory,
+    sessionConfiguration: PrototypeSessionConfiguration(
+      words: List.unmodifiable(words),
+      contentJson: sessionConfiguration.contentJson,
+      normalizerJson: sessionConfiguration.normalizerJson,
+      modelDirectory: sessionConfiguration.modelDirectory,
+      vadModelPath: sessionConfiguration.vadModelPath,
+      textVersion: sessionConfiguration.textVersion,
+      rulesVersion: sessionConfiguration.rulesVersion,
+      wholeQuranText: sessionConfiguration.wholeQuranText,
+    ),
+  );
 }
 
 /// Repository boundary used by `ReadingViewModel`.

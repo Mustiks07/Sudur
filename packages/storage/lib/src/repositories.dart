@@ -73,6 +73,9 @@ abstract interface class CheckEventRepository {
 
   /// Returns events for [sessionId] in creation order.
   Future<Result<List<CheckEventData>>> listForSession(String sessionId);
+
+  /// Returns the event [id], if present.
+  Future<Result<CheckEventData?>> get(String id);
 }
 
 /// Reading-session persistence.
@@ -112,6 +115,10 @@ abstract interface class DownloadRepository {
 
   /// Returns all package states.
   Future<Result<List<DownloadData>>> list();
+
+  /// Forgets [packageId] after its files were deleted: “not installed” is
+  /// not stored (docs/tz 11.4), it is the absence of a row.
+  Future<Result<void>> remove(String packageId);
 }
 
 /// Explicitly saved recording metadata persistence.
@@ -338,6 +345,15 @@ final class DriftCheckEventRepository implements CheckEventRepository {
       });
 
   @override
+  Future<Result<CheckEventData?>> get(String id) => _guard(() async {
+        _validateUuid(id, 'check_event.id');
+        final row = await (_database.select(_database.checkEvents)
+              ..where((row) => row.id.equals(id)))
+            .getSingleOrNull();
+        return row == null ? null : _checkEventData(row);
+      });
+
+  @override
   Future<Result<void>> put(CheckEventData event) => _guard(() async {
         _validateCheckEvent(event);
         await _database
@@ -461,6 +477,13 @@ final class DriftDownloadRepository implements DownloadRepository {
         await _database
             .into(_database.downloads)
             .insertOnConflictUpdate(_downloadRow(download));
+      });
+
+  @override
+  Future<Result<void>> remove(String packageId) => _guard(() async {
+        await (_database.delete(_database.downloads)
+              ..where((row) => row.packageId.equals(packageId)))
+            .go();
       });
 }
 

@@ -8,6 +8,9 @@ abstract interface class PrototypePlatformService {
   /// Lets the owner select a WAV file and returns a readable local path.
   Future<String?> pickWavFile();
 
+  /// Lets the user select an exported Sudur user-data archive.
+  Future<String?> pickUserDataArchive();
+
   /// Opens the platform share sheet for a JSON log file.
   Future<void> shareFile(String path);
 }
@@ -31,6 +34,10 @@ final class MethodChannelPrototypePlatformService
 
   @override
   Future<String?> pickWavFile() => _channel.invokeMethod<String>('pickWav');
+
+  @override
+  Future<String?> pickUserDataArchive() =>
+      _channel.invokeMethod<String>('pickUserDataArchive');
 
   @override
   Future<void> shareFile(String path) =>

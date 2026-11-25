@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
 
 // Async file operations avoid blocking the UI while large models are checked.
@@ -36,6 +37,44 @@ final class PrototypeDownloadProgress {
 
   /// Fraction in the inclusive 0–1 range.
   double get fraction => totalBytes == 0 ? 0 : completedBytes / totalBytes;
+}
+
+/// What is already installed; `null` for what is not.
+final class PrototypeInstalledFiles {
+  /// Creates the paths.
+  const new({
+    required this.modelDirectory,
+    required this.vadModelPath,
+    required this.contentPath,
+    required this.fontDirectory,
+  });
+
+  /// ASR model package directory.
+  final String? modelDirectory;
+
+  /// Silero VAD model.
+  final String? vadModelPath;
+
+  /// Prototype content (pages 582–583 with layout).
+  final String? contentPath;
+
+  /// Fonts of pages 582–583.
+  final String? fontDirectory;
+
+  /// Whether reading with voice is possible.
+  bool get voiceReady => modelDirectory != null && vadModelPath != null;
+}
+
+/// Verified local paths of the whole-Quran text and derived passages.
+final class PrototypeCanonFiles {
+  /// Creates the paths.
+  const new({required this.textPath, required this.derivedPath});
+
+  /// Whole-Quran text JSON (format 2, `kind: text`, ADR 0004).
+  final String textPath;
+
+  /// Derived content JSON (`kind: derived`): default passages (D01).
+  final String derivedPath;
 }
 
 /// Verified local paths consumed by the prototype repository.
@@ -106,9 +145,95 @@ final class PrototypeAssetInstaller {
       _vadLicense,
       ...modelManifest.files,
     ];
+    await _ensureAll(root, resources, onProgress);
+
+    final modelDirectory = Directory(
+      '${root.path}/models/${modelManifest.directoryName}',
+    );
+    await _writeModelMetadata(modelDirectory, modelManifest);
+    return PrototypeResources(
+      contentPath: '${root.path}/content/content_p582_583.json',
+      fontDirectory: '${root.path}/fonts',
+      modelDirectory: modelDirectory.path,
+      vadModelPath: '${root.path}/audio/silero_vad.onnx',
+    );
+  }
+
+  /// What is installed for reading with voice, without downloading: the
+  /// model ([preferred] first, else the other one), the VAD model and the
+  /// page content and fonts of the prototype. Files are checked by size
+  /// here; their SHA-256 was checked on download and the model package is
+  /// checked again by `asr_sherpa` when the session loads it.
+  Future<PrototypeInstalledFiles> installedFiles({
+    PrototypeModelChoice preferred = PrototypeModelChoice.small,
+  }) async {
+    final root = await _platform.applicationDirectory();
+    Future<bool> present(_RemoteResource resource) async {
+      final file = File('$root/${resource.relativePath}');
+      return await file.exists() && await file.length() == resource.size;
+    }
+
+    Future<bool> all(Iterable<_RemoteResource> resources) async {
+      for (final resource in resources) {
+        if (!await present(resource)) return false;
+      }
+      return true;
+    }
+
+    String? modelDirectory;
+    for (final choice in [
+      preferred,
+      ...PrototypeModelChoice.values.where((c) => c != preferred),
+    ]) {
+      final manifest = _models[choice];
+      if (manifest != null && await all(manifest.files)) {
+        await refreshInstalledModelMetadata();
+        modelDirectory = '$root/models/${manifest.directoryName}';
+        break;
+      }
+    }
+    return PrototypeInstalledFiles(
+      modelDirectory: modelDirectory,
+      vadModelPath: await present(_vadModel)
+          ? '$root/${_vadModel.relativePath}'
+          : null,
+      contentPath: await present(_content)
+          ? '$root/${_content.relativePath}'
+          : null,
+      fontDirectory: await all(_fonts) ? '$root/fonts' : null,
+    );
+  }
+
+  /// The installed, verified content JSON (pages 582–583 with their
+  /// surahs), or `null` before the first install. Never downloads.
+  Future<String?> installedContentPath() async {
+    final root = await _platform.applicationDirectory();
+    final file = File('$root/${_content.relativePath}');
+    return await _isValid(file, _content) ? file.path : null;
+  }
+
+  /// Ensures the whole-Quran text (ADR 0004) and the passages derived from
+  /// it (D01) are installed. Both are verbatim files from the repository at
+  /// pinned commits, checked by SHA-256, like the prototype content.
+  Future<PrototypeCanonFiles> installCanon({
+    required void Function(PrototypeDownloadProgress progress) onProgress,
+  }) async {
+    final root = Directory(await _platform.applicationDirectory());
+    await root.create(recursive: true);
+    await _ensureAll(root, const [_quranText, _derived], onProgress);
+    return PrototypeCanonFiles(
+      textPath: '${root.path}/${_quranText.relativePath}',
+      derivedPath: '${root.path}/${_derived.relativePath}',
+    );
+  }
+
+  Future<void> _ensureAll(
+    Directory root,
+    List<_RemoteResource> resources,
+    void Function(PrototypeDownloadProgress progress) onProgress,
+  ) async {
     final total = resources.fold<int>(0, (sum, item) => sum + item.size);
     var completed = 0;
-
     for (final resource in resources) {
       final target = File('${root.path}/${resource.relativePath}');
       await _ensureResource(
@@ -133,17 +258,6 @@ final class PrototypeAssetInstaller {
         ),
       );
     }
-
-    final modelDirectory = Directory(
-      '${root.path}/models/${modelManifest.directoryName}',
-    );
-    await _writeModelMetadata(modelDirectory, modelManifest);
-    return PrototypeResources(
-      contentPath: '${root.path}/content/content_p582_583.json',
-      fontDirectory: '${root.path}/fonts',
-      modelDirectory: modelDirectory.path,
-      vadModelPath: '${root.path}/audio/silero_vad.onnx',
-    );
   }
 
   Future<void> _ensureResource(
@@ -199,38 +313,112 @@ final class PrototypeAssetInstaller {
   Future<void> _writeModelMetadata(
     Directory directory,
     _ModelManifest manifest,
-  ) async {
-    await _writeJson(
-      File('${directory.path}/normalizer.json'),
-      <String, Object?>{
-        'id': manifest.normalizerId,
-        'nfc': true,
-        'removeRanges': _abdouRemoveRanges,
-        'replace': _abdouReplacements,
-        'wordSeparator': ' ',
-      },
-    );
-    await _writeJson(File('${directory.path}/thresholds.json'), _thresholds);
-    await _writeJson(File('${directory.path}/model.json'), <String, Object?>{
-      'modelId': manifest.modelId,
-      'version': manifest.version,
-      'output': 'uthmaniLettersNoDiacritics',
-      'isStreaming': false,
-      'hasTokenTimes': true,
-      'sampleRate': 16000,
-      'minRamMb': manifest.minRamMb,
-      'license': 'MIT',
-      'normalizerId': manifest.normalizerId,
-      'modelSizeBytes': manifest.modelSize,
-      'tokensSizeBytes': manifest.tokensSize,
-      'modelSha256': manifest.modelSha256,
-      'tokensSha256': manifest.tokensSha256,
-    });
-  }
-
-  Future<void> _writeJson(File file, Map<String, Object?> value) => file
-      .writeAsString('${const JsonEncoder.withIndent('  ').convert(value)}\n');
+  ) => writePrototypeModelMetadata(
+    directory,
+    PrototypeModelMetadata(
+      modelId: manifest.modelId,
+      version: manifest.version,
+      normalizerId: manifest.normalizerId,
+      minRamMb: manifest.minRamMb,
+      modelSize: manifest.modelSize,
+      tokensSize: manifest.tokensSize,
+      modelSha256: manifest.modelSha256,
+      tokensSha256: manifest.tokensSha256,
+    ),
+  );
 }
+
+/// What the app records about a downloaded prototype model.
+@immutable
+final class PrototypeModelMetadata {
+  /// Creates the metadata.
+  const new({
+    required this.modelId,
+    required this.version,
+    required this.normalizerId,
+    required this.minRamMb,
+    required this.modelSize,
+    required this.tokensSize,
+    required this.modelSha256,
+    required this.tokensSha256,
+  });
+
+  /// Model id, like `Abdou/quran-asr-small`.
+  final String modelId;
+
+  /// Pinned model revision.
+  final String version;
+
+  /// Id of the normalizer written next to the model.
+  final String normalizerId;
+
+  /// Minimum device RAM.
+  final int minRamMb;
+
+  /// Size of `model.int8.onnx` in bytes.
+  final int modelSize;
+
+  /// Size of `tokens.txt` in bytes.
+  final int tokensSize;
+
+  /// SHA-256 of `model.int8.onnx`.
+  final String modelSha256;
+
+  /// SHA-256 of `tokens.txt`.
+  final String tokensSha256;
+}
+
+/// Writes `model.json`, `normalizer.json`, `thresholds.json` and `eval.json`
+/// (docs/tz 12.3, «Пакет модели») next to downloaded model files, so that
+/// the directory is a model package `AsrModelPackage.load` accepts.
+///
+/// Public only for tests: the installer calls it for every model it
+/// installs or finds already downloaded.
+@visibleForTesting
+Future<void> writePrototypeModelMetadata(
+  Directory directory,
+  PrototypeModelMetadata model,
+) async {
+  await _writeJson(File('${directory.path}/normalizer.json'), <String, Object?>{
+    'id': model.normalizerId,
+    'nfc': true,
+    'removeRanges': _abdouRemoveRanges,
+    'replace': _abdouReplacements,
+    'wordSeparator': ' ',
+  });
+  await _writeJson(File('${directory.path}/thresholds.json'), _thresholds);
+  await _writeJson(File('${directory.path}/eval.json'), _evaluation);
+  await _writeJson(File('${directory.path}/model.json'), <String, Object?>{
+    'modelId': model.modelId,
+    'version': model.version,
+    'output': 'uthmaniLettersNoDiacritics',
+    'isStreaming': false,
+    'hasTokenTimes': true,
+    'sampleRate': 16000,
+    'minRamMb': model.minRamMb,
+    'license': 'MIT',
+    'normalizerId': model.normalizerId,
+    'modelSizeBytes': model.modelSize,
+    'tokensSizeBytes': model.tokensSize,
+    'modelSha256': model.modelSha256,
+    'tokensSha256': model.tokensSha256,
+  });
+}
+
+Future<void> _writeJson(File file, Map<String, Object?> value) => file
+    .writeAsString('${const JsonEncoder.withIndent('  ').convert(value)}\n');
+
+/// `eval.json` of a package the app assembles itself: the model has not been
+/// measured on the recorded corpus (docs/tz 5.3), and the file says so
+/// instead of carrying made-up numbers.
+const _evaluation = <String, Object?>{
+  'status': 'notEvaluated',
+  'stage': 'prototype',
+  'reason':
+      'Assembled by the app from the pinned model revision; '
+      'not yet measured on the recorded corpus (docs/tz 5.3).',
+  'groups': <String, Object?>{},
+};
 
 final class _RemoteResource {
   const new({
@@ -283,6 +471,31 @@ const _content = _RemoteResource(
       'packages/testing/fixtures/content_p582_583.json',
   sha256: '928326595eea80edfac7733b7cb9c5b596457ab5627b9ccf3888cb3537c075d5',
   size: 73326,
+);
+
+// Tanzil text, verbatim (ADR 0004), at a pinned commit of `main`.
+const _quranText = _RemoteResource(
+  displayName: 'quran-text',
+  relativePath: 'content/quran_text.json',
+  url:
+      'https://raw.githubusercontent.com/Mustiks07/Sudur/'
+      'b8cb9c60ce87d3787312938114cc47d1e6ec6f08/'
+      'packages/testing/fixtures/quran_text.json',
+  sha256: '245635a81aa337b2cbb7577a0b5585c0520e28f78aa0e87dec5526e234820b72',
+  size: 1582449,
+);
+
+// Default passages computed from the text by `content_build` (D01, #23),
+// pinned to the commit of that pull request until it is merged.
+const _derived = _RemoteResource(
+  displayName: 'derived-passages',
+  relativePath: 'content/derived.json',
+  url:
+      'https://raw.githubusercontent.com/Mustiks07/Sudur/'
+      '4a348fb87c54cd52fef93382c6e464df139e57b4/'
+      'packages/testing/fixtures/derived.json',
+  sha256: 'b7d8272e01aa062fa6f896fea3f093e82d9767d1d6de96da3de63cab47b66789',
+  size: 151895,
 );
 
 const _vadModel = _RemoteResource(
@@ -452,6 +665,8 @@ const _thresholds = <String, num>{
   'ambiguityMargin': 0.15,
   'ngramSize': 3,
   'stableConfirmations': 2,
+  'openDelayWords': 2,
+  'lostWindowWords': 4,
   'strongMatch': 0.85,
   'substitutionMax': 0.60,
   'confirmContextWords': 2,
