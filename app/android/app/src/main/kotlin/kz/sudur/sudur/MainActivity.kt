@@ -12,6 +12,7 @@ import java.io.File
 class MainActivity : FlutterActivity() {
     private val channelName = "kz.sudur/prototype"
     private val pickWavRequest = 5808
+    private val pickUserDataRequest = 5809
     private var pendingPick: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -27,9 +28,27 @@ class MainActivity : FlutterActivity() {
                 result.success(directory.absolutePath)
             }
             "pickWav" -> pickWav(result)
+            "pickUserDataArchive" -> pickUserDataArchive(result)
             "shareFile" -> shareFile(call, result)
             else -> result.notImplemented()
         }
+    }
+
+    private fun pickUserDataArchive(result: MethodChannel.Result) {
+        if (pendingPick != null) {
+            result.error("pickerBusy", "A file picker is already open.", null)
+            return
+        }
+        pendingPick = result
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/zip"
+            putExtra(
+                Intent.EXTRA_MIME_TYPES,
+                arrayOf("application/zip", "application/octet-stream"),
+            )
+        }
+        startActivityForResult(intent, pickUserDataRequest)
     }
 
     private fun pickWav(result: MethodChannel.Result) {
@@ -64,7 +83,11 @@ class MainActivity : FlutterActivity() {
             file,
         )
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "application/json"
+            type = if (file.extension.equals("zip", ignoreCase = true)) {
+                "application/zip"
+            } else {
+                "application/json"
+            }
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
@@ -75,7 +98,7 @@ class MainActivity : FlutterActivity() {
     @Deprecated("Deprecated in Android API; FlutterActivity still forwards this callback.")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode != pickWavRequest) return
+        if (requestCode != pickWavRequest && requestCode != pickUserDataRequest) return
         val result = pendingPick ?: return
         pendingPick = null
         val selectedUri = data?.data
@@ -84,16 +107,31 @@ class MainActivity : FlutterActivity() {
             return
         }
         try {
-            val inputDirectory = File(cacheDir, "prototype-wav").apply { mkdirs() }
+            val isWav = requestCode == pickWavRequest
+            val inputDirectory = File(
+                cacheDir,
+                if (isWav) "prototype-wav" else "user-data-import",
+            ).apply { mkdirs() }
             inputDirectory.listFiles()?.forEach { it.delete() }
-            val output = File(inputDirectory, "measurement-input.wav")
+            val output = File(
+                inputDirectory,
+                if (isWav) "measurement-input.wav" else "sudur-user-data.zip",
+            )
             contentResolver.openInputStream(selectedUri).use { input ->
                 requireNotNull(input) { "The selected WAV cannot be opened." }
                 output.outputStream().use { sink -> input.copyTo(sink) }
             }
             result.success(output.absolutePath)
         } catch (error: Exception) {
-            result.error("wavCopyFailed", "The selected WAV cannot be read.", null)
+            result.error(
+                "fileCopyFailed",
+                if (requestCode == pickWavRequest) {
+                    "The selected WAV cannot be read."
+                } else {
+                    "The selected user-data archive cannot be read."
+                },
+                null,
+            )
         }
     }
 }

@@ -1,17 +1,38 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lessons/lessons.dart';
+import 'package:planner/planner.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/config/app_config.dart';
+import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/config/prototype_real_session.dart';
+import 'package:sudur/data/models/user_models.dart';
+import 'package:sudur/data/repositories/app_user_repository.dart';
+import 'package:sudur/data/repositories/course_repository.dart';
+import 'package:sudur/data/repositories/exercise_repository.dart';
 import 'package:sudur/data/repositories/prototype_repository.dart';
+import 'package:sudur/data/repositories/reading_repository.dart';
+import 'package:sudur/data/services/app_canon_service.dart';
+import 'package:sudur/data/services/app_file_service.dart';
+import 'package:sudur/data/services/app_planner_service.dart';
+import 'package:sudur/data/services/app_storage_service.dart';
+import 'package:sudur/data/services/device_service.dart';
+import 'package:sudur/data/services/notification_service.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
 import 'package:sudur/data/services/prototype_session.dart';
+import 'package:sudur/l10n/app_localizations.dart';
 import 'package:sudur/routing/app_router.dart';
+import 'package:sudur/ui/course/view_models/course_view_models.dart';
 import 'package:sudur/ui/home/view_models/home_view_model.dart';
+import 'package:sudur/ui/more/view_models/more_view_model.dart';
+import 'package:sudur/ui/progress/view_models/progress_view_model.dart';
 import 'package:sudur/ui/reading/view_models/reading_view_model.dart';
+import 'package:sudur/ui/start/view_models/start_view_model.dart';
+import 'package:sudur/ui/today/view_models/today_view_model.dart';
 
 /// Builds and owns application-level dependencies.
 class AppDependencies extends StatelessWidget {
@@ -27,22 +48,102 @@ class AppDependencies extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const platform = MethodChannelPrototypePlatformService();
-    final repository = LocalPrototypeRepository(
-      PrototypeAssetInstaller(platform),
-      platform,
+    const e01Config = E01Config();
+    const clock = SystemClock();
+    final random = Random.secure();
+    final storage = AppStorageService(platform);
+    const files = AppFileService(platform);
+    final installer = PrototypeAssetInstaller(platform);
+    final canon = InstalledCanonService(installer);
+    final courseRepository = LocalCourseRepository(
+      installer: installer,
+      storage: storage,
+      clock: clock,
+      createId: () => _uuid(random),
+    );
+    final repository = LocalPrototypeRepository(installer, platform);
+    final notifications = LocalNotificationService();
+    final device = PluginDeviceService();
+    final userRepository = StorageAppUserRepository(
+      storage: storage,
+      files: files,
+      modelInstaller: installer,
+      canon: canon,
+      planner: AppPlannerService(clock: clock, random: random),
+      clock: clock,
+      createId: () => _uuid(random),
+      config: e01Config,
+      notifications: notifications,
+      reminderText: _reminderText,
     );
     return MultiProvider(
       providers: [
         Provider<AppConfig>.value(value: config),
+        Provider<E01Config>.value(value: e01Config),
         Provider<GoRouter>(
           create: (_) => createAppRouter(config),
           dispose: (_, router) => router.dispose(),
         ),
         Provider<PrototypeRepository>.value(value: repository),
+        Provider<DeviceService>.value(value: device),
+        Provider<ReadingRepository>.value(
+          value: LocalReadingRepository(installer),
+        ),
+        Provider<ExerciseRepository>.value(
+          value: LocalExerciseRepository(
+            canon: canon,
+            storage: storage,
+            clock: clock,
+            createId: () => _uuid(random),
+          ),
+        ),
+        Provider<AppStorageService>(
+          create: (_) => storage,
+          dispose: (_, value) => unawaited(value.dispose()),
+        ),
+        Provider<AppUserRepository>.value(value: userRepository),
         Provider<PrototypeReadingSessionFactory>.value(
           value: RealPrototypeReadingSessionFactory(),
         ),
         ChangeNotifierProvider<HomeViewModel>(create: (_) => HomeViewModel()),
+        ChangeNotifierProvider<StartViewModel>(
+          create: (_) {
+            final viewModel = StartViewModel(userRepository, e01Config);
+            unawaited(viewModel.initialize());
+            return viewModel;
+          },
+        ),
+        ChangeNotifierProvider<TodayViewModel>(
+          create: (_) => TodayViewModel(userRepository, e01Config),
+        ),
+        ChangeNotifierProvider<MoreViewModel>(
+          create: (_) => MoreViewModel(userRepository),
+        ),
+        Provider<CourseRepository>.value(value: courseRepository),
+        Provider<LessonEngine>.value(
+          value: LessonEngine(
+            params: LessonParams.defaults,
+            clock: () => clock.now(),
+          ),
+        ),
+        ChangeNotifierProvider<ProgressViewModel>(
+          create: (_) => ProgressViewModel(userRepository),
+        ),
+        ChangeNotifierProvider<RemindersViewModel>(
+          create: (_) {
+            final viewModel = RemindersViewModel(
+              userRepository,
+              notifications,
+              device,
+              e01Config,
+            );
+            unawaited(viewModel.load());
+            return viewModel;
+          },
+        ),
+        ChangeNotifierProvider<CourseViewModel>(
+          create: (_) => CourseViewModel(courseRepository),
+        ),
         ChangeNotifierProvider<ReadingViewModel>(
           create: (context) {
             final viewModel = ReadingViewModel(
@@ -57,4 +158,24 @@ class AppDependencies extends StatelessWidget {
       child: child,
     );
   }
+}
+
+String _uuid(Random random) {
+  final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  String hex(int value) => value.toRadixString(16).padLeft(2, '0');
+  final value = bytes.map(hex).join();
+  return '${value.substring(0, 8)}-${value.substring(8, 12)}-'
+      '${value.substring(12, 16)}-${value.substring(16, 20)}-'
+      '${value.substring(20)}';
+}
+
+/// Reminder words in [language] (11.8), outside any screen.
+ReminderText _reminderText(AppLanguage language, int minutes) {
+  final l10n = lookupAppLocalizations(Locale(language.name));
+  return ReminderText(
+    body: l10n.reminderText(minutes),
+    channel: l10n.reminders,
+  );
 }
