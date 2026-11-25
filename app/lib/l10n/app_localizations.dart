@@ -1265,6 +1265,32 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read again'**
   String get exerciseReread;
+
+  /// No description provided for @readOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get readOpenSettings;
+
+  /// No description provided for @reviewShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Share the result'**
+  String get reviewShare;
+
+  /// No description provided for @reviewShareText.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah {surah}, ayahs {from}–{to}: on my own {independent}, with hints {hints}, mistakes {errors}, could not check {unverified}.'**
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  );
 }
 
 class _AppLocalizationsDelegate

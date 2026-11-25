@@ -193,5 +193,8 @@
   "exerciseStartInMiddle": "Начало с середины",
   "exerciseFadingHelp": "Меньше подсказок",
   "exerciseSimilar": "Похожие аяты",
-  "exerciseReread": "Прочитать ещё раз"
+  "exerciseReread": "Прочитать ещё раз",
+  "readOpenSettings": "Открыть настройки",
+  "reviewShare": "Поделиться итогом",
+  "reviewShareText": "Сура {surah}, аяты {from}–{to}: самостоятельно {independent}, с подсказками {hints}, ошибок {errors}, не удалось проверить {unverified}."
 }

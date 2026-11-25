@@ -26,6 +26,7 @@ void main() {
       reading: reading,
       user: user,
       sessionFactory: sessions,
+      device: FakeDevice(),
     );
     await viewModel.open(from: w1, to: w3, stepId: 'step-1');
     await tester.pumpWidget(

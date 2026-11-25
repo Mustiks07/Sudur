@@ -17,3 +17,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  quran_text:
+    path: ../quran_text
+  testing:
+    path: ../testing

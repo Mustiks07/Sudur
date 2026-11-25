@@ -193,5 +193,8 @@
   "exerciseStartInMiddle": "[Нужен перевод]",
   "exerciseFadingHelp": "[Нужен перевод]",
   "exerciseSimilar": "[Нужен перевод]",
-  "exerciseReread": "[Нужен перевод]"
+  "exerciseReread": "[Нужен перевод]",
+  "readOpenSettings": "[Нужен перевод]",
+  "reviewShare": "[Нужен перевод]",
+  "reviewShareText": "[Нужен перевод] {surah} {from} {to} {independent} {hints} {errors} {unverified}"
 }

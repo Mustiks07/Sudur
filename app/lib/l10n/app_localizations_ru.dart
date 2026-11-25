@@ -640,4 +640,23 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get exerciseReread => 'Прочитать ещё раз';
+
+  @override
+  String get readOpenSettings => 'Открыть настройки';
+
+  @override
+  String get reviewShare => 'Поделиться итогом';
+
+  @override
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  ) {
+    return 'Сура $surah, аяты $from–$to: самостоятельно $independent, с подсказками $hints, ошибок $errors, не удалось проверить $unverified.';
+  }
 }
