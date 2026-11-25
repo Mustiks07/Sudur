@@ -134,7 +134,7 @@ installed → updateAvailable → (тот же путь для новой вер
 |---|---|---|
 | `audio` | `audio_capture` | `AudioCaptureConfig` из `ringBufferSec`, `preRollMs`, `postRollMs`, `segmentEndPauseMs`, `maxSegmentMs`, `quietDbfs`, `noisyDbfs`, `clippingRatio`, `signalHoldMs`; `reviewSnippetPadMs` — экрану разбора ошибки (ЗВ-02) |
 | `recognition` | `asr_sherpa` | число потоков, интервал и окно частичных результатов, пороги теста устройства при выборе модели |
-| `plan` | `planner` | доли очередей, `hardSpotMaxShare`, `recentDays`, `recentLadderDays`, `desiredRetention`, перерыв и диагностика, скорость чтения, долг, множители шагов, повторы при выучивании; `passageMaxAyahs` — уже учтён в отрывках базы содержания (`content_build`) |
+| `plan` | `planner` | доли очередей, `hardSpotMaxShare`, `recentDays`, `recentLadderDays`, `desiredRetention`, перерыв и диагностика, скорость чтения, долг, множители шагов, повторы при выучивании, размеры упражнений и стыков (`exerciseContextWords`, `junctionWords`, `junctionRepeats`, `learnJunctionWords`), пороги состояний прогресса (`staleAfterDays`, `staleRecallBelow`, `confirmedLaterMinDays`); `passageMaxAyahs` — уже учтён в отрывках базы содержания (`content_build`) |
 | `other` | `lessons` (`quizPassPercent`, `skillReviewQuestions` → `LessonParams`), `entitlements` (`freeVoiceMinutesPerDay`, `trialDays`, `offlineGraceDays`), отправка записей (`uploadQueueMaxMb`, `uploadWifiOnly`, `opusBitrateKbps`), напоминания, `mushaf_view` (`pageFontWindow`), сам `content` (`manifestCheckHours`), воспроизведение (`listenRepeatPauseFactor`) |
 
 `follow`, `check`, `session` получают пороги из `thresholds.json` пакета модели, не из `config`.

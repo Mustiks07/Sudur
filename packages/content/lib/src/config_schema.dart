@@ -156,6 +156,13 @@ const Map<String, List<ParamSpec>> configSchema = {
       min: 0,
       max: 20,
     ),
+    ParamSpec('exerciseContextWords', ParamKind.integer, 2, min: 0, max: 20),
+    ParamSpec('junctionWords', ParamKind.integer, 2, min: 1, max: 20),
+    ParamSpec('junctionRepeats', ParamKind.integer, 3, min: 1, max: 20),
+    ParamSpec('learnJunctionWords', ParamKind.integer, 2, min: 1, max: 20),
+    ParamSpec('staleAfterDays', ParamKind.integer, 7, min: 1, max: 365),
+    ParamSpec('staleRecallBelow', ParamKind.number, 0.7, min: 0, max: 1),
+    ParamSpec('confirmedLaterMinDays', ParamKind.integer, 1, min: 1, max: 60),
   ],
   'other': [
     ParamSpec('quizPassPercent', ParamKind.number, 80.0, min: 0, max: 100),
@@ -351,6 +358,13 @@ final class PlanConfig {
     required this.stepMultipliers,
     required this.learnListenRepeats,
     required this.learnSupportedRepeats,
+    required this.exerciseContextWords,
+    required this.junctionWords,
+    required this.junctionRepeats,
+    required this.learnJunctionWords,
+    required this.staleAfterDays,
+    required this.staleRecallBelow,
+    required this.confirmedLaterMinDays,
   });
 
   /// Reads checked values of section `plan`.
@@ -377,6 +391,13 @@ final class PlanConfig {
         ]),
         learnListenRepeats: v['learnListenRepeats']! as int,
         learnSupportedRepeats: v['learnSupportedRepeats']! as int,
+        exerciseContextWords: v['exerciseContextWords']! as int,
+        junctionWords: v['junctionWords']! as int,
+        junctionRepeats: v['junctionRepeats']! as int,
+        learnJunctionWords: v['learnJunctionWords']! as int,
+        staleAfterDays: v['staleAfterDays']! as int,
+        staleRecallBelow: (v['staleRecallBelow']! as num).toDouble(),
+        confirmedLaterMinDays: v['confirmedLaterMinDays']! as int,
       );
 
   /// Built-in values (docs/tz 12.4).
@@ -399,6 +420,13 @@ final class PlanConfig {
     stepMultipliers: [1.3, 3.0, 8.0],
     learnListenRepeats: 3,
     learnSupportedRepeats: 2,
+    exerciseContextWords: 2,
+    junctionWords: 2,
+    junctionRepeats: 3,
+    learnJunctionWords: 2,
+    staleAfterDays: 7,
+    staleRecallBelow: 0.7,
+    confirmedLaterMinDays: 1,
   );
 
   /// Share of the budget for new material. `newShare`, 11.1.
@@ -457,6 +485,32 @@ final class PlanConfig {
 
   /// Supported readings when a passage is learned. `learnSupportedRepeats`, ЗН.
   final int learnSupportedRepeats;
+
+  /// Words on each side of a mistake in «Трудный отрывок».
+  /// `exerciseContextWords`, УП-01.
+  final int exerciseContextWords;
+
+  /// Words on each side of an ayah junction. `junctionWords`, УП-02.
+  final int junctionWords;
+
+  /// Hidden readings of an ayah junction. `junctionRepeats`, УП-02.
+  final int junctionRepeats;
+
+  /// Words on each side of the junction of two passages when learning.
+  /// `learnJunctionWords`, ЗН-03.
+  final int learnJunctionWords;
+
+  /// «Давно не проверял»: overdue by more days than this.
+  /// `staleAfterDays`, КП-01.
+  final int staleAfterDays;
+
+  /// «Давно не проверял»: probability of remembering below this.
+  /// `staleRecallBelow`, КП-01.
+  final double staleRecallBelow;
+
+  /// «Подтвердил позже»: days between two clean attempts.
+  /// `confirmedLaterMinDays`, КП-01.
+  final int confirmedLaterMinDays;
 }
 
 /// Прочее.

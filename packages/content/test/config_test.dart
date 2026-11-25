@@ -39,7 +39,8 @@ Map<String, Map<String, String>> specTables() {
     }
     final cells = line.split('|').map((c) => c.trim()).toList();
     final names = cells[1];
-    final value = cells[2];
+    // A value may be followed by « — » and an explanation (12.4, 25.11).
+    final value = cells[2].split(' — ').first;
     if (names == 'Параметр') continue;
     final ids = names == 'Множители шагов'
         ? ['stepMultipliers']

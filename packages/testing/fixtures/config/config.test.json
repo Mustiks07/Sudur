@@ -51,7 +51,14 @@
       8.0
     ],
     "learnListenRepeats": 3,
-    "learnSupportedRepeats": 2
+    "learnSupportedRepeats": 2,
+    "exerciseContextWords": 2,
+    "junctionWords": 2,
+    "junctionRepeats": 3,
+    "learnJunctionWords": 2,
+    "staleAfterDays": 7,
+    "staleRecallBelow": 0.7,
+    "confirmedLaterMinDays": 1
   },
   "other": {
     "quizPassPercent": 80,
@@ -69,6 +76,6 @@
   },
   "signature": {
     "keyId": "test-main",
-    "ed25519": "zLX7sHhPJtsHID4tqCZlVWHdDWLuyqzftyPTfoaDJBr4qYqFETyvIHqhtfZ/rLpVNmdAj6/SkjMsYsxd4+GyDg=="
+    "ed25519": "idNQ0f/dkD5rUK+Dj3wlrsSLcXEnU0F+Y5/2Yzq44bB2l9nKKVy4iYTsvjF/rReANF7zX1CFolrrdoBOaovODw=="
   }
 }
