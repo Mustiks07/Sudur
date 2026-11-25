@@ -175,5 +175,12 @@
   "reviewPractice": "[Нужен перевод]",
   "reviewNext": "[Нужен перевод]",
   "reviewAudioSoon": "[Нужен перевод]",
-  "reviewNoEvents": "[Нужен перевод]"
+  "reviewNoEvents": "[Нужен перевод]",
+  "selfTitle": "[Нужен перевод]",
+  "selfPrompt": "[Нужен перевод] {surah} {from} {to}",
+  "selfDone": "[Нужен перевод]",
+  "selfHowWasIt": "[Нужен перевод]",
+  "selfRemembered": "[Нужен перевод]",
+  "selfDifficulty": "[Нужен перевод]",
+  "selfForgot": "[Нужен перевод]"
 }

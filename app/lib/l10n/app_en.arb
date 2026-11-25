@@ -263,5 +263,25 @@
         "type": "int"
       }
     }
+  },
+  "selfTitle": "Self-check",
+  "selfPrompt": "Read surah {surah}, ayahs {from}–{to} to yourself",
+  "selfDone": "Done",
+  "selfHowWasIt": "How did it go?",
+  "selfRemembered": "Remembered",
+  "selfDifficulty": "With difficulty",
+  "selfForgot": "Did not remember",
+  "@selfPrompt": {
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
   }
 }

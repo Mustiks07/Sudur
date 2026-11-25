@@ -1157,6 +1157,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No events'**
   String get reviewNoEvents;
+
+  /// No description provided for @selfTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Self-check'**
+  String get selfTitle;
+
+  /// No description provided for @selfPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Read surah {surah}, ayahs {from}–{to} to yourself'**
+  String selfPrompt(int surah, int from, int to);
+
+  /// No description provided for @selfDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get selfDone;
+
+  /// No description provided for @selfHowWasIt.
+  ///
+  /// In en, this message translates to:
+  /// **'How did it go?'**
+  String get selfHowWasIt;
+
+  /// No description provided for @selfRemembered.
+  ///
+  /// In en, this message translates to:
+  /// **'Remembered'**
+  String get selfRemembered;
+
+  /// No description provided for @selfDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'With difficulty'**
+  String get selfDifficulty;
+
+  /// No description provided for @selfForgot.
+  ///
+  /// In en, this message translates to:
+  /// **'Did not remember'**
+  String get selfForgot;
 }
 
 class _AppLocalizationsDelegate

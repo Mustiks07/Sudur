@@ -569,4 +569,27 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get reviewNoEvents => '[Нужен перевод]';
+
+  @override
+  String get selfTitle => '[Нужен перевод]';
+
+  @override
+  String selfPrompt(int surah, int from, int to) {
+    return '[Нужен перевод] $surah $from $to';
+  }
+
+  @override
+  String get selfDone => '[Нужен перевод]';
+
+  @override
+  String get selfHowWasIt => '[Нужен перевод]';
+
+  @override
+  String get selfRemembered => '[Нужен перевод]';
+
+  @override
+  String get selfDifficulty => '[Нужен перевод]';
+
+  @override
+  String get selfForgot => '[Нужен перевод]';
 }

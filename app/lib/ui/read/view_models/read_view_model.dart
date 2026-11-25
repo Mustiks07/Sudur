@@ -149,6 +149,9 @@ final class ReadViewModel extends ChangeNotifier {
   String? _stepId;
   var _disposed = false;
 
+  /// Step of “Today” being read, if any.
+  String? get stepId => _stepId;
+
   /// Current state.
   ReadState get state => _state;
   ReadState _state = ReadState.preparing;

@@ -175,5 +175,12 @@
   "reviewPractice": "Потренировать это место",
   "reviewNext": "Дальше",
   "reviewAudioSoon": "Своя запись и чтец появятся в следующей версии",
-  "reviewNoEvents": "Событий нет"
+  "reviewNoEvents": "Событий нет",
+  "selfTitle": "Самопроверка",
+  "selfPrompt": "Прочитайте про себя суру {surah}, аяты {from}–{to}",
+  "selfDone": "Готово",
+  "selfHowWasIt": "Как получилось?",
+  "selfRemembered": "Вспомнил",
+  "selfDifficulty": "С трудом",
+  "selfForgot": "Не вспомнил"
 }

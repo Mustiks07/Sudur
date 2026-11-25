@@ -118,6 +118,15 @@ final class FakeAppUserRepository implements AppUserRepository {
     );
   }
 
+  /// Self-checks written through [recordSelfCheck], in order.
+  final List<SelfCheckResult> selfChecks = <SelfCheckResult>[];
+
+  @override
+  Future<Result<void>> recordSelfCheck(SelfCheckResult result) async {
+    selfChecks.add(result);
+    return const Result.ok(null);
+  }
+
   /// Events disputed through [disputeCheck], with their unit.
   final List<(String, String?)> disputed = [];
 

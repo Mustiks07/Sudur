@@ -173,3 +173,46 @@ final class ReadingResult {
   /// error; they count as “could not check”.
   final Set<WordKey> unlocked;
 }
+
+/// Answer of a self-check (docs/tz 13.7, СП-01).
+enum SelfCheckAnswer {
+  /// «Вспомнил».
+  remembered,
+
+  /// «С трудом».
+  withDifficulty,
+
+  /// «Не вспомнил».
+  forgotten,
+}
+
+/// A passage checked without voice (СП-01…03).
+final class SelfCheckResult {
+  /// Creates the result.
+  const SelfCheckResult({
+    required this.from,
+    required this.to,
+    required this.answer,
+    required this.startedAt,
+    required this.duration,
+    this.stepId,
+  });
+
+  /// Step of “Today”, if any.
+  final String? stepId;
+
+  /// First word.
+  final WordKey from;
+
+  /// Last word.
+  final WordKey to;
+
+  /// How it went.
+  final SelfCheckAnswer answer;
+
+  /// When the check started.
+  final DateTime startedAt;
+
+  /// How long it took.
+  final Duration duration;
+}

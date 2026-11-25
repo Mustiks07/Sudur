@@ -11,6 +11,8 @@ import 'package:sudur/data/services/prototype_session.dart';
 import 'package:sudur/ui/read/view_models/read_view_model.dart';
 import 'package:sudur/ui/read/views/read_screen.dart';
 import 'package:sudur/ui/reading/views/reading_screen.dart';
+import 'package:sudur/ui/self_check/view_models/self_check_view_model.dart';
+import 'package:sudur/ui/self_check/views/self_check_screen.dart';
 import 'package:sudur/ui/start/views/root_screen.dart';
 import 'package:sudur/ui/today/views/step_coming_soon_screen.dart';
 
@@ -56,6 +58,30 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
       },
     ),
     GoRoute(
+      path: '/self',
+      builder: (context, state) {
+        final query = state.uri.queryParameters;
+        final from = _wordKey(query['from']);
+        final to = _wordKey(query['to']);
+        if (from == null || to == null || to.compareTo(from) < 0) {
+          return const StepComingSoonScreen();
+        }
+        return ChangeNotifierProvider<SelfCheckViewModel>(
+          create: (context) {
+            final viewModel = SelfCheckViewModel(
+              reading: context.read<ReadingRepository>(),
+              user: context.read<AppUserRepository>(),
+            );
+            unawaited(
+              viewModel.open(from: from, to: to, stepId: query['step']),
+            );
+            return viewModel;
+          },
+          child: const SelfCheckScreen(),
+        );
+      },
+    ),
+    GoRoute(
       path: '/soon',
       builder: (context, state) => const StepComingSoonScreen(),
     ),
@@ -68,11 +94,25 @@ String locationOfStep(TodayStepData step) {
   final from = step.from;
   final to = step.to;
   if (from == null || to == null) return '/soon';
-  return Uri(
-    path: '/read',
-    queryParameters: {'from': '$from', 'to': '$to', 'step': step.id},
-  ).toString();
+  // Without the model or the free voice checks: self-check (13.2).
+  return selfCheckLocation(
+    from,
+    to,
+    stepId: step.id,
+    path: step.selfCheck ? '/self' : '/read',
+  );
 }
+
+/// The self-check (or, with [path], reading) of [from]–[to].
+String selfCheckLocation(
+  WordKey from,
+  WordKey to, {
+  String? stepId,
+  String path = '/self',
+}) => Uri(
+  path: path,
+  queryParameters: {'from': '$from', 'to': '$to', 'step': ?stepId},
+).toString();
 
 /// A link is outside data: a malformed key opens the whole prototype.
 WordKey? _wordKey(String? value) {

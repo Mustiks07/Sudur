@@ -575,4 +575,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reviewNoEvents => 'No events';
+
+  @override
+  String get selfTitle => 'Self-check';
+
+  @override
+  String selfPrompt(int surah, int from, int to) {
+    return 'Read surah $surah, ayahs $from–$to to yourself';
+  }
+
+  @override
+  String get selfDone => 'Done';
+
+  @override
+  String get selfHowWasIt => 'How did it go?';
+
+  @override
+  String get selfRemembered => 'Remembered';
+
+  @override
+  String get selfDifficulty => 'With difficulty';
+
+  @override
+  String get selfForgot => 'Did not remember';
 }

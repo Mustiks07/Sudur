@@ -581,4 +581,27 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get reviewNoEvents => 'Событий нет';
+
+  @override
+  String get selfTitle => 'Самопроверка';
+
+  @override
+  String selfPrompt(int surah, int from, int to) {
+    return 'Прочитайте про себя суру $surah, аяты $from–$to';
+  }
+
+  @override
+  String get selfDone => 'Готово';
+
+  @override
+  String get selfHowWasIt => 'Как получилось?';
+
+  @override
+  String get selfRemembered => 'Вспомнил';
+
+  @override
+  String get selfDifficulty => 'С трудом';
+
+  @override
+  String get selfForgot => 'Не вспомнил';
 }

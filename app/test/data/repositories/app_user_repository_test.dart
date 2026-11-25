@@ -426,6 +426,45 @@ void main() {
     expect(state.dueAt, clock.now().millisecondsSinceEpoch);
   });
 
+  for (final (answer, rating) in [
+    (SelfCheckAnswer.remembered, AttemptRating.good),
+    (SelfCheckAnswer.withDifficulty, AttemptRating.hard),
+    (SelfCheckAnswer.forgotten, AttemptRating.again),
+  ]) {
+    test(
+      'self-check ${answer.name} is rated ${rating.name} (3.4, СП-02)',
+      () async {
+        _value(await repository.completeOnboarding(draft()));
+        final step = _value(await repository.loadToday()).steps
+            .firstWhere((s) => s.unitId != null);
+
+        _value(
+          await repository.recordSelfCheck(
+            SelfCheckResult(
+              stepId: step.id,
+              from: step.from!,
+              to: step.to!,
+              // A step of surah 78 carries its words.
+              answer: answer,
+              startedAt: clock.now(),
+              duration: const Duration(seconds: 20),
+            ),
+          ),
+        );
+
+        final attempt = _value(await storage.attempts.listForUnit(step.unitId!))
+            .single;
+        expect(attempt.mode, StoredReadingMode.self);
+        expect(attempt.method, CheckMethod.self);
+        expect(attempt.rating, rating);
+        expect(
+          _value(await storage.units.getState(step.unitId!))!.lastMethod,
+          CheckMethod.self,
+        );
+      },
+    );
+  }
+
   test('reading with support gives no rating', () async {
     _value(await repository.completeOnboarding(draft()));
     final step = _value(await repository.loadToday()).steps

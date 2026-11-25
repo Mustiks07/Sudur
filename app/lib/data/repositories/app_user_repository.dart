@@ -55,6 +55,10 @@ abstract interface class AppUserRepository {
   /// new state of the step's plan unit, in one transaction (НФ-21, ПЛ-12).
   Future<Result<RecordedReading>> recordReading(ReadingResult result);
 
+  /// Writes a self-check (СП-01…03): the session, the attempt marked
+  /// “self-check” and the new unit state; never rated above «хорошо».
+  Future<Result<void>> recordSelfCheck(SelfCheckResult result);
+
   /// «Не согласен» (РБ-03): the stored event [eventId] becomes disputed and
   /// [unitId], if given, needs a new check (it is due now).
   Future<Result<void>> disputeCheck(String eventId, {String? unitId});
@@ -610,6 +614,110 @@ final class StorageAppUserRepository implements AppUserRepository {
       });
 
   @override
+  Future<Result<void>> recordSelfCheck(
+    SelfCheckResult result,
+  ) => _guard(() async {
+    final canon = await _canon.load();
+    final storage = await _storageService.storage;
+    final profile = await _requiredProfile(storage);
+    final stepId = result.stepId;
+    final unitId = stepId == null ? null : await _unitOfStep(storage, stepId);
+    final now = _clock.now().toUtc();
+    final sessionId = _createId();
+    final (outcome, planned) = switch (result.answer) {
+      SelfCheckAnswer.remembered => (
+        AttemptOutcome.clean,
+        AttemptResult.remembered,
+      ),
+      SelfCheckAnswer.withDifficulty => (
+        AttemptOutcome.withHints,
+        AttemptResult.rememberedWithDifficulty,
+      ),
+      SelfCheckAnswer.forgotten => (
+        AttemptOutcome.withErrors,
+        AttemptResult.forgotten,
+      ),
+    };
+    final words = canon.indexOf(result.to) - canon.indexOf(result.from) + 1;
+    final written = await storage.transaction(() async {
+      _unwrap(
+        await storage.sessions.put((
+          id: sessionId,
+          profileId: profile.id,
+          fromWordIndex: canon.indexOf(result.from),
+          toWordIndex: canon.indexOf(result.to),
+          mode: StoredReadingMode.self,
+          behavior: ReadingBehavior.gentle,
+          startedAt: result.startedAt.toUtc().millisecondsSinceEpoch,
+          endedAt: now.millisecondsSinceEpoch,
+          listeningMs: 0,
+          signalOkRatio: null,
+          summary: SessionSummary.fromJson({'selfCheck': result.answer.name}),
+        )),
+      );
+      if (unitId == null) return;
+      final unit = _unwrap(await storage.units.listForProfile(profile.id))
+          .firstWhere((u) => u.id == unitId);
+      final state = _unwrap(await storage.units.getState(unitId));
+      final attempts = _unwrap(await storage.attempts.listForUnit(unitId));
+      final before = await _plannerUnit(storage, canon, unit, state, attempts);
+      final after = _planner.applyReading(
+        before,
+        Attempt(
+          unitId: unitId,
+          at: now,
+          mode: AttemptMode.selfReport,
+          result: planned,
+          hints: 0,
+          verification: VerificationMethod.selfCheck,
+          duration: result.duration,
+          wordCount: words,
+        ),
+      );
+      final rating = after.history.last.assessment.rating;
+      _unwrap(
+        await storage.attempts.recordPassage(
+          PassageWrite(
+            attempt: (
+              id: _createId(),
+              unitId: unitId,
+              sessionId: sessionId,
+              mode: StoredReadingMode.self,
+              outcome: outcome,
+              hints: HintCounts.fromJson(const <String, int>{}),
+              errorEventIds: ErrorEventIds.fromJson(const <String>[]),
+              rating: rating == null ? null : _storedRating(rating),
+              method: CheckMethod.self,
+              durationMs: result.duration.inMilliseconds,
+              words: words,
+              modelId: 'self-check',
+              modelVersion: 'none',
+              rulesVersion: 'tz-3.4',
+              textVersion: 'canon',
+              createdAt: now.millisecondsSinceEpoch,
+            ),
+            checkEvents: const [],
+            unitState: (
+              unitId: unitId,
+              queue: _storedQueue(after),
+              memoryState: JsonObjectData.fromJson(
+                PlanMemoryState.of(after).toJson(),
+              ),
+              fsrsCard: JsonObjectData.fromJson(encodeFsrsCard(after.card)),
+              dueAt: after.due.toUtc().millisecondsSinceEpoch,
+              recentSince: after.recentStartedAt?.millisecondsSinceEpoch,
+              lastAttemptAt: now.millisecondsSinceEpoch,
+              lastMethod: CheckMethod.self,
+              updatedAt: now.millisecondsSinceEpoch,
+            ),
+          ),
+        ),
+      );
+    });
+    _unwrap(written);
+  });
+
+  @override
   Future<Result<void>> disputeCheck(String eventId, {String? unitId}) =>
       _guard(() async {
         final storage = await _storageService.storage;
@@ -701,6 +809,14 @@ final class StorageAppUserRepository implements AppUserRepository {
       PlanQueue.old => UnitQueue.old,
     };
   }
+
+  /// A stored self-check outcome as the planner's self-report result.
+  AttemptResult _selfResult(AttemptOutcome outcome) => switch (outcome) {
+    AttemptOutcome.clean => AttemptResult.remembered,
+    AttemptOutcome.withHints => AttemptResult.rememberedWithDifficulty,
+    AttemptOutcome.withErrors => AttemptResult.forgotten,
+    _ => _attemptResult(outcome),
+  };
 
   AttemptRating _storedRating(PlannerRating rating) => switch (rating) {
     PlannerRating.again => AttemptRating.again,
@@ -886,7 +1002,9 @@ final class StorageAppUserRepository implements AppUserRepository {
               isUtc: true,
             ),
             mode: _attemptMode(attempt.mode),
-            result: _attemptResult(attempt.outcome),
+            result: attempt.mode == StoredReadingMode.self
+                ? _selfResult(attempt.outcome)
+                : _attemptResult(attempt.outcome),
             hints: attempt.hints.value.values.fold(
               0,
               (sum, value) => sum + value,
