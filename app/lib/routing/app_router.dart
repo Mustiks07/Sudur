@@ -7,6 +7,7 @@ import 'package:sudur/config/app_config.dart';
 import 'package:sudur/data/models/user_models.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
 import 'package:sudur/data/repositories/reading_repository.dart';
+import 'package:sudur/data/services/device_service.dart';
 import 'package:sudur/data/services/prototype_session.dart';
 import 'package:sudur/ui/read/view_models/read_view_model.dart';
 import 'package:sudur/ui/read/views/read_screen.dart';
@@ -47,6 +48,7 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
               reading: context.read<ReadingRepository>(),
               user: context.read<AppUserRepository>(),
               sessionFactory: context.read<PrototypeReadingSessionFactory>(),
+              device: context.read<DeviceService>(),
             );
             unawaited(
               viewModel.open(from: from, to: to, stepId: query['step']),

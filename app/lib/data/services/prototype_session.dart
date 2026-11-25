@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:contracts/contracts.dart';
 
@@ -69,8 +70,27 @@ abstract interface class PrototypeReadingSession {
   /// Executes one type-safe session command from `contracts`.
   Future<Result<void>> execute(SessionCommand command);
 
+  /// The reader's own audio around check event [eventId], kept in memory
+  /// for «Разбор» (ЗВ-02); `null` when there is none.
+  ReviewAudio? reviewSnippet(String eventId);
+
+  /// Drops every kept snippet when «Разбор» closes (ЗВ-07).
+  void closeReview();
+
   /// Releases streams and timers.
   Future<void> dispose();
+}
+
+/// Audio of the reader in memory, mono float samples (never on disk).
+final class ReviewAudio {
+  /// Creates the audio.
+  const new({required this.samples, required this.sampleRate});
+
+  /// Samples in −1…1.
+  final Float32List samples;
+
+  /// Samples per second.
+  final int sampleRate;
 }
 
 /// Creates sessions for canonical reading-order word lists.
@@ -311,6 +331,12 @@ final class ScriptedPrototypeReadingSession implements PrototypeReadingSession {
       ),
     );
   }
+
+  @override
+  ReviewAudio? reviewSnippet(String eventId) => null;
+
+  @override
+  void closeReview() {}
 
   @override
   Future<void> dispose() async {

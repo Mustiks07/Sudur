@@ -182,5 +182,8 @@
   "selfHowWasIt": "Как получилось?",
   "selfRemembered": "Вспомнил",
   "selfDifficulty": "С трудом",
-  "selfForgot": "Не вспомнил"
+  "selfForgot": "Не вспомнил",
+  "readOpenSettings": "Открыть настройки",
+  "reviewShare": "Поделиться итогом",
+  "reviewShareText": "Сура {surah}, аяты {from}–{to}: самостоятельно {independent}, с подсказками {hints}, ошибок {errors}, не удалось проверить {unverified}."
 }

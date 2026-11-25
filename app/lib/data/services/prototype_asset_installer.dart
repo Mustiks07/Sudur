@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
 
 // Async file operations avoid blocking the UI while large models are checked.
@@ -312,38 +313,112 @@ final class PrototypeAssetInstaller {
   Future<void> _writeModelMetadata(
     Directory directory,
     _ModelManifest manifest,
-  ) async {
-    await _writeJson(
-      File('${directory.path}/normalizer.json'),
-      <String, Object?>{
-        'id': manifest.normalizerId,
-        'nfc': true,
-        'removeRanges': _abdouRemoveRanges,
-        'replace': _abdouReplacements,
-        'wordSeparator': ' ',
-      },
-    );
-    await _writeJson(File('${directory.path}/thresholds.json'), _thresholds);
-    await _writeJson(File('${directory.path}/model.json'), <String, Object?>{
-      'modelId': manifest.modelId,
-      'version': manifest.version,
-      'output': 'uthmaniLettersNoDiacritics',
-      'isStreaming': false,
-      'hasTokenTimes': true,
-      'sampleRate': 16000,
-      'minRamMb': manifest.minRamMb,
-      'license': 'MIT',
-      'normalizerId': manifest.normalizerId,
-      'modelSizeBytes': manifest.modelSize,
-      'tokensSizeBytes': manifest.tokensSize,
-      'modelSha256': manifest.modelSha256,
-      'tokensSha256': manifest.tokensSha256,
-    });
-  }
-
-  Future<void> _writeJson(File file, Map<String, Object?> value) => file
-      .writeAsString('${const JsonEncoder.withIndent('  ').convert(value)}\n');
+  ) => writePrototypeModelMetadata(
+    directory,
+    PrototypeModelMetadata(
+      modelId: manifest.modelId,
+      version: manifest.version,
+      normalizerId: manifest.normalizerId,
+      minRamMb: manifest.minRamMb,
+      modelSize: manifest.modelSize,
+      tokensSize: manifest.tokensSize,
+      modelSha256: manifest.modelSha256,
+      tokensSha256: manifest.tokensSha256,
+    ),
+  );
 }
+
+/// What the app records about a downloaded prototype model.
+@immutable
+final class PrototypeModelMetadata {
+  /// Creates the metadata.
+  const new({
+    required this.modelId,
+    required this.version,
+    required this.normalizerId,
+    required this.minRamMb,
+    required this.modelSize,
+    required this.tokensSize,
+    required this.modelSha256,
+    required this.tokensSha256,
+  });
+
+  /// Model id, like `Abdou/quran-asr-small`.
+  final String modelId;
+
+  /// Pinned model revision.
+  final String version;
+
+  /// Id of the normalizer written next to the model.
+  final String normalizerId;
+
+  /// Minimum device RAM.
+  final int minRamMb;
+
+  /// Size of `model.int8.onnx` in bytes.
+  final int modelSize;
+
+  /// Size of `tokens.txt` in bytes.
+  final int tokensSize;
+
+  /// SHA-256 of `model.int8.onnx`.
+  final String modelSha256;
+
+  /// SHA-256 of `tokens.txt`.
+  final String tokensSha256;
+}
+
+/// Writes `model.json`, `normalizer.json`, `thresholds.json` and `eval.json`
+/// (docs/tz 12.3, «Пакет модели») next to downloaded model files, so that
+/// the directory is a model package `AsrModelPackage.load` accepts.
+///
+/// Public only for tests: the installer calls it for every model it
+/// installs or finds already downloaded.
+@visibleForTesting
+Future<void> writePrototypeModelMetadata(
+  Directory directory,
+  PrototypeModelMetadata model,
+) async {
+  await _writeJson(File('${directory.path}/normalizer.json'), <String, Object?>{
+    'id': model.normalizerId,
+    'nfc': true,
+    'removeRanges': _abdouRemoveRanges,
+    'replace': _abdouReplacements,
+    'wordSeparator': ' ',
+  });
+  await _writeJson(File('${directory.path}/thresholds.json'), _thresholds);
+  await _writeJson(File('${directory.path}/eval.json'), _evaluation);
+  await _writeJson(File('${directory.path}/model.json'), <String, Object?>{
+    'modelId': model.modelId,
+    'version': model.version,
+    'output': 'uthmaniLettersNoDiacritics',
+    'isStreaming': false,
+    'hasTokenTimes': true,
+    'sampleRate': 16000,
+    'minRamMb': model.minRamMb,
+    'license': 'MIT',
+    'normalizerId': model.normalizerId,
+    'modelSizeBytes': model.modelSize,
+    'tokensSizeBytes': model.tokensSize,
+    'modelSha256': model.modelSha256,
+    'tokensSha256': model.tokensSha256,
+  });
+}
+
+Future<void> _writeJson(File file, Map<String, Object?> value) => file
+    .writeAsString('${const JsonEncoder.withIndent('  ').convert(value)}\n');
+
+/// `eval.json` of a package the app assembles itself: the model has not been
+/// measured on the recorded corpus (docs/tz 5.3), and the file says so
+/// instead of carrying made-up numbers.
+const _evaluation = <String, Object?>{
+  'status': 'notEvaluated',
+  'stage': 'prototype',
+  'reason':
+      'Assembled by the app from the pinned model revision; '
+      'not yet measured on the recorded corpus (docs/tz 5.3).',
+  'groups': <String, Object?>{},
+};
 
 final class _RemoteResource {
   const new({
@@ -590,6 +665,8 @@ const _thresholds = <String, num>{
   'ambiguityMargin': 0.15,
   'ngramSize': 3,
   'stableConfirmations': 2,
+  'openDelayWords': 2,
+  'lostWindowWords': 4,
   'strongMatch': 0.85,
   'substitutionMax': 0.60,
   'confirmContextWords': 2,

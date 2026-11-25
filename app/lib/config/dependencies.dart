@@ -15,6 +15,7 @@ import 'package:sudur/data/services/app_canon_service.dart';
 import 'package:sudur/data/services/app_file_service.dart';
 import 'package:sudur/data/services/app_planner_service.dart';
 import 'package:sudur/data/services/app_storage_service.dart';
+import 'package:sudur/data/services/device_service.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
 import 'package:sudur/data/services/prototype_session.dart';
@@ -65,6 +66,7 @@ class AppDependencies extends StatelessWidget {
           dispose: (_, router) => router.dispose(),
         ),
         Provider<PrototypeRepository>.value(value: repository),
+        Provider<DeviceService>.value(value: PluginDeviceService()),
         Provider<ReadingRepository>.value(
           value: LocalReadingRepository(installer),
         ),
