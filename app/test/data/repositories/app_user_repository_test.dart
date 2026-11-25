@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:contracts/contracts.dart';
@@ -637,6 +639,41 @@ void main() {
     ]);
     expect(_value(await repository.loadReminders()), [300, 600]);
   });
+
+  test(
+    'Б-02: diagnostics hold counts and states, never texts or the profile',
+    () async {
+      _value(await repository.completeOnboarding(draft()));
+      final step = _value(await repository.loadToday()).steps
+          .firstWhere((s) => s.unitId != null);
+      _value(
+        await repository.recordReading(
+          reading(step, checks: [confirmed(step.from!)]),
+        ),
+      );
+      // A step of surah 78 carries its words.
+
+      _value(await repository.reportProblem(withDiagnostics: true));
+
+      final json = File(
+        '/tmp/sudur-e01-test/diagnostics/sudur-diagnostics.json',
+      ).readAsStringSync();
+      final profile = _value(await storage.profiles.list()).single;
+      expect(json, isNot(contains('heard-test')));
+      expect(json, isNot(contains('expected-test')));
+      expect(json, isNot(contains(profile.id)));
+      final data = jsonDecode(json) as Map<String, Object?>;
+      expect(data['checkEvents'], {'substitution/confirmed': 1});
+      expect(data['sessions'], 1);
+
+      _value(await repository.reportProblem(withDiagnostics: false));
+      final bare = jsonDecode(
+        File('/tmp/sudur-e01-test/diagnostics/sudur-diagnostics.json')
+            .readAsStringSync(),
+      ) as Map<String, Object?>;
+      expect(bare.keys, unorderedEquals(['format', 'kind', 'createdAt']));
+    },
+  );
 
   test('planner state survives its JSON', () {
     final at = DateTime.utc(2026, 11, 20, 9);

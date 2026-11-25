@@ -793,4 +793,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get remindersNotYet =>
       'Reminders will arrive once notifications are added to the app; the times are saved already';
+
+  @override
+  String get reportExplain =>
+      'Describe the problem in a message: choose Telegram, mail or another app.';
+
+  @override
+  String get reportAttach => 'Attach diagnostics';
+
+  @override
+  String get reportAttachNote =>
+      'Only numbers and states: downloads, lessons, how many sessions and check events. No audio, no recognized text, no personal data.';
+
+  @override
+  String get reportSend => 'Send';
 }

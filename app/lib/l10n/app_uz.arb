@@ -240,5 +240,9 @@
   "reminderText": "[Нужен перевод]",
   "reminderAdd": "[Нужен перевод]",
   "remindersOff": "[Нужен перевод]",
-  "remindersNotYet": "[Нужен перевод]"
+  "remindersNotYet": "[Нужен перевод]",
+  "reportExplain": "[Нужен перевод]",
+  "reportAttach": "[Нужен перевод]",
+  "reportAttachNote": "[Нужен перевод]",
+  "reportSend": "[Нужен перевод]"
 }

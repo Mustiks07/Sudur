@@ -24,6 +24,17 @@ final class AppFileService implements RecordingFileSystem {
     await _platform.shareFile(file.path);
   }
 
+  /// Writes the diagnostics JSON (no audio, no recognized text, no personal
+  /// data — Б-02) and opens the share sheet: Telegram, mail or any other.
+  Future<void> shareDiagnostics(String json) async {
+    final root = Directory(await _platform.applicationDirectory());
+    final directory = Directory('${root.path}/diagnostics');
+    await directory.create(recursive: true);
+    final file = File('${directory.path}/sudur-diagnostics.json');
+    await file.writeAsString(json, flush: true);
+    await _platform.shareFile(file.path);
+  }
+
   /// Selects a copied archive from the platform picker.
   Future<Uint8List?> pickUserData() async {
     final path = await _platform.pickUserDataArchive();

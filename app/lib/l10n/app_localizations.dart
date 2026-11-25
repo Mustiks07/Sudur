@@ -1547,6 +1547,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders will arrive once notifications are added to the app; the times are saved already'**
   String get remindersNotYet;
+
+  /// No description provided for @reportExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the problem in a message: choose Telegram, mail or another app.'**
+  String get reportExplain;
+
+  /// No description provided for @reportAttach.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach diagnostics'**
+  String get reportAttach;
+
+  /// No description provided for @reportAttachNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Only numbers and states: downloads, lessons, how many sessions and check events. No audio, no recognized text, no personal data.'**
+  String get reportAttachNote;
+
+  /// No description provided for @reportSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get reportSend;
 }
 
 class _AppLocalizationsDelegate

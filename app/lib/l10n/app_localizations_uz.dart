@@ -782,4 +782,16 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get remindersNotYet => '[Нужен перевод]';
+
+  @override
+  String get reportExplain => '[Нужен перевод]';
+
+  @override
+  String get reportAttach => '[Нужен перевод]';
+
+  @override
+  String get reportAttachNote => '[Нужен перевод]';
+
+  @override
+  String get reportSend => '[Нужен перевод]';
 }

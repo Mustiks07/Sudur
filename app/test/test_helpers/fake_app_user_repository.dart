@@ -118,6 +118,15 @@ final class FakeAppUserRepository implements AppUserRepository {
     );
   }
 
+  /// Reports sent through [reportProblem], with or without diagnostics.
+  final List<bool> reports = [];
+
+  @override
+  Future<Result<void>> reportProblem({required bool withDiagnostics}) async {
+    reports.add(withDiagnostics);
+    return const Result.ok(null);
+  }
+
   /// Reminder times.
   List<int> reminders = const [];
 

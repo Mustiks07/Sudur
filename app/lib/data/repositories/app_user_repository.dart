@@ -56,6 +56,12 @@ abstract interface class AppUserRepository {
   /// new state of the step's plan unit, in one transaction (НФ-21, ПЛ-12).
   Future<Result<RecordedReading>> recordReading(ReadingResult result);
 
+  /// «Сообщить о проблеме» (13.14, Б-02): shares a diagnostics file with
+  /// counts and states only — no audio, no recognized or expected text, no
+  /// profile id or other personal data. Without [withDiagnostics] the
+  /// file holds only the app part.
+  Future<Result<void>> reportProblem({required bool withDiagnostics});
+
   /// Reminder times, minutes after midnight (11.8); empty when off.
   Future<Result<List<int>>> loadReminders();
 
@@ -630,6 +636,76 @@ final class StorageAppUserRepository implements AppUserRepository {
           unitId: unitId,
         );
       });
+
+  @override
+  Future<Result<void>> reportProblem({required bool withDiagnostics}) =>
+      _guard(() async {
+        await _files.shareDiagnostics(
+          const JsonEncoder.withIndent('  ')
+              .convert(await _diagnostics(withDiagnostics: withDiagnostics)),
+        );
+      });
+
+  Future<Map<String, Object?>> _diagnostics({
+    required bool withDiagnostics,
+  }) async {
+    final base = <String, Object?>{
+      'format': 1,
+      'kind': 'sudur-diagnostics',
+      'createdAt': _clock.now().toUtc().toIso8601String(),
+    };
+    if (!withDiagnostics) return base;
+    final storage = await _storageService.storage;
+    final profiles = _unwrap(await storage.profiles.list());
+    final units = profiles.isEmpty
+        ? const <UnitData>[]
+        : _unwrap(await storage.units.listForProfile(profiles.first.id));
+    final sessions = profiles.isEmpty
+        ? const <SessionData>[]
+        : _unwrap(await storage.sessions.listForProfile(profiles.first.id));
+    final checks = <String, int>{};
+    for (final session in sessions) {
+      for (final event in _unwrap(
+        await storage.checkEvents.listForSession(session.id),
+      )) {
+        // Kind and state only: the texts stay on the phone (ПО-13, rule 3).
+        checks.update(
+          '${event.kind.name}/${event.state.name}',
+          (n) => n + 1,
+          ifAbsent: () => 1,
+        );
+      }
+    }
+    final queues = <String, int>{};
+    for (final unit in units) {
+      final queue = _unwrap(await storage.units.getState(unit.id))?.queue;
+      queues.update(
+        '${unit.kind.name}/${queue?.name ?? 'none'}',
+        (n) => n + 1,
+        ifAbsent: () => 1,
+      );
+    }
+    return {
+      ...base,
+      'units': queues,
+      'sessions': sessions.length,
+      'checkEvents': checks,
+      'downloads': [
+        for (final d in _unwrap(await storage.downloads.list()))
+          {
+            'packageId': d.packageId,
+            'kind': d.kind.name,
+            'state': d.state.name,
+            'activeVersion': d.activeVersion,
+            'bytes': d.bytesDone,
+          },
+      ],
+      'lessons': {
+        for (final l in _unwrap(await storage.lessons.list()))
+          l.lessonId: l.state.name,
+      },
+    };
+  }
 
   @override
   Future<Result<List<int>>> loadReminders() => _guard(() async {

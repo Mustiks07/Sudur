@@ -18,6 +18,8 @@ import 'package:sudur/ui/exercise/view_models/exercise_view_model.dart';
 import 'package:sudur/ui/exercise/views/exercise_screen.dart';
 import 'package:sudur/ui/learn/view_models/learn_view_model.dart';
 import 'package:sudur/ui/learn/views/learn_screen.dart';
+import 'package:sudur/ui/more/view_models/report_view_model.dart';
+import 'package:sudur/ui/more/views/report_screen.dart';
 import 'package:sudur/ui/progress/views/progress_screens.dart';
 import 'package:sudur/ui/read/view_models/read_view_model.dart';
 import 'package:sudur/ui/read/views/read_screen.dart';
@@ -165,6 +167,13 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
         final int surah => SurahProgressScreen(surah: surah),
         _ => const StepComingSoonScreen(),
       },
+    ),
+    GoRoute(
+      path: '/report',
+      builder: (context, state) => ChangeNotifierProvider<ReportViewModel>(
+        create: (context) => ReportViewModel(context.read<AppUserRepository>()),
+        child: const ReportScreen(),
+      ),
     ),
     GoRoute(
       path: '/reminders',

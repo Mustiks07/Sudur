@@ -62,7 +62,12 @@ class MoreScreen extends StatelessWidget {
           onTap: () => GoRouter.of(context).push('/reminders'),
         ),
         _soon(context, Icons.science_outlined, l10n.improveChecking),
-        _soon(context, Icons.bug_report_outlined, l10n.reportProblem),
+        ListTile(
+          key: const ValueKey('more-report'),
+          leading: const Icon(Icons.bug_report_outlined),
+          title: Text(l10n.reportProblem),
+          onTap: () => GoRouter.of(context).push('/report'),
+        ),
         const Divider(),
         _item(
           context,

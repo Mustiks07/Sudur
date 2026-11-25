@@ -799,4 +799,18 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get remindersNotYet =>
       'Напоминания будут приходить, когда в приложение добавят уведомления; время уже сохраняется';
+
+  @override
+  String get reportExplain =>
+      'Опишите проблему в сообщении: выберите Telegram, почту или другое приложение.';
+
+  @override
+  String get reportAttach => 'Приложить диагностику';
+
+  @override
+  String get reportAttachNote =>
+      'Только числа и состояния: загрузки, уроки, сколько было занятий и событий проверки. Без звука, без распознанного текста, без личных данных.';
+
+  @override
+  String get reportSend => 'Отправить';
 }
