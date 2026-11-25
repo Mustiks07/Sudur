@@ -722,4 +722,64 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get lessonFindRule => '[Нужен перевод]';
+
+  @override
+  String get memoryNotStarted => '[Нужен перевод]';
+
+  @override
+  String get memoryIntroduced => '[Нужен перевод]';
+
+  @override
+  String get memoryWithHelp => '[Нужен перевод]';
+
+  @override
+  String get memoryIndependent => '[Нужен перевод]';
+
+  @override
+  String get memoryConfirmed => '[Нужен перевод]';
+
+  @override
+  String get memoryStale => '[Нужен перевод]';
+
+  @override
+  String get memoryHardSpot => '[Нужен перевод]';
+
+  @override
+  String progressLastCheck(String date, String method) {
+    return '[Нужен перевод] $date $method';
+  }
+
+  @override
+  String get methodVoice => '[Нужен перевод]';
+
+  @override
+  String get methodSelf => '[Нужен перевод]';
+
+  @override
+  String get methodListener => '[Нужен перевод]';
+
+  @override
+  String progressHints(int count) {
+    return '[Нужен перевод] $count';
+  }
+
+  @override
+  String progressHardSpots(int count) {
+    return '[Нужен перевод] $count';
+  }
+
+  @override
+  String get progressRepeatNow => '[Нужен перевод]';
+
+  @override
+  String get reminderText => '[Нужен перевод]';
+
+  @override
+  String get reminderAdd => '[Нужен перевод]';
+
+  @override
+  String get remindersOff => '[Нужен перевод]';
+
+  @override
+  String get remindersNotYet => '[Нужен перевод]';
 }

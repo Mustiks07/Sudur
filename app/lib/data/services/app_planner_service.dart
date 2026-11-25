@@ -47,6 +47,9 @@ final class AppPlannerService {
     supported: _params.learnSupportedRepeats,
   );
 
+  /// Current FSRS probability of remembering [unit].
+  double retrievability(PlanUnit unit) => _engine.retrievability(unit);
+
   /// Builds a plan using the pure-Dart package and specification parameters.
   TodayPlan build(TodayPlanRequest request) => TodayPlanner(
     params: _params,

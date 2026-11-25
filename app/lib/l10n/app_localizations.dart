@@ -1439,6 +1439,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mark the words with the rule'**
   String get lessonFindRule;
+
+  /// No description provided for @memoryNotStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Not started'**
+  String get memoryNotStarted;
+
+  /// No description provided for @memoryIntroduced.
+  ///
+  /// In en, this message translates to:
+  /// **'Introduced'**
+  String get memoryIntroduced;
+
+  /// No description provided for @memoryWithHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'With help'**
+  String get memoryWithHelp;
+
+  /// No description provided for @memoryIndependent.
+  ///
+  /// In en, this message translates to:
+  /// **'On my own'**
+  String get memoryIndependent;
+
+  /// No description provided for @memoryConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed later'**
+  String get memoryConfirmed;
+
+  /// No description provided for @memoryStale.
+  ///
+  /// In en, this message translates to:
+  /// **'Not checked for long'**
+  String get memoryStale;
+
+  /// No description provided for @memoryHardSpot.
+  ///
+  /// In en, this message translates to:
+  /// **'Has a hard spot'**
+  String get memoryHardSpot;
+
+  /// No description provided for @progressLastCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked {date}: {method}'**
+  String progressLastCheck(String date, String method);
+
+  /// No description provided for @methodVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'by voice'**
+  String get methodVoice;
+
+  /// No description provided for @methodSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'self-check'**
+  String get methodSelf;
+
+  /// No description provided for @methodListener.
+  ///
+  /// In en, this message translates to:
+  /// **'listener'**
+  String get methodListener;
+
+  /// No description provided for @progressHints.
+  ///
+  /// In en, this message translates to:
+  /// **'Hints: {count}'**
+  String progressHints(int count);
+
+  /// No description provided for @progressHardSpots.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard spots: {count}'**
+  String progressHardSpots(int count);
+
+  /// No description provided for @progressRepeatNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat now'**
+  String get progressRepeatNow;
+
+  /// No description provided for @reminderText.
+  ///
+  /// In en, this message translates to:
+  /// **'Time for your session'**
+  String get reminderText;
+
+  /// No description provided for @reminderAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a time'**
+  String get reminderAdd;
+
+  /// No description provided for @remindersOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are off'**
+  String get remindersOff;
+
+  /// No description provided for @remindersNotYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders will arrive once notifications are added to the app; the times are saved already'**
+  String get remindersNotYet;
 }
 
 class _AppLocalizationsDelegate

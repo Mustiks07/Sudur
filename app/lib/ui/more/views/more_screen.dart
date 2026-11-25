@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 import 'package:sudur/data/models/user_models.dart';
@@ -54,7 +55,12 @@ class MoreScreen extends StatelessWidget {
         ),
         const Divider(),
         _soon(context, Icons.workspace_premium_outlined, l10n.subscription),
-        _soon(context, Icons.notifications_outlined, l10n.reminders),
+        ListTile(
+          key: const ValueKey('more-reminders'),
+          leading: const Icon(Icons.notifications_outlined),
+          title: Text(l10n.reminders),
+          onTap: () => GoRouter.of(context).push('/reminders'),
+        ),
         _soon(context, Icons.science_outlined, l10n.improveChecking),
         _soon(context, Icons.bug_report_outlined, l10n.reportProblem),
         const Divider(),

@@ -9,6 +9,8 @@ import 'package:sudur/ui/course/views/course_screens.dart';
 import 'package:sudur/ui/home/view_models/home_view_model.dart';
 import 'package:sudur/ui/more/view_models/more_view_model.dart';
 import 'package:sudur/ui/more/views/more_screen.dart';
+import 'package:sudur/ui/progress/view_models/progress_view_model.dart';
+import 'package:sudur/ui/progress/views/progress_screens.dart';
 import 'package:sudur/ui/today/view_models/today_view_model.dart';
 import 'package:sudur/ui/today/views/today_screen.dart';
 
@@ -30,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
       unawaited(context.read<TodayViewModel>().initialize());
       unawaited(context.read<MoreViewModel>().initialize());
       unawaited(context.read<CourseViewModel>().load());
+      unawaited(context.read<ProgressViewModel>().load());
     });
   }
 
@@ -54,10 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: destinations[1].label,
               ),
               const CourseScreen(),
-              SectionPlaceholder(
-                icon: destinations[3].icon,
-                title: destinations[3].label,
-              ),
+              const ProgressScreen(),
               const MoreScreen(),
             ],
           ),

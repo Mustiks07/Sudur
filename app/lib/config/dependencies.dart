@@ -18,6 +18,7 @@ import 'package:sudur/data/services/app_canon_service.dart';
 import 'package:sudur/data/services/app_file_service.dart';
 import 'package:sudur/data/services/app_planner_service.dart';
 import 'package:sudur/data/services/app_storage_service.dart';
+import 'package:sudur/data/services/notification_service.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 import 'package:sudur/data/services/prototype_platform_service.dart';
 import 'package:sudur/data/services/prototype_session.dart';
@@ -25,6 +26,7 @@ import 'package:sudur/routing/app_router.dart';
 import 'package:sudur/ui/course/view_models/course_view_models.dart';
 import 'package:sudur/ui/home/view_models/home_view_model.dart';
 import 'package:sudur/ui/more/view_models/more_view_model.dart';
+import 'package:sudur/ui/progress/view_models/progress_view_model.dart';
 import 'package:sudur/ui/reading/view_models/reading_view_model.dart';
 import 'package:sudur/ui/start/view_models/start_view_model.dart';
 import 'package:sudur/ui/today/view_models/today_view_model.dart';
@@ -115,6 +117,20 @@ class AppDependencies extends StatelessWidget {
             params: LessonParams.defaults,
             clock: () => clock.now(),
           ),
+        ),
+        ChangeNotifierProvider<ProgressViewModel>(
+          create: (_) => ProgressViewModel(userRepository),
+        ),
+        ChangeNotifierProvider<RemindersViewModel>(
+          create: (_) {
+            final viewModel = RemindersViewModel(
+              userRepository,
+              const NoNotificationService(),
+              e01Config,
+            );
+            unawaited(viewModel.load());
+            return viewModel;
+          },
         ),
         ChangeNotifierProvider<CourseViewModel>(
           create: (_) => CourseViewModel(courseRepository),

@@ -361,5 +361,47 @@
         "type": "int"
       }
     }
+  },
+  "memoryNotStarted": "Not started",
+  "memoryIntroduced": "Introduced",
+  "memoryWithHelp": "With help",
+  "memoryIndependent": "On my own",
+  "memoryConfirmed": "Confirmed later",
+  "memoryStale": "Not checked for long",
+  "memoryHardSpot": "Has a hard spot",
+  "progressLastCheck": "Checked {date}: {method}",
+  "methodVoice": "by voice",
+  "methodSelf": "self-check",
+  "methodListener": "listener",
+  "progressHints": "Hints: {count}",
+  "progressHardSpots": "Hard spots: {count}",
+  "progressRepeatNow": "Repeat now",
+  "reminderText": "Time for your session",
+  "reminderAdd": "Add a time",
+  "remindersOff": "Reminders are off",
+  "remindersNotYet": "Reminders will arrive once notifications are added to the app; the times are saved already",
+  "@progressLastCheck": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "method": {
+        "type": "String"
+      }
+    }
+  },
+  "@progressHints": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@progressHardSpots": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

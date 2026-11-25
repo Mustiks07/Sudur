@@ -732,4 +732,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lessonFindRule => 'Mark the words with the rule';
+
+  @override
+  String get memoryNotStarted => 'Not started';
+
+  @override
+  String get memoryIntroduced => 'Introduced';
+
+  @override
+  String get memoryWithHelp => 'With help';
+
+  @override
+  String get memoryIndependent => 'On my own';
+
+  @override
+  String get memoryConfirmed => 'Confirmed later';
+
+  @override
+  String get memoryStale => 'Not checked for long';
+
+  @override
+  String get memoryHardSpot => 'Has a hard spot';
+
+  @override
+  String progressLastCheck(String date, String method) {
+    return 'Checked $date: $method';
+  }
+
+  @override
+  String get methodVoice => 'by voice';
+
+  @override
+  String get methodSelf => 'self-check';
+
+  @override
+  String get methodListener => 'listener';
+
+  @override
+  String progressHints(int count) {
+    return 'Hints: $count';
+  }
+
+  @override
+  String progressHardSpots(int count) {
+    return 'Hard spots: $count';
+  }
+
+  @override
+  String get progressRepeatNow => 'Repeat now';
+
+  @override
+  String get reminderText => 'Time for your session';
+
+  @override
+  String get reminderAdd => 'Add a time';
+
+  @override
+  String get remindersOff => 'Reminders are off';
+
+  @override
+  String get remindersNotYet =>
+      'Reminders will arrive once notifications are added to the app; the times are saved already';
 }

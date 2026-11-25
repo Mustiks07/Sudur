@@ -15,6 +15,10 @@ final class E01Config {
     this.learnJunctionWords = 2,
     this.courseStages = 10,
     this.firstPaidStage = 4,
+    this.staleOverdueDays = 7,
+    this.staleRetrievability = 0.7,
+    this.confirmIntervalDays = 1,
+    this.maxRemindersPerDay = 2,
   });
 
   /// Delay before a loading skeleton is shown (spec section 13).
@@ -49,4 +53,16 @@ final class E01Config {
 
   /// First paid stage (13.9: «этап 4 и дальше»).
   final int firstPaidStage;
+
+  /// «Давно не проверял»: overdue by more than this many days (11.1).
+  final int staleOverdueDays;
+
+  /// «Давно не проверял»: probability of remembering below this (11.1).
+  final double staleRetrievability;
+
+  /// «Подтвердил позже»: clean attempts this many days apart (11.1).
+  final int confirmIntervalDays;
+
+  /// `maxRemindersPerDay` (12.4, 11.8).
+  final int maxRemindersPerDay;
 }

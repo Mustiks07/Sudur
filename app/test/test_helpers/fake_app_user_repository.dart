@@ -118,6 +118,25 @@ final class FakeAppUserRepository implements AppUserRepository {
     );
   }
 
+  /// Reminder times.
+  List<int> reminders = const [];
+
+  @override
+  Future<Result<List<int>>> loadReminders() async => Result.ok(reminders);
+
+  @override
+  Future<Result<List<int>>> saveReminders(List<int> minutesOfDay) async {
+    reminders = (minutesOfDay.toSet().toList()..sort()).take(2).toList();
+    return Result.ok(reminders);
+  }
+
+  /// Progress returned by [loadProgress].
+  List<SurahProgress> progress = const [];
+
+  @override
+  Future<Result<List<SurahProgress>>> loadProgress() async =>
+      Result.ok(progress);
+
   /// Plan returned by [learnPlan].
   LearnPlan? learn;
 

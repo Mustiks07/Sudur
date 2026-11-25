@@ -738,4 +738,65 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get lessonFindRule => 'Отметьте слова с правилом';
+
+  @override
+  String get memoryNotStarted => 'Не начато';
+
+  @override
+  String get memoryIntroduced => 'Ознакомился';
+
+  @override
+  String get memoryWithHelp => 'С помощью';
+
+  @override
+  String get memoryIndependent => 'Самостоятельно';
+
+  @override
+  String get memoryConfirmed => 'Подтвердил позже';
+
+  @override
+  String get memoryStale => 'Давно не проверял';
+
+  @override
+  String get memoryHardSpot => 'Есть трудное место';
+
+  @override
+  String progressLastCheck(String date, String method) {
+    return 'Проверено $date: $method';
+  }
+
+  @override
+  String get methodVoice => 'голосом';
+
+  @override
+  String get methodSelf => 'самопроверка';
+
+  @override
+  String get methodListener => 'слушающий';
+
+  @override
+  String progressHints(int count) {
+    return 'Подсказок: $count';
+  }
+
+  @override
+  String progressHardSpots(int count) {
+    return 'Трудных мест: $count';
+  }
+
+  @override
+  String get progressRepeatNow => 'Повторить сейчас';
+
+  @override
+  String get reminderText => 'Время для занятия';
+
+  @override
+  String get reminderAdd => 'Добавить время';
+
+  @override
+  String get remindersOff => 'Напоминания выключены';
+
+  @override
+  String get remindersNotYet =>
+      'Напоминания будут приходить, когда в приложение добавят уведомления; время уже сохраняется';
 }

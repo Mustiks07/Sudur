@@ -17,6 +17,7 @@ import 'package:sudur/data/services/app_canon_service.dart';
 import 'package:sudur/data/services/app_file_service.dart';
 import 'package:sudur/data/services/app_planner_service.dart';
 import 'package:sudur/data/services/app_storage_service.dart';
+import 'package:sudur/data/services/notification_service.dart';
 import 'package:sudur/data/services/prototype_asset_installer.dart';
 
 /// Creates UUID v4 identifiers without exposing the implementation to data UI.
@@ -54,6 +55,15 @@ abstract interface class AppUserRepository {
   /// Writes one reading: the session, its check events, the attempt and the
   /// new state of the step's plan unit, in one transaction (НФ-21, ПЛ-12).
   Future<Result<RecordedReading>> recordReading(ReadingResult result);
+
+  /// Reminder times, minutes after midnight (11.8); empty when off.
+  Future<Result<List<int>>> loadReminders();
+
+  /// Stores reminder times (at most `maxRemindersPerDay`).
+  Future<Result<List<int>>> saveReminders(List<int> minutesOfDay);
+
+  /// Memory state of every surah in the plan (13.12, КП-01…04).
+  Future<Result<List<SurahProgress>>> loadProgress();
 
   /// The learning plan of the passage of [stepId] (ЗН-01…04).
   Future<Result<LearnPlan>> learnPlan(String stepId);
@@ -136,6 +146,7 @@ final class StorageAppUserRepository implements AppUserRepository {
   static const _nextCardIdKey = 'nextFsrsCardId';
   static const _courseEntrySkill = 'course-entry';
   static const _learnProgressKey = 'learnProgress:';
+  static const _remindersKey = 'reminders';
 
   final AppStorageService _storageService;
   final AppFileService _files;
@@ -619,6 +630,147 @@ final class StorageAppUserRepository implements AppUserRepository {
           unitId: unitId,
         );
       });
+
+  @override
+  Future<Result<List<int>>> loadReminders() => _guard(() async {
+    final storage = await _storageService.storage;
+    final value = _unwrap(await storage.settings.get(_remindersKey))
+        ?.value
+        .value;
+    return switch (value) {
+      final List<Object?> list => [...list.whereType<int>()],
+      _ => const <int>[],
+    };
+  });
+
+  @override
+  Future<Result<List<int>>> saveReminders(List<int> minutesOfDay) =>
+      _guard(() async {
+        final valid = [
+          for (final m in minutesOfDay)
+            if (m >= 0 && m < Duration.minutesPerDay) m,
+        ];
+        final times = remindersOfDay(
+          valid,
+          dayDone: false,
+          maxPerDay: _config.maxRemindersPerDay,
+        );
+        final storage = await _storageService.storage;
+        await _putSetting(storage, _remindersKey, times);
+        return times;
+      });
+
+  @override
+  Future<Result<List<SurahProgress>>> loadProgress() => _guard(() async {
+    final storage = await _storageService.storage;
+    final profile = await _requiredProfile(storage);
+    final units = _unwrap(await storage.units.listForProfile(profile.id));
+    if (units.isEmpty) return const <SurahProgress>[];
+    final canon = await _canon.load();
+    final now = _clock.now().toUtc();
+    final openSpots = <UnitData>[];
+    for (final unit in units.where((u) => u.kind == UnitKind.hardSpot)) {
+      final state = _unwrap(await storage.units.getState(unit.id));
+      final memory = PlanMemoryState.fromJson(state?.memoryState?.value);
+      if (state?.queue != UnitQueue.closed &&
+          memory.hardSpotStage != HardSpotStage.closed) {
+        openSpots.add(unit);
+      }
+    }
+    final bySurah = <int, List<PassageProgress>>{};
+    for (final unit in units.where((u) => u.kind == UnitKind.passage)) {
+      final from = unit.fromWordIndex;
+      final to = unit.toWordIndex;
+      final surah = unit.surah;
+      if (from == null || to == null || surah == null) continue;
+      final state = _unwrap(await storage.units.getState(unit.id));
+      final attempts = _unwrap(await storage.attempts.listForUnit(unit.id));
+      final spots = openSpots
+          .where(
+            (s) =>
+                s.parentUnitId == unit.id ||
+                ((s.fromWordIndex ?? 0) <= to && from <= (s.toWordIndex ?? 0)),
+          )
+          .length;
+      final planned = await _plannerUnit(storage, canon, unit, state, attempts);
+      final last = attempts.isEmpty ? null : attempts.last;
+      bySurah
+          .putIfAbsent(surah, () => [])
+          .add(
+            PassageProgress(
+              unitId: unit.id,
+              from: canon.keyOf(from),
+              to: canon.keyOf(to),
+              status: _memoryStatus(attempts, state, planned, spots, now),
+              hints: attempts.fold(
+                0,
+                (n, a) => n + a.hints.value.values.fold(0, (m, v) => m + v),
+              ),
+              hardSpots: spots,
+              lastCheckAt: last == null
+                  ? null
+                  : DateTime.fromMillisecondsSinceEpoch(
+                      last.createdAt,
+                      isUtc: true,
+                    ),
+              lastMethod: switch (last?.method) {
+                CheckMethod.voice => LastCheckMethod.voice,
+                CheckMethod.self => LastCheckMethod.self,
+                CheckMethod.listener => LastCheckMethod.listener,
+                null => null,
+              },
+            ),
+          );
+    }
+    return [
+      for (final MapEntry(:key, :value)
+          in (bySurah.entries.toList()..sort((a, b) => a.key.compareTo(b.key))))
+        SurahProgress(
+          surah: key,
+          passages: value..sort((a, b) => a.from.compareTo(b.from)),
+        ),
+    ];
+  });
+
+  /// КП-01 by the conditions of 11.1.
+  MemoryStatus _memoryStatus(
+    List<AttemptData> attempts,
+    UnitStateData? state,
+    PlanUnit planned,
+    int hardSpots,
+    DateTime now,
+  ) {
+    if (hardSpots > 0) return MemoryStatus.hardSpot;
+    if (attempts.isEmpty) return MemoryStatus.notStarted;
+    final checks = attempts
+        .where((a) => a.mode != StoredReadingMode.supported)
+        .toList();
+    if (checks.isEmpty) return MemoryStatus.introduced;
+    final due = state?.dueAt;
+    final overdue =
+        due != null &&
+        now
+                .difference(
+                  DateTime.fromMillisecondsSinceEpoch(due, isUtc: true),
+                )
+                .inDays >
+            _config.staleOverdueDays;
+    final retrievability = _planner.retrievability(planned);
+    if (overdue ||
+        (planned.card.lastReview != null &&
+            retrievability < _config.staleRetrievability)) {
+      return MemoryStatus.stale;
+    }
+    final last = checks.last;
+    if (last.outcome != AttemptOutcome.clean) return MemoryStatus.withHelp;
+    final clean = checks.where((a) => a.outcome == AttemptOutcome.clean);
+    final apart = clean.any(
+      (a) =>
+          last.createdAt - a.createdAt >=
+          Duration.millisecondsPerDay * _config.confirmIntervalDays,
+    );
+    return apart ? MemoryStatus.confirmed : MemoryStatus.independent;
+  }
 
   @override
   Future<Result<LearnPlan>> learnPlan(String stepId) => _guard(() async {

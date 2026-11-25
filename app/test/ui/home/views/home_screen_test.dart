@@ -7,6 +7,7 @@ import 'package:sudur/ui/course/view_models/course_view_models.dart';
 import 'package:sudur/ui/home/view_models/home_view_model.dart';
 import 'package:sudur/ui/home/views/home_screen.dart';
 import 'package:sudur/ui/more/view_models/more_view_model.dart';
+import 'package:sudur/ui/progress/view_models/progress_view_model.dart';
 import 'package:sudur/ui/today/view_models/today_view_model.dart';
 
 import '../../../test_helpers/fake_app_user_repository.dart';
@@ -51,6 +52,7 @@ Widget _app() {
         create: (_) => CourseViewModel(FakeCourseRepository()),
       ),
       Provider<E01Config>.value(value: const E01Config()),
+      ChangeNotifierProvider(create: (_) => ProgressViewModel(repository)),
     ],
     child: const MaterialApp(
       locale: Locale('en'),

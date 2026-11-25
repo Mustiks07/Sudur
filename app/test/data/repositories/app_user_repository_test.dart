@@ -550,6 +550,94 @@ void main() {
     },
   );
 
+  test(
+    'КП-01: memory states of passages follow the conditions of 11.1',
+    () async {
+      _value(await repository.completeOnboarding(draft()));
+      var progress = _value(await repository.loadProgress());
+      expect(progress.single.surah, 78);
+      expect(
+        progress.single.passages.every(
+          (p) => p.status == MemoryStatus.notStarted,
+        ),
+        isTrue,
+      );
+      final today = _value(await repository.loadToday());
+      final step = today.steps.firstWhere((s) => s.unitId != null);
+      MemoryStatus status() => progress.single.passages
+          .firstWhere((p) => p.unitId == step.unitId)
+          .status;
+
+      _value(
+        await repository.recordReading(
+          reading(step, mode: SessionMode.supported),
+        ),
+      );
+      progress = _value(await repository.loadProgress());
+      expect(status(), MemoryStatus.introduced);
+
+      _value(
+        await repository.recordReading(
+          reading(step, hints: const {HintKind.word: 1}),
+        ),
+      );
+      progress = _value(await repository.loadProgress());
+      expect(status(), MemoryStatus.withHelp);
+
+      _value(await repository.recordReading(reading(step)));
+      progress = _value(await repository.loadProgress());
+      expect(status(), MemoryStatus.independent);
+      expect(
+        progress.single.passages
+            .firstWhere((p) => p.unitId == step.unitId)
+            .lastMethod,
+        LastCheckMethod.voice,
+      );
+
+      clock.advance(const Duration(days: 2));
+      // A second clean check two days later, written as stored data: which
+      // day the plan offers it again is the planner's business.
+      final unitId = step.unitId;
+      if (unitId == null) fail('the step has a unit');
+      final last = _value(await storage.attempts.listForUnit(unitId)).last;
+      _value(
+        await storage.attempts.add((
+          id: '00000000-0000-4000-8000-777777777777',
+          unitId: last.unitId,
+          sessionId: last.sessionId,
+          mode: last.mode,
+          outcome: AttemptOutcome.clean,
+          hints: last.hints,
+          errorEventIds: last.errorEventIds,
+          rating: last.rating,
+          method: last.method,
+          durationMs: last.durationMs,
+          words: last.words,
+          modelId: last.modelId,
+          modelVersion: last.modelVersion,
+          rulesVersion: last.rulesVersion,
+          textVersion: last.textVersion,
+          createdAt: clock.now().millisecondsSinceEpoch,
+        )),
+      );
+      progress = _value(await repository.loadProgress());
+      expect(status(), MemoryStatus.confirmed);
+
+      clock.advance(const Duration(days: 60));
+      progress = _value(await repository.loadProgress());
+      expect(status(), MemoryStatus.stale);
+    },
+  );
+
+  test('reminders: at most two, in order, minutes of a day only', () async {
+    _value(await repository.completeOnboarding(draft()));
+    expect(_value(await repository.saveReminders([1200, 300, 600, -5])), [
+      300,
+      600,
+    ]);
+    expect(_value(await repository.loadReminders()), [300, 600]);
+  });
+
   test('planner state survives its JSON', () {
     final at = DateTime.utc(2026, 11, 20, 9);
     const memory = PlanMemoryState(

@@ -279,3 +279,106 @@ final class LearnPlan {
   /// Where an unfinished learning continues (ЗН-04).
   final int startIndex;
 }
+
+/// Memory state of a passage (docs/tz 11.1, КП-01).
+enum MemoryStatus {
+  /// Not read yet.
+  notStarted,
+
+  /// «Ознакомился»: only listened or read with support.
+  introduced,
+
+  /// «С помощью»: the last attempt needed hints (or had a mistake).
+  withHelp,
+
+  /// «Самостоятельно»: the last attempt was clean.
+  independent,
+
+  /// «Подтвердил позже»: two clean attempts at least a day apart.
+  confirmed,
+
+  /// «Давно не проверял»: overdue or likely forgotten.
+  stale,
+
+  /// «Есть трудное место».
+  hardSpot,
+}
+
+/// How the last check was done (КП-02).
+enum LastCheckMethod {
+  /// By voice.
+  voice,
+
+  /// Self-check.
+  self,
+
+  /// By a listener.
+  listener,
+}
+
+/// One passage on the progress screen (КП-04).
+final class PassageProgress {
+  /// Creates the passage.
+  const PassageProgress({
+    required this.unitId,
+    required this.from,
+    required this.to,
+    required this.status,
+    required this.hints,
+    required this.hardSpots,
+    this.lastCheckAt,
+    this.lastMethod,
+  });
+
+  /// Plan unit.
+  final String unitId;
+
+  /// First word.
+  final WordKey from;
+
+  /// Last word.
+  final WordKey to;
+
+  /// Memory state.
+  final MemoryStatus status;
+
+  /// Hints taken over all attempts.
+  final int hints;
+
+  /// Open hard spots in the passage.
+  final int hardSpots;
+
+  /// When it was last checked.
+  final DateTime? lastCheckAt;
+
+  /// How it was last checked.
+  final LastCheckMethod? lastMethod;
+}
+
+/// One surah on the progress grid (13.12): no overall percent (КП-03).
+final class SurahProgress {
+  /// Creates the surah.
+  SurahProgress({required this.surah, required List<PassageProgress> passages})
+    : passages = List.unmodifiable(passages);
+
+  /// Surah number.
+  final int surah;
+
+  /// Its passages in the plan, in order.
+  final List<PassageProgress> passages;
+
+  /// The state the grid shows: what needs attention first.
+  MemoryStatus get status {
+    if (passages.isEmpty) return MemoryStatus.notStarted;
+    const order = [
+      MemoryStatus.hardSpot,
+      MemoryStatus.stale,
+      MemoryStatus.withHelp,
+      MemoryStatus.introduced,
+      MemoryStatus.notStarted,
+      MemoryStatus.independent,
+      MemoryStatus.confirmed,
+    ];
+    return order.firstWhere((s) => passages.any((p) => p.status == s));
+  }
+}

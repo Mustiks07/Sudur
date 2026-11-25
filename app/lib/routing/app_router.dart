@@ -18,6 +18,7 @@ import 'package:sudur/ui/exercise/view_models/exercise_view_model.dart';
 import 'package:sudur/ui/exercise/views/exercise_screen.dart';
 import 'package:sudur/ui/learn/view_models/learn_view_model.dart';
 import 'package:sudur/ui/learn/views/learn_screen.dart';
+import 'package:sudur/ui/progress/views/progress_screens.dart';
 import 'package:sudur/ui/read/view_models/read_view_model.dart';
 import 'package:sudur/ui/read/views/read_screen.dart';
 import 'package:sudur/ui/reading/views/reading_screen.dart';
@@ -157,6 +158,17 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
           child: const LessonScreen(),
         );
       },
+    ),
+    GoRoute(
+      path: '/progress/surah',
+      builder: (context, state) => switch (state.extra) {
+        final int surah => SurahProgressScreen(surah: surah),
+        _ => const StepComingSoonScreen(),
+      },
+    ),
+    GoRoute(
+      path: '/reminders',
+      builder: (context, state) => const RemindersScreen(),
     ),
     GoRoute(
       path: '/tajweed',
