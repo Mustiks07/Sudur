@@ -314,5 +314,33 @@
   "learnTest": "Check yourself",
   "learnJunction": "Junction with the previous passage",
   "learnCombined": "Both passages in a row",
-  "learnLearned": "Passage learned. We will repeat it tomorrow"
+  "learnLearned": "Passage learned. We will repeat it tomorrow",
+  "readOpenSettings": "Open settings",
+  "reviewShare": "Share the result",
+  "reviewShareText": "Surah {surah}, ayahs {from}–{to}: on my own {independent}, with hints {hints}, mistakes {errors}, could not check {unverified}.",
+  "@reviewShareText": {
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      },
+      "independent": {
+        "type": "int"
+      },
+      "hints": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      },
+      "unverified": {
+        "type": "int"
+      }
+    }
+  }
 }

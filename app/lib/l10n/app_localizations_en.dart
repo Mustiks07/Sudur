@@ -665,4 +665,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get learnLearned => 'Passage learned. We will repeat it tomorrow';
+
+  @override
+  String get readOpenSettings => 'Open settings';
+
+  @override
+  String get reviewShare => 'Share the result';
+
+  @override
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  ) {
+    return 'Surah $surah, ayahs $from–$to: on my own $independent, with hints $hints, mistakes $errors, could not check $unverified.';
+  }
 }

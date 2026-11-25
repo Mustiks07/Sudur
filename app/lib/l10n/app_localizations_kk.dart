@@ -657,4 +657,23 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get learnLearned => '[Нужен перевод]';
+
+  @override
+  String get readOpenSettings => '[Нужен перевод]';
+
+  @override
+  String get reviewShare => '[Нужен перевод]';
+
+  @override
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  ) {
+    return '[Нужен перевод] $surah $from $to $independent $hints $errors $unverified';
+  }
 }

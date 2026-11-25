@@ -71,7 +71,13 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
   StreamSubscription<SessionIsolateFailure>? _failureSubscription;
   ReceivePort? _diagnosticPort;
   StreamSubscription<Object?>? _diagnosticSubscription;
+  audio.AudioCaptureService? _capture;
+  final List<Timer> _snippetTimers = [];
   var _disposed = false;
+
+  /// ЗВ-02: padding around an event's audio, from the capture parameters.
+  static final int _snippetPadMs =
+      const audio.AudioCaptureConfig().reviewSnippetPadMs;
 
   @override
   Stream<SessionEvent> get events => _events.stream;
@@ -129,8 +135,10 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
     _diagnosticPort = diagnosticPort;
     _diagnosticSubscription = diagnosticPort.listen(_onDiagnosticMessage);
     late final PrototypeSessionAudioSource source;
+    final capture = audio.AudioCaptureService(sessionId: sessionId);
+    _capture = capture;
     source = PrototypeSessionAudioSource(
-      capture: audio.AudioCaptureService(sessionId: sessionId),
+      capture: capture,
       input: _input,
       vadModelPath: _configuration.vadModelPath,
       expectedSessionId: sessionId,
@@ -160,10 +168,53 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
         );
       }
       _isolate = value;
-      _eventSubscription = value.events.listen(_events.add);
+      _eventSubscription = value.events.listen((event) {
+        if (event is CheckEvent) _keepSnippet(event);
+        _events.add(event);
+      });
       _failureSubscription = value.failures.listen(_failures.add);
     }
     return spawned;
+  }
+
+  /// Keeps the audio around [event] in memory (ЗВ-02): at once with what
+  /// has been heard, and again once the padding after it was recorded.
+  void _keepSnippet(CheckEvent event) {
+    void keep() {
+      final capture = _capture;
+      if (capture == null || _disposed) return;
+      unawaited(
+        capture.retainReviewSnippet(
+          eventId: event.eventId,
+          startMs: event.audioStartMs > _snippetPadMs
+              ? event.audioStartMs - _snippetPadMs
+              : 0,
+          endMs: event.audioEndMs + _snippetPadMs,
+        ),
+      );
+    }
+
+    keep();
+    _snippetTimers.add(Timer(Duration(milliseconds: _snippetPadMs), keep));
+  }
+
+  @override
+  ReviewAudio? reviewSnippet(String eventId) =>
+      switch (_capture?.reviewSnippet(eventId)) {
+        final audio.AudioSnippet s => ReviewAudio(
+          samples: s.samples,
+          sampleRate: s.sampleRate,
+        ),
+        null => null,
+      };
+
+  @override
+  void closeReview() {
+    for (final timer in _snippetTimers) {
+      timer.cancel();
+    }
+    _snippetTimers.clear();
+    _capture?.closeReview();
   }
 
   void _onDiagnosticMessage(Object? message) {
@@ -182,6 +233,7 @@ final class _RealPrototypeReadingSession implements PrototypeReadingSession {
   @override
   Future<void> dispose() async {
     if (_disposed) return;
+    closeReview();
     _disposed = true;
     await _spawnResult;
     await _eventSubscription?.cancel();

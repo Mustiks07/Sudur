@@ -1,3 +1,5 @@
+import 'package:planner/src/params.dart';
+
 // Exercise vocabulary is the product vocabulary of docs/tz 3.3.
 // ignore_for_file: public_member_api_docs
 
@@ -74,37 +76,12 @@ enum ExerciseSpan {
 /// One step of an exercise: which part of the place, and how it is read.
 typedef ExerciseStepPlan = ({ExerciseSpan span, ExerciseReadMode mode});
 
-/// Sizes of exercises. The values follow the text of docs/tz 3.3; they are
-/// not in the 12.4 tables yet (question to the owner in the PR).
-final class ExerciseParams {
-  const ExerciseParams({
-    required this.contextWords,
-    required this.junctionWords,
-    required this.junctionRepeats,
-  });
-
-  /// УП-01 «3–5 слов вокруг»: words on each side of the mistake.
-  final int contextWords;
-
-  /// УП-02: words taken from the end of one ayah and the start of the next.
-  final int junctionWords;
-
-  /// УП-02 «трижды».
-  final int junctionRepeats;
-
-  static const defaults = ExerciseParams(
-    contextWords: 2,
-    junctionWords: 2,
-    junctionRepeats: 3,
-  );
-}
-
 /// Steps of [kind]. Listening to the reciter (УП-01, УП-05) is left out
 /// until reciter audio is licensed. The last step is always the check: the
 /// exercise is closed when it is read cleanly (УП-07).
 List<ExerciseStepPlan> exerciseSteps(
   ExerciseKind kind,
-  ExerciseParams params,
+  PlannerParams params,
 ) {
   ExerciseStepPlan step(ExerciseSpan span, ExerciseReadMode mode) =>
       (span: span, mode: mode);

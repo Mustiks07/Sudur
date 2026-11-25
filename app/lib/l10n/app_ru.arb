@@ -203,5 +203,8 @@
   "learnTest": "Проверьте себя",
   "learnJunction": "Стык с предыдущим отрывком",
   "learnCombined": "Оба отрывка подряд",
-  "learnLearned": "Отрывок выучен. Повторим завтра"
+  "learnLearned": "Отрывок выучен. Повторим завтра",
+  "readOpenSettings": "Открыть настройки",
+  "reviewShare": "Поделиться итогом",
+  "reviewShareText": "Сура {surah}, аяты {from}–{to}: самостоятельно {independent}, с подсказками {hints}, ошибок {errors}, не удалось проверить {unverified}."
 }
