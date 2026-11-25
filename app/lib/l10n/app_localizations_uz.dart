@@ -344,9 +344,6 @@ class AppLocalizationsUz extends AppLocalizations {
   String get showFirstWord => '[Нужен перевод]';
 
   @override
-  String get memorizationRepeats => '[Нужен перевод]';
-
-  @override
   String get save => '[Нужен перевод]';
 
   @override
@@ -772,16 +769,15 @@ class AppLocalizationsUz extends AppLocalizations {
   String get progressRepeatNow => '[Нужен перевод]';
 
   @override
-  String get reminderText => '[Нужен перевод]';
+  String reminderText(int minutes) {
+    return '[Нужен перевод]';
+  }
 
   @override
   String get reminderAdd => '[Нужен перевод]';
 
   @override
   String get remindersOff => '[Нужен перевод]';
-
-  @override
-  String get remindersNotYet => '[Нужен перевод]';
 
   @override
   String get reportExplain => '[Нужен перевод]';
@@ -794,4 +790,32 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get reportSend => '[Нужен перевод]';
+
+  @override
+  String get remindersBlocked => '[Нужен перевод]';
+
+  @override
+  String get listenRepeats => '[Нужен перевод]';
+
+  @override
+  String get supportedRepeats => '[Нужен перевод]';
+
+  @override
+  String get readOpenSettings => '[Нужен перевод]';
+
+  @override
+  String get reviewShare => '[Нужен перевод]';
+
+  @override
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  ) {
+    return '[Нужен перевод] $surah $from $to $independent $hints $errors $unverified';
+  }
 }

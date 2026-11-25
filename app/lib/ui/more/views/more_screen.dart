@@ -120,7 +120,8 @@ class MoreScreen extends StatelessWidget {
     var minutes = current.profile.dailyMinutes;
     var strict = current.profile.strictBehavior;
     var firstWord = current.profile.showFirstWord;
-    var repeats = current.memorizationRepeats;
+    var listen = current.listenRepeats;
+    var supported = current.supportedRepeats;
     final l10n = AppLocalizations.of(context);
     final save = await showDialog<bool>(
       context: context,
@@ -156,20 +157,26 @@ class MoreScreen extends StatelessWidget {
                   onChanged: (value) => setState(() => firstWord = value),
                 ),
                 DropdownButtonFormField<int>(
-                  initialValue: repeats,
-                  decoration: InputDecoration(
-                    labelText: l10n.memorizationRepeats,
-                  ),
-                  items: [1, 2, 3, 4, 5]
-                      .map(
-                        (value) => DropdownMenuItem(
-                          value: value,
-                          child: Text('$value'),
-                        ),
-                      )
-                      .toList(),
+                  key: const Key('more-listen-repeats'),
+                  initialValue: listen,
+                  decoration: InputDecoration(labelText: l10n.listenRepeats),
+                  items: [
+                    for (var value = 1; value <= 5; value++)
+                      DropdownMenuItem(value: value, child: Text('$value')),
+                  ],
                   onChanged: (value) =>
-                      setState(() => repeats = value ?? repeats),
+                      setState(() => listen = value ?? listen),
+                ),
+                DropdownButtonFormField<int>(
+                  key: const Key('more-supported-repeats'),
+                  initialValue: supported,
+                  decoration: InputDecoration(labelText: l10n.supportedRepeats),
+                  items: [
+                    for (var value = 1; value <= 5; value++)
+                      DropdownMenuItem(value: value, child: Text('$value')),
+                  ],
+                  onChanged: (value) =>
+                      setState(() => supported = value ?? supported),
                 ),
               ],
             ),
@@ -192,7 +199,8 @@ class MoreScreen extends StatelessWidget {
         dailyMinutes: minutes,
         strictBehavior: strict,
         showFirstWord: firstWord,
-        memorizationRepeats: repeats,
+        listenRepeats: listen,
+        supportedRepeats: supported,
       );
     }
   }

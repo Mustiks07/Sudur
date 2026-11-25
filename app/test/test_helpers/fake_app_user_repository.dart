@@ -23,7 +23,8 @@ final class FakeAppUserRepository implements AppUserRepository {
   );
   MoreSettingsData more = MoreSettingsData(
     profile: _profile,
-    memorizationRepeats: 3,
+    listenRepeats: 3,
+    supportedRepeats: 2,
   );
   List<AppDownloadData> downloads = const [];
   int draftSaves = 0;
@@ -224,7 +225,8 @@ final class FakeAppUserRepository implements AppUserRepository {
     required int dailyMinutes,
     required bool strictBehavior,
     required bool showFirstWord,
-    required int memorizationRepeats,
+    required int listenRepeats,
+    required int supportedRepeats,
   }) async {
     more = MoreSettingsData(
       profile: AppUserProfile(
@@ -236,7 +238,8 @@ final class FakeAppUserRepository implements AppUserRepository {
         strictBehavior: strictBehavior,
         showFirstWord: showFirstWord,
       ),
-      memorizationRepeats: memorizationRepeats,
+      listenRepeats: listenRepeats,
+      supportedRepeats: supportedRepeats,
     );
     return Result.ok(more);
   }
@@ -254,7 +257,8 @@ final class FakeAppUserRepository implements AppUserRepository {
     );
     more = MoreSettingsData(
       profile: changed,
-      memorizationRepeats: more.memorizationRepeats,
+      listenRepeats: more.listenRepeats,
+      supportedRepeats: more.supportedRepeats,
     );
     return Result.ok(changed);
   }

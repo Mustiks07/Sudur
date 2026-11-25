@@ -50,6 +50,19 @@ final class AppPlannerService {
   /// Current FSRS probability of remembering [unit].
   double retrievability(PlanUnit unit) => _engine.retrievability(unit);
 
+  /// Words on each side of the junction of two passages (ЗН-03).
+  int get learnJunctionWords => _params.learnJunctionWords;
+
+  /// КП-01 «давно не проверяли»: days overdue (12.4 `staleAfterDays`).
+  int get staleAfterDays => _params.staleAfterDays;
+
+  /// КП-01 «давно не проверяли»: recall below this (12.4 `staleRecallBelow`).
+  double get staleRecallBelow => _params.staleRecallBelow;
+
+  /// КП-01 «помню»: a later clean check at least this many days after the
+  /// first one (12.4 `confirmedLaterMinDays`).
+  int get confirmedLaterMinDays => _params.confirmedLaterMinDays;
+
   /// Builds a plan using the pure-Dart package and specification parameters.
   TodayPlan build(TodayPlanRequest request) => TodayPlanner(
     params: _params,

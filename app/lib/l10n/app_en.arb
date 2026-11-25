@@ -145,7 +145,6 @@
   "dailyTime": "[Нужен перевод]",
   "strictMode": "[Нужен перевод]",
   "showFirstWord": "[Нужен перевод]",
-  "memorizationRepeats": "[Нужен перевод]",
   "save": "[Нужен перевод]",
   "noModels": "[Нужен перевод]",
   "speechModel": "[Нужен перевод]",
@@ -379,7 +378,6 @@
   "reminderText": "Time for your session",
   "reminderAdd": "Add a time",
   "remindersOff": "Reminders are off",
-  "remindersNotYet": "Reminders will arrive once notifications are added to the app; the times are saved already",
   "@progressLastCheck": {
     "placeholders": {
       "date": {
@@ -407,5 +405,43 @@
   "reportExplain": "Describe the problem in a message: choose Telegram, mail or another app.",
   "reportAttach": "Attach diagnostics",
   "reportAttachNote": "Only numbers and states: downloads, lessons, how many sessions and check events. No audio, no recognized text, no personal data.",
-  "reportSend": "Send"
+  "reportSend": "Send",
+  "@reminderText": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "remindersBlocked": "The phone does not allow reminders. You can turn them on in the settings.",
+  "listenRepeats": "[Нужен перевод]",
+  "supportedRepeats": "[Нужен перевод]",
+  "readOpenSettings": "Open settings",
+  "reviewShare": "Share the result",
+  "reviewShareText": "Surah {surah}, ayahs {from}–{to}: on my own {independent}, with hints {hints}, mistakes {errors}, could not check {unverified}.",
+  "@reviewShareText": {
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      },
+      "independent": {
+        "type": "int"
+      },
+      "hints": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      },
+      "unverified": {
+        "type": "int"
+      }
+    }
+  }
 }

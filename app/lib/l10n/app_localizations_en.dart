@@ -344,9 +344,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showFirstWord => '[Нужен перевод]';
 
   @override
-  String get memorizationRepeats => '[Нужен перевод]';
-
-  @override
   String get save => '[Нужен перевод]';
 
   @override
@@ -782,17 +779,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get progressRepeatNow => 'Repeat now';
 
   @override
-  String get reminderText => 'Time for your session';
+  String reminderText(int minutes) {
+    return 'Time for your session';
+  }
 
   @override
   String get reminderAdd => 'Add a time';
 
   @override
   String get remindersOff => 'Reminders are off';
-
-  @override
-  String get remindersNotYet =>
-      'Reminders will arrive once notifications are added to the app; the times are saved already';
 
   @override
   String get reportExplain =>
@@ -807,4 +802,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportSend => 'Send';
+
+  @override
+  String get remindersBlocked =>
+      'The phone does not allow reminders. You can turn them on in the settings.';
+
+  @override
+  String get listenRepeats => '[Нужен перевод]';
+
+  @override
+  String get supportedRepeats => '[Нужен перевод]';
+
+  @override
+  String get readOpenSettings => 'Open settings';
+
+  @override
+  String get reviewShare => 'Share the result';
+
+  @override
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  ) {
+    return 'Surah $surah, ayahs $from–$to: on my own $independent, with hints $hints, mistakes $errors, could not check $unverified.';
+  }
 }

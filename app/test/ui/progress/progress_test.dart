@@ -10,13 +10,21 @@ import 'package:sudur/ui/progress/view_models/progress_view_model.dart';
 import 'package:sudur/ui/progress/views/progress_screens.dart';
 
 import '../../test_helpers/fake_app_user_repository.dart';
+import '../read/read_test_helpers.dart';
 
 final class _Notifications implements NotificationService {
-  List<int>? scheduled;
+  bool allowed = true;
+  int asked = 0;
 
   @override
-  Future<void> scheduleDaily(List<int> minutesOfDay, String text) async =>
-      scheduled = minutesOfDay;
+  Future<Result<bool>> requestPermission() async {
+    asked++;
+    return Result.ok(allowed);
+  }
+
+  @override
+  Future<Result<void>> scheduleAt(List<DateTime> at, ReminderText text) async =>
+      const Result.ok(null);
 }
 
 PassageProgress _passage(String id, MemoryStatus status) => PassageProgress(
@@ -29,12 +37,8 @@ PassageProgress _passage(String id, MemoryStatus status) => PassageProgress(
 );
 
 void main() {
-  test('11.8: at most two reminders, none on a done day', () {
-    expect(remindersOfDay([900, 60, 600], dayDone: false, maxPerDay: 2), [
-      60,
-      600,
-    ]);
-    expect(remindersOfDay([60], dayDone: true, maxPerDay: 2), isEmpty);
+  test('11.8: at most two reminders, in order', () {
+    expect(remindersOfDay([900, 60, 600, 60], maxPerDay: 2), [60, 600]);
   });
 
   test('a surah shows what needs attention first; no overall percent', () {
@@ -53,20 +57,54 @@ void main() {
     );
   });
 
-  test('reminder times are saved and scheduled, at most two', () async {
+  test('reminder times are saved, at most two; the phone is asked to allow '
+      'them', () async {
     final notifications = _Notifications();
     final viewModel = RemindersViewModel(
       FakeAppUserRepository(),
       notifications,
+      FakeDevice(),
       const E01Config(),
     );
-    await viewModel.add(600, 'text');
-    await viewModel.add(60, 'text');
+    await viewModel.add(600);
+    await viewModel.add(60);
     expect(viewModel.times, [60, 600]);
     expect(viewModel.canAdd, isFalse);
-    expect(notifications.scheduled, [60, 600]);
-    await viewModel.remove(60, 'text');
-    expect(notifications.scheduled, [600]);
+    expect(notifications.asked, 2);
+    expect(viewModel.blocked, isFalse);
+    await viewModel.remove(60);
+    expect(viewModel.times, [600]);
+  });
+
+  testWidgets('reminders refused by the phone: a way to the settings', (
+    tester,
+  ) async {
+    final device = FakeDevice();
+    final viewModel = RemindersViewModel(
+      FakeAppUserRepository(),
+      _Notifications()..allowed = false,
+      device,
+      const E01Config(),
+    );
+    await tester.pumpWidget(
+      ChangeNotifierProvider<RemindersViewModel>.value(
+        value: viewModel,
+        child: const MaterialApp(
+          locale: Locale('ru'),
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            ...GlobalMaterialLocalizations.delegates,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: RemindersScreen(),
+        ),
+      ),
+    );
+    await viewModel.add(600);
+    await tester.pump();
+    expect(viewModel.times, [600]);
+    await tester.tap(find.byKey(const ValueKey('reminders-open-settings')));
+    expect(device.settingsOpened, 1);
   });
 
   testWidgets('the grid shows 114 surahs and the legend', (tester) async {

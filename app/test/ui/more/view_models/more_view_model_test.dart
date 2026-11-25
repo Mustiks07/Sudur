@@ -14,14 +14,16 @@ void main() {
       dailyMinutes: 20,
       strictBehavior: true,
       showFirstWord: false,
-      memorizationRepeats: 4,
+      listenRepeats: 4,
+      supportedRepeats: 1,
     );
     await viewModel.updateLanguage(AppLanguage.en);
 
     expect(viewModel.settings?.profile.dailyMinutes, 20);
     expect(viewModel.settings?.profile.strictBehavior, isTrue);
     expect(viewModel.settings?.profile.language, AppLanguage.en);
-    expect(viewModel.settings?.memorizationRepeats, 4);
+    expect(viewModel.settings?.listenRepeats, 4);
+    expect(viewModel.settings?.supportedRepeats, 1);
     viewModel.dispose();
   });
 }

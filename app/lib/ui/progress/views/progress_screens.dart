@@ -206,7 +206,6 @@ final class RemindersScreen extends StatelessWidget {
       listenable: viewModel,
       builder: (context, _) {
         final l10n = AppLocalizations.of(context);
-        final text = l10n.reminderText;
         String format(int minutes) => MaterialLocalizations.of(
           context,
         ).formatTimeOfDay(TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60));
@@ -221,7 +220,7 @@ final class RemindersScreen extends StatelessWidget {
                   title: Text(format(time)),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline),
-                    onPressed: () => viewModel.remove(time, text),
+                    onPressed: () => viewModel.remove(time),
                   ),
                 ),
               if (viewModel.canAdd)
@@ -235,20 +234,26 @@ final class RemindersScreen extends StatelessWidget {
                       initialTime: const TimeOfDay(hour: 8, minute: 0),
                     );
                     if (picked != null) {
-                      await viewModel.add(
-                        picked.hour * 60 + picked.minute,
-                        text,
-                      );
+                      await viewModel.add(picked.hour * 60 + picked.minute);
                     }
                   },
                 ),
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.medium),
-                child: Text(
-                  l10n.remindersNotYet,
-                  style: Theme.of(context).textTheme.bodySmall,
+              if (viewModel.blocked) ...[
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.medium),
+                  child: Text(l10n.remindersBlocked),
                 ),
-              ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.medium,
+                  ),
+                  child: OutlinedButton(
+                    key: const ValueKey('reminders-open-settings'),
+                    onPressed: viewModel.openSettings,
+                    child: Text(l10n.readOpenSettings),
+                  ),
+                ),
+              ],
             ],
           ),
         );

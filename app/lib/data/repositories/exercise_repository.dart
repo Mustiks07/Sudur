@@ -94,18 +94,18 @@ final class LocalExerciseRepository implements ExerciseRepository {
     required AppStorageService storage,
     required Clock clock,
     required String Function() createId,
-    ExerciseParams params = ExerciseParams.defaults,
+    PlannerParams? params,
   }) : _canon = canon,
        _storage = storage,
        _clock = clock,
        _createId = createId,
-       _params = params;
+       _params = params ?? PlannerParams.defaults;
 
   final AppCanonService _canon;
   final AppStorageService _storage;
   final Clock _clock;
   final String Function() _createId;
-  final ExerciseParams _params;
+  final PlannerParams _params;
 
   @override
   Future<Result<ExercisePlanData>> plan(CheckEvent check) async {
@@ -119,8 +119,8 @@ final class LocalExerciseRepository implements ExerciseRepository {
       final lastAyah = canon.ayahOf(last);
       final ayahRange = (ayah.firstWordIndex, lastAyah.lastWordIndex);
       final placeRange = (
-        _max(first - _params.contextWords, ayah.firstWordIndex),
-        _min(last + _params.contextWords, lastAyah.lastWordIndex),
+        _max(first - _params.exerciseContextWords, ayah.firstWordIndex),
+        _min(last + _params.exerciseContextWords, lastAyah.lastWordIndex),
       );
       final previous = ayah.ayah > 1
           ? canon.ayahsOf(ayah.surah)[ayah.ayah - 2]
