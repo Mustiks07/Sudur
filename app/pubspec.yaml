@@ -13,6 +13,7 @@ dependencies:
     path: ../packages/asr_sherpa
   audio_capture:
     path: ../packages/audio_capture
+  audioplayers: 6.8.1
   contracts:
     path: ../packages/contracts
   crypto: 3.0.6
@@ -31,6 +32,7 @@ dependencies:
     path: ../packages/quran_text
   session:
     path: ../packages/session
+  share_plus: 13.3.1
   storage:
     path: ../packages/storage
   wakelock_plus: 1.8.2

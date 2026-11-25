@@ -129,5 +129,8 @@ final class _FakePlatform implements PrototypePlatformService {
   Future<String?> pickWavFile() async => null;
 
   @override
+  Future<String?> pickUserDataArchive() async => null;
+
+  @override
   Future<void> shareFile(String path) async {}
 }

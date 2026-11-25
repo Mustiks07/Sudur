@@ -264,5 +264,32 @@
       }
     }
   },
-  "readOpenSettings": "Open settings"
+  "readOpenSettings": "Open settings",
+  "reviewShare": "Share the result",
+  "reviewShareText": "Surah {surah}, ayahs {from}–{to}: on my own {independent}, with hints {hints}, mistakes {errors}, could not check {unverified}.",
+  "@reviewShareText": {
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      },
+      "independent": {
+        "type": "int"
+      },
+      "hints": {
+        "type": "int"
+      },
+      "errors": {
+        "type": "int"
+      },
+      "unverified": {
+        "type": "int"
+      }
+    }
+  }
 }

@@ -601,11 +601,30 @@ final class _ReviewBody extends StatelessWidget {
                   ],
                 ),
         ),
+        TextButton.icon(
+          key: const ValueKey('review-share'),
+          onPressed: () => viewModel.shareSummary(
+            l10n.reviewShareText(
+              passage?.from.surah ?? 0,
+              passage?.from.ayah ?? 0,
+              passage?.to.ayah ?? 0,
+              summary.independent,
+              summary.withHints,
+              summary.errors,
+              summary.unverified,
+            ),
+          ),
+          icon: const Icon(Icons.share_outlined),
+          label: Text(l10n.reviewShare),
+        ),
         Padding(
           padding: const EdgeInsets.all(AppSpacing.medium),
           child: FilledButton(
             key: const ValueKey('review-next'),
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () {
+              viewModel.closeReview();
+              Navigator.of(context).pop(true);
+            },
             child: Text(l10n.reviewNext),
           ),
         ),
@@ -647,12 +666,12 @@ final class _ReviewEvent extends StatelessWidget {
           spacing: AppSpacing.small,
           alignment: WrapAlignment.center,
           children: [
-            Tooltip(
-              message: l10n.reviewAudioSoon,
-              child: OutlinedButton(
-                onPressed: null,
-                child: Text(l10n.reviewListenSelf),
-              ),
+            OutlinedButton(
+              key: ValueKey('review-listen-${check.eventId}'),
+              onPressed: viewModel.canListenToSelf(check.eventId)
+                  ? () => viewModel.listenToSelf(check.eventId)
+                  : null,
+              child: Text(l10n.reviewListenSelf),
             ),
             Tooltip(
               message: l10n.reviewAudioSoon,

@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:contracts/contracts.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mushaf_view/mushaf_view.dart';
 import 'package:sudur/config/prototype_real_session.dart';
+import 'package:sudur/data/services/device_service.dart';
+import 'package:sudur/data/services/prototype_session.dart';
 import 'package:sudur/ui/read/view_models/read_view_model.dart';
 
 import '../../../test_helpers/fake_app_user_repository.dart';
@@ -241,6 +245,47 @@ void main() {
     sessions.session.emit(finishedEvent());
     await finishing;
     expect(device.screenOn, isFalse);
+  });
+
+  test(
+    'ЗВ-02, ЗВ-07: own audio is played from memory and dropped on leave',
+    () async {
+      await viewModel.start();
+      sessions.session
+        ..emit(check('c1', w2, state: CheckState.confirmed))
+        ..snippets['c1'] = ReviewAudio(
+          samples: Float32List.fromList([0, 0.5, -0.5]),
+          sampleRate: 16000,
+        );
+      final finishing = viewModel.finish();
+      sessions.session.emit(finishedEvent());
+      await finishing;
+
+      expect(viewModel.canListenToSelf('c1'), isTrue);
+      expect(viewModel.canListenToSelf('other'), isFalse);
+      await viewModel.listenToSelf('c1');
+      expect(device.played.single.samples, hasLength(3));
+
+      await viewModel.shareSummary('summary');
+      expect(device.shared, ['summary']);
+
+      viewModel.closeReview();
+      expect(sessions.session.reviewsClosed, 1);
+      expect(viewModel.canListenToSelf('c1'), isFalse);
+    },
+  );
+
+  test('a WAV in memory: 16-bit mono PCM with the right header', () {
+    final wav = wavBytes(
+      ReviewAudio(samples: Float32List.fromList([0, 1, -1]), sampleRate: 16000),
+    );
+    expect(wav, hasLength(44 + 3 * 2));
+    expect(String.fromCharCodes(wav.sublist(0, 4)), 'RIFF');
+    expect(String.fromCharCodes(wav.sublist(8, 12)), 'WAVE');
+    final data = ByteData.sublistView(wav);
+    expect(data.getUint32(24, Endian.little), 16000);
+    expect(data.getInt16(46, Endian.little), 32767);
+    expect(data.getInt16(48, Endian.little), -32767);
   });
 
   test('microphone denied is shown as micDenied', () async {

@@ -176,5 +176,7 @@
   "reviewNext": "[Нужен перевод]",
   "reviewAudioSoon": "[Нужен перевод]",
   "reviewNoEvents": "[Нужен перевод]",
-  "readOpenSettings": "[Нужен перевод]"
+  "readOpenSettings": "[Нужен перевод]",
+  "reviewShare": "[Нужен перевод]",
+  "reviewShareText": "[Нужен перевод] {surah} {from} {to} {independent} {hints} {errors} {unverified}"
 }

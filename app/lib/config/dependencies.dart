@@ -66,7 +66,7 @@ class AppDependencies extends StatelessWidget {
           dispose: (_, router) => router.dispose(),
         ),
         Provider<PrototypeRepository>.value(value: repository),
-        Provider<DeviceService>.value(value: const PluginDeviceService()),
+        Provider<DeviceService>.value(value: PluginDeviceService()),
         Provider<ReadingRepository>.value(
           value: LocalReadingRepository(installer),
         ),

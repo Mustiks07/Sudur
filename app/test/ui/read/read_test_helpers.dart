@@ -138,4 +138,19 @@ final class FakeDevice implements DeviceService {
 
   @override
   Future<void> openAppSettings() async => settingsOpened++;
+
+  /// Audio played, in order.
+  final List<ReviewAudio> played = [];
+
+  /// Texts shared, in order.
+  final List<String> shared = [];
+
+  @override
+  Future<void> play(ReviewAudio audio) async => played.add(audio);
+
+  @override
+  Future<void> stopPlaying() async {}
+
+  @override
+  Future<void> shareText(String text) async => shared.add(text);
 }

@@ -176,5 +176,7 @@
   "reviewNext": "Дальше",
   "reviewAudioSoon": "Своя запись и чтец появятся в следующей версии",
   "reviewNoEvents": "Событий нет",
-  "readOpenSettings": "Открыть настройки"
+  "readOpenSettings": "Открыть настройки",
+  "reviewShare": "Поделиться итогом",
+  "reviewShareText": "Сура {surah}, аяты {from}–{to}: самостоятельно {independent}, с подсказками {hints}, ошибок {errors}, не удалось проверить {unverified}."
 }

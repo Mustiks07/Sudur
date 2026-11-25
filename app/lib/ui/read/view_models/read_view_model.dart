@@ -240,6 +240,25 @@ final class ReadViewModel extends ChangeNotifier {
     (c) => _isMistake(c.kind) && c.state == CheckState.confirmed,
   );
 
+  /// Whether the reader's own audio of [eventId] is kept (ЗВ-02).
+  bool canListenToSelf(String eventId) =>
+      _session?.reviewSnippet(eventId) != null;
+
+  /// «Послушать себя»: plays the kept audio of [eventId] from memory.
+  Future<void> listenToSelf(String eventId) async {
+    final audio = _session?.reviewSnippet(eventId);
+    if (audio != null) await _device.play(audio);
+  }
+
+  /// «Поделиться итогом» (РБ-06): short [text], no voice.
+  Future<void> shareSummary(String text) => _device.shareText(text);
+
+  /// Leaving «Разбор»: kept audio is dropped (ЗВ-07).
+  void closeReview() {
+    unawaited(_device.stopPlaying());
+    _session?.closeReview();
+  }
+
   /// Filter of the event list.
   ReviewFilter get reviewFilter => _reviewFilter;
   ReviewFilter _reviewFilter = ReviewFilter.all;
@@ -638,6 +657,7 @@ final class ReadViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _keepScreenOn(on: false);
+    closeReview();
     _disposed = true;
     _strictTimer?.cancel();
     unawaited(_events?.cancel());
