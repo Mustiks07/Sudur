@@ -275,6 +275,726 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Surah {surah}, ayah {ayah}. {text}'**
   String mushafAyahSemantics(int surah, int ayah, String text);
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get retry;
+
+  /// No description provided for @loadError.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get loadError;
+
+  /// No description provided for @networkError.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get networkError;
+
+  /// No description provided for @startTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get startTitle;
+
+  /// No description provided for @chooseLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get chooseLanguage;
+
+  /// No description provided for @languageRussian.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get languageRussian;
+
+  /// No description provided for @languageKazakh.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get languageKazakh;
+
+  /// No description provided for @languageUzbek.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get languageUzbek;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get languageEnglish;
+
+  /// No description provided for @choosePath.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get choosePath;
+
+  /// No description provided for @pathLearnReading.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get pathLearnReading;
+
+  /// No description provided for @pathMemorize.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get pathMemorize;
+
+  /// No description provided for @pathRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get pathRestore;
+
+  /// No description provided for @chooseFamiliarSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get chooseFamiliarSurahs;
+
+  /// No description provided for @searchSurah.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get searchSurah;
+
+  /// No description provided for @surahNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод] {number}'**
+  String surahNumber(Object number);
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get skip;
+
+  /// No description provided for @continueAction.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get continueAction;
+
+  /// No description provided for @chooseDailyTime.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get chooseDailyTime;
+
+  /// No description provided for @minutesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод] {count}'**
+  String minutesCount(Object count);
+
+  /// No description provided for @customTime.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get customTime;
+
+  /// No description provided for @minutes.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get minutes;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get cancel;
+
+  /// No description provided for @modelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get modelTitle;
+
+  /// No description provided for @downloadModel.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get downloadModel;
+
+  /// No description provided for @downloadLater.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get downloadLater;
+
+  /// No description provided for @modelDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get modelDownloading;
+
+  /// No description provided for @chooseStartPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get chooseStartPoint;
+
+  /// No description provided for @startFirstSurah.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get startFirstSurah;
+
+  /// No description provided for @startShortSurahs.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get startShortSurahs;
+
+  /// No description provided for @knowLetters.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get knowLetters;
+
+  /// No description provided for @lettersNo.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get lettersNo;
+
+  /// No description provided for @lettersALittle.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get lettersALittle;
+
+  /// No description provided for @todayAroundMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод] {minutes}'**
+  String todayAroundMinutes(Object minutes);
+
+  /// No description provided for @todayFirstDay.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get todayFirstDay;
+
+  /// No description provided for @todayNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get todayNormal;
+
+  /// No description provided for @todayReturning.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get todayReturning;
+
+  /// No description provided for @todayCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get todayCompleted;
+
+  /// No description provided for @todayFreeLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get todayFreeLimit;
+
+  /// No description provided for @todayModelMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get todayModelMissing;
+
+  /// No description provided for @stepDiagnostic.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get stepDiagnostic;
+
+  /// No description provided for @stepPassage.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get stepPassage;
+
+  /// No description provided for @stepSurah.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод] {number}'**
+  String stepSurah(Object number);
+
+  /// No description provided for @stepHardSpot.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get stepHardSpot;
+
+  /// No description provided for @stepLesson.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get stepLesson;
+
+  /// No description provided for @stepSkill.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get stepSkill;
+
+  /// No description provided for @reasonReturnDiagnosis.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reasonReturnDiagnosis;
+
+  /// No description provided for @reasonYesterdayNew.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reasonYesterdayNew;
+
+  /// No description provided for @reasonYesterdayError.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reasonYesterdayError;
+
+  /// No description provided for @reasonRecentDue.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reasonRecentDue;
+
+  /// No description provided for @reasonLongUnchecked.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reasonLongUnchecked;
+
+  /// No description provided for @reasonNewMaterial.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reasonNewMaterial;
+
+  /// No description provided for @reasonCourseLesson.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reasonCourseLesson;
+
+  /// No description provided for @reasonSkillDue.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reasonSkillDue;
+
+  /// No description provided for @reasonUserAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reasonUserAdded;
+
+  /// No description provided for @selfCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get selfCheck;
+
+  /// No description provided for @startAction.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get startAction;
+
+  /// No description provided for @skipTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get skipTodayTitle;
+
+  /// No description provided for @skipTodayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get skipTodayBody;
+
+  /// No description provided for @skipToday.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get skipToday;
+
+  /// No description provided for @dayDone.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get dayDone;
+
+  /// No description provided for @reviewMore.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reviewMore;
+
+  /// No description provided for @activities.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get activities;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get language;
+
+  /// No description provided for @downloads.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get downloads;
+
+  /// No description provided for @myData.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get myData;
+
+  /// No description provided for @subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get subscription;
+
+  /// No description provided for @reminders.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reminders;
+
+  /// No description provided for @improveChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get improveChecking;
+
+  /// No description provided for @reportProblem.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get reportProblem;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get comingSoon;
+
+  /// No description provided for @aboutApp.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get aboutApp;
+
+  /// No description provided for @sourcesLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get sourcesLicenses;
+
+  /// No description provided for @dailyTime.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get dailyTime;
+
+  /// No description provided for @strictMode.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get strictMode;
+
+  /// No description provided for @showFirstWord.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get showFirstWord;
+
+  /// No description provided for @memorizationRepeats.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get memorizationRepeats;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get save;
+
+  /// No description provided for @noModels.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get noModels;
+
+  /// No description provided for @speechModel.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get speechModel;
+
+  /// No description provided for @megabytes.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод] {value}'**
+  String megabytes(Object value);
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get deleteAction;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get close;
+
+  /// No description provided for @exportData.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get exportData;
+
+  /// No description provided for @importData.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get importData;
+
+  /// No description provided for @deleteAllData.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get deleteAllData;
+
+  /// No description provided for @deleteAllDataWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'[Нужен перевод]'**
+  String get deleteAllDataWarning;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @readingDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get readingDone;
+
+  /// No description provided for @readingRangeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This passage cannot be opened yet: the prototype has only pages 582–583. Reading the whole Quran comes in the next version.'**
+  String get readingRangeUnavailable;
+
+  /// No description provided for @stepComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'This step comes in the next version of the app.'**
+  String get stepComingSoon;
+
+  /// No description provided for @todaySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps done: {count}'**
+  String todaySummary(int count);
+
+  /// No description provided for @readPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing…'**
+  String get readPreparing;
+
+  /// No description provided for @readReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Start reading'**
+  String get readReady;
+
+  /// No description provided for @readModeSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'With support'**
+  String get readModeSupported;
+
+  /// No description provided for @readModeRecall.
+  ///
+  /// In en, this message translates to:
+  /// **'Try to recall'**
+  String get readModeRecall;
+
+  /// No description provided for @readModeTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test myself'**
+  String get readModeTest;
+
+  /// No description provided for @readStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get readStart;
+
+  /// No description provided for @readHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hint'**
+  String get readHint;
+
+  /// No description provided for @readPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get readPause;
+
+  /// No description provided for @readResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get readResume;
+
+  /// No description provided for @readFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get readFinish;
+
+  /// No description provided for @readPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get readPaused;
+
+  /// No description provided for @readMicDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access is needed'**
+  String get readMicDenied;
+
+  /// No description provided for @readWithoutMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Without microphone'**
+  String get readWithoutMic;
+
+  /// No description provided for @readModelMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The model is not downloaded'**
+  String get readModelMissing;
+
+  /// No description provided for @readDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get readDownload;
+
+  /// No description provided for @readWithoutVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Without voice'**
+  String get readWithoutVoice;
+
+  /// No description provided for @readDeviceTooSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone cannot check in time. Let\'s continue without checking'**
+  String get readDeviceTooSlow;
+
+  /// No description provided for @readFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not prepare reading'**
+  String get readFailed;
+
+  /// No description provided for @readUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Open without penalty'**
+  String get readUnlock;
+
+  /// No description provided for @readStrictAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Read this word again'**
+  String get readStrictAgain;
+
+  /// No description provided for @readOfferHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a hint?'**
+  String get readOfferHint;
+
+  /// No description provided for @readChecksNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Words are checked. Vowel marks and tajweed are not checked yet'**
+  String get readChecksNotice;
+
+  /// No description provided for @readTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah {surah}, ayahs {from}–{to}'**
+  String readTitle(int surah, int from, int to);
+
+  /// No description provided for @readShowFirstWord.
+  ///
+  /// In en, this message translates to:
+  /// **'First word visible'**
+  String get readShowFirstWord;
+
+  /// No description provided for @readStrict.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict mode'**
+  String get readStrict;
+
+  /// No description provided for @readTextView.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary text view: there is no page layout for this place yet'**
+  String get readTextView;
+
+  /// No description provided for @readSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving the result…'**
+  String get readSaving;
+
+  /// No description provided for @readOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get readOpenSettings;
 }
 
 class _AppLocalizationsDelegate

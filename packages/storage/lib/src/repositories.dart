@@ -112,6 +112,10 @@ abstract interface class DownloadRepository {
 
   /// Returns all package states.
   Future<Result<List<DownloadData>>> list();
+
+  /// Forgets [packageId] after its files were deleted: “not installed” is
+  /// not stored (docs/tz 11.4), it is the absence of a row.
+  Future<Result<void>> remove(String packageId);
 }
 
 /// Explicitly saved recording metadata persistence.
@@ -461,6 +465,13 @@ final class DriftDownloadRepository implements DownloadRepository {
         await _database
             .into(_database.downloads)
             .insertOnConflictUpdate(_downloadRow(download));
+      });
+
+  @override
+  Future<Result<void>> remove(String packageId) => _guard(() async {
+        await (_database.delete(_database.downloads)
+              ..where((row) => row.packageId.equals(packageId)))
+            .go();
       });
 }
 

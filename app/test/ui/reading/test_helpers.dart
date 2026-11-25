@@ -161,10 +161,15 @@ final class ManualPrototypeSessionFactory
     implements PrototypeReadingSessionFactory {
   final List<ManualPrototypeSession> sessions = <ManualPrototypeSession>[];
 
+  /// Configuration of every created session, in order.
+  final List<PrototypeSessionConfiguration> configurations =
+      <PrototypeSessionConfiguration>[];
+
   ManualPrototypeSession get session => sessions.last;
 
   @override
   PrototypeReadingSession create(PrototypeSessionConfiguration configuration) {
+    configurations.add(configuration);
     final session = ManualPrototypeSession();
     sessions.add(session);
     return session;

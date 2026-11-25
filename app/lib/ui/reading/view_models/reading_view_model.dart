@@ -33,6 +33,9 @@ enum ReadingPrototypeState {
 
   /// Resource, benchmark, or session preparation failed.
   error,
+
+  /// The requested range is not on the prototype pages 582–583.
+  rangeUnavailable,
 }
 
 /// UI state and commands for the standalone reading prototype.
@@ -61,6 +64,8 @@ final class ReadingViewModel extends ChangeNotifier {
   var _activeInputUsesWav = false;
   var _prepareGeneration = 0;
   var _disposed = false;
+  (WordKey, WordKey)? _range;
+  var _prepared = false;
 
   /// Current screen lifecycle.
   ReadingPrototypeState get state => _state;
@@ -127,6 +132,20 @@ final class ReadingViewModel extends ChangeNotifier {
   /// Downloads verified resources and prepares the default model.
   Future<void> initialize() => _prepare(_selectedModel);
 
+  /// The range of today's step being read, or `null` for the whole
+  /// prototype passage.
+  (WordKey, WordKey)? get range => _range;
+
+  /// Reads only [from]–[to] (a step of “Today”), or the whole prototype
+  /// passage when both are `null`. Until the reading screen (Q7) exists,
+  /// only ranges on pages 582–583 can be read.
+  Future<void> useRange(WordKey? from, WordKey? to) async {
+    final range = from == null || to == null ? null : (from, to);
+    if (range == _range && _prepared) return;
+    _range = range;
+    if (_prepared) await _prepare(_selectedModel);
+  }
+
   /// Retries preparation after a visible error.
   Future<void> retry() => _prepare(_selectedModel);
 
@@ -156,7 +175,27 @@ final class ReadingViewModel extends ChangeNotifier {
         },
       );
       if (generation != _prepareGeneration || _disposed) return;
-      _bundle = bundle;
+      _prepared = true;
+      final range = _range;
+      final words = range == null
+          ? bundle.sessionWords
+          : [
+              for (final word in bundle.sessionWords)
+                if (word.compareTo(range.$1) >= 0 &&
+                    word.compareTo(range.$2) <= 0)
+                  word,
+            ];
+      if (words.isEmpty ||
+          (range != null &&
+              (words.first != range.$1 || words.last != range.$2))) {
+        _bundle = null;
+        _state = ReadingPrototypeState.rangeUnavailable;
+        notifyListeners();
+        return;
+      }
+      final selected = range == null ? null : words.toSet();
+      final ranged = bundle.withWords(words);
+      _bundle = ranged;
       _wordStates
         ..clear()
         ..addEntries(
@@ -168,13 +207,16 @@ final class ReadingViewModel extends ChangeNotifier {
                     (fragment) => MapEntry(
                       // Checked by the where clause immediately above.
                       fragment.wordKey!,
-                      MushafWordState.hidden,
+                      // Words outside today's range stay visible.
+                      selected == null || selected.contains(fragment.wordKey)
+                          ? MushafWordState.hidden
+                          : MushafWordState.normal,
                     ),
                   ),
             ),
           ),
         );
-      await _replaceSession(bundle);
+      await _replaceSession(ranged);
       _measurementLog = PrototypeMeasurementLog(modelId: model.name);
       _renderedPages.clear();
       _pageRenderStartedAt.clear();
@@ -204,7 +246,7 @@ final class ReadingViewModel extends ChangeNotifier {
     notifyListeners();
     if (isRestart) {
       await _replaceSession(bundle);
-      for (final word in _wordStates.keys) {
+      for (final word in bundle.sessionWords) {
         _wordStates[word] = MushafWordState.hidden;
       }
       _currentWord = null;
