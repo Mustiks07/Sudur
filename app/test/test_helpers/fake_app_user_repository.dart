@@ -118,6 +118,24 @@ final class FakeAppUserRepository implements AppUserRepository {
     );
   }
 
+  /// Plan returned by [learnPlan].
+  LearnPlan? learn;
+
+  /// Progress saved through [saveLearnProgress].
+  final Map<String, int> learnProgress = {};
+
+  @override
+  Future<Result<LearnPlan>> learnPlan(String stepId) async => switch (learn) {
+    final LearnPlan plan => Result.ok(plan),
+    null => Result.error(Exception('no plan')),
+  };
+
+  @override
+  Future<Result<void>> saveLearnProgress(String unitId, int stepIndex) async {
+    learnProgress[unitId] = stepIndex;
+    return const Result.ok(null);
+  }
+
   /// Self-checks written through [recordSelfCheck], in order.
   final List<SelfCheckResult> selfChecks = <SelfCheckResult>[];
 

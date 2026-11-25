@@ -627,4 +627,34 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get exerciseReread => '[Нужен перевод]';
+
+  @override
+  String get learnTitle => '[Нужен перевод]';
+
+  @override
+  String get learnListen => '[Нужен перевод]';
+
+  @override
+  String get learnListenUnavailable => '[Нужен перевод]';
+
+  @override
+  String get learnSkipListening => '[Нужен перевод]';
+
+  @override
+  String get learnSupported => '[Нужен перевод]';
+
+  @override
+  String get learnRecall => '[Нужен перевод]';
+
+  @override
+  String get learnTest => '[Нужен перевод]';
+
+  @override
+  String get learnJunction => '[Нужен перевод]';
+
+  @override
+  String get learnCombined => '[Нужен перевод]';
+
+  @override
+  String get learnLearned => '[Нужен перевод]';
 }

@@ -11,6 +11,8 @@ final class E01Config {
     this.defaultMemorizationRepeats = 3,
     this.firstSurah = 1,
     this.firstShortSurah = 114,
+    this.lastShortSurah = 78,
+    this.learnJunctionWords = 2,
   });
 
   /// Delay before a loading skeleton is shown (spec section 13).
@@ -32,4 +34,11 @@ final class E01Config {
   /// (docs/tz 13.1): the last surah; later ones are added by learning new
   /// material (Q11).
   final int firstShortSurah;
+
+  /// Last surah of the short surahs from the end (СТ-09: 114 → 78).
+  final int lastShortSurah;
+
+  /// Words on each side of the junction of two passages (ЗН-03); the spec
+  /// gives no number yet (question to the owner).
+  final int learnJunctionWords;
 }

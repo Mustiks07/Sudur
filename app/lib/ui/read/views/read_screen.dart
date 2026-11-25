@@ -519,7 +519,7 @@ final class _ReviewBody extends StatelessWidget {
             // A step of an exercise returns whether it was clean (УП-07).
             onPressed: () =>
                 Navigator.of(context)
-                    .pop(!viewModel.exercise || viewModel.clean),
+                    .pop(!viewModel.exercise || viewModel.cleanWithoutHints),
             child: Text(l10n.reviewNext),
           ),
         ),

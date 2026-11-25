@@ -634,4 +634,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exerciseReread => 'Read again';
+
+  @override
+  String get learnTitle => 'Learning';
+
+  @override
+  String get learnListen => 'Listen to the reciter';
+
+  @override
+  String get learnListenUnavailable =>
+      'There are no reciter recordings in the app yet — their rights are not obtained yet';
+
+  @override
+  String get learnSkipListening => 'Skip listening';
+
+  @override
+  String get learnSupported => 'Read with the text';
+
+  @override
+  String get learnRecall => 'Try to recall';
+
+  @override
+  String get learnTest => 'Check yourself';
+
+  @override
+  String get learnJunction => 'Junction with the previous passage';
+
+  @override
+  String get learnCombined => 'Both passages in a row';
+
+  @override
+  String get learnLearned => 'Passage learned. We will repeat it tomorrow';
 }

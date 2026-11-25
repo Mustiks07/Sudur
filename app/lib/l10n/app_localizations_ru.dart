@@ -640,4 +640,35 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get exerciseReread => 'Прочитать ещё раз';
+
+  @override
+  String get learnTitle => 'Заучивание';
+
+  @override
+  String get learnListen => 'Послушайте чтеца';
+
+  @override
+  String get learnListenUnavailable =>
+      'Записей чтецов пока нет в приложении — права на них ещё не получены';
+
+  @override
+  String get learnSkipListening => 'Пропустить прослушивание';
+
+  @override
+  String get learnSupported => 'Прочитайте по тексту';
+
+  @override
+  String get learnRecall => 'Попробуйте вспомнить';
+
+  @override
+  String get learnTest => 'Проверьте себя';
+
+  @override
+  String get learnJunction => 'Стык с предыдущим отрывком';
+
+  @override
+  String get learnCombined => 'Оба отрывка подряд';
+
+  @override
+  String get learnLearned => 'Отрывок выучен. Повторим завтра';
 }

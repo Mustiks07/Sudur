@@ -304,5 +304,15 @@
         "type": "int"
       }
     }
-  }
+  },
+  "learnTitle": "Learning",
+  "learnListen": "Listen to the reciter",
+  "learnListenUnavailable": "There are no reciter recordings in the app yet — their rights are not obtained yet",
+  "learnSkipListening": "Skip listening",
+  "learnSupported": "Read with the text",
+  "learnRecall": "Try to recall",
+  "learnTest": "Check yourself",
+  "learnJunction": "Junction with the previous passage",
+  "learnCombined": "Both passages in a row",
+  "learnLearned": "Passage learned. We will repeat it tomorrow"
 }

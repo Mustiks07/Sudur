@@ -482,6 +482,74 @@ void main() {
     expect(attempt.rating, isNull);
   });
 
+  test('ЗН-01, ЗН-03: steps of a new passage; the second one adds the '
+      'junction and both in a row; progress is kept (ЗН-04)', () async {
+    _value(
+      await repository.completeOnboarding(
+        draft(
+          path: AppLearningPath.memorize,
+          familiar: const {},
+          startPoint: AppStartPoint.firstSurah,
+        ),
+      ),
+    );
+    final today = _value(await repository.loadToday());
+    final step = today.steps.firstWhere((s) => s.unitId != null);
+    final plan = _value(await repository.learnPlan(step.id));
+    expect(plan.steps.map((s) => s.kind), [
+      LearnStepKind.listen,
+      LearnStepKind.listen,
+      LearnStepKind.listen,
+      LearnStepKind.supported,
+      LearnStepKind.supported,
+      LearnStepKind.recall,
+      LearnStepKind.test,
+      if (plan.from !=
+          index.keyOf(index.passagesOf(1).first.fromWordIndex)) ...[
+        LearnStepKind.junction,
+        LearnStepKind.combined,
+      ],
+    ]);
+
+    _value(await repository.saveLearnProgress(plan.unitId, 5));
+    expect(_value(await repository.learnPlan(step.id)).startIndex, 5);
+  });
+
+  test(
+    'ЗН-05: after the last short surah is learned, the next one comes',
+    () async {
+      _value(
+        await repository.completeOnboarding(
+          draft(
+            path: AppLearningPath.memorize,
+            familiar: const {},
+            startPoint: AppStartPoint.shortSurahs,
+          ),
+        ),
+      );
+      for (final unit in await units()) {
+        final state = _value(await storage.units.getState(unit.id))!;
+        _value(
+          await storage.units.putState((
+            unitId: state.unitId,
+            queue: UnitQueue.recent,
+            memoryState: state.memoryState,
+            fsrsCard: state.fsrsCard,
+            dueAt: state.dueAt,
+            recentSince: state.updatedAt,
+            lastAttemptAt: state.updatedAt,
+            lastMethod: CheckMethod.voice,
+            updatedAt: state.updatedAt,
+          )),
+        );
+      }
+
+      _value(await repository.loadToday());
+
+      expect((await units()).map((u) => u.surah).toSet(), {114, 113});
+    },
+  );
+
   test('planner state survives its JSON', () {
     final at = DateTime.utc(2026, 11, 20, 9);
     const memory = PlanMemoryState(

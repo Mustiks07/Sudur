@@ -41,6 +41,12 @@ final class AppPlannerService {
     return _engine.applyAttempt(started, attempt);
   }
 
+  /// Repetitions of ЗН-01: listening and reading with support.
+  ({int listen, int supported}) get learningRepeats => (
+    listen: _params.learnListenRepeats,
+    supported: _params.learnSupportedRepeats,
+  );
+
   /// Builds a plan using the pure-Dart package and specification parameters.
   TodayPlan build(TodayPlanRequest request) => TodayPlanner(
     params: _params,

@@ -193,5 +193,15 @@
   "exerciseStartInMiddle": "[Нужен перевод]",
   "exerciseFadingHelp": "[Нужен перевод]",
   "exerciseSimilar": "[Нужен перевод]",
-  "exerciseReread": "[Нужен перевод]"
+  "exerciseReread": "[Нужен перевод]",
+  "learnTitle": "[Нужен перевод]",
+  "learnListen": "[Нужен перевод]",
+  "learnListenUnavailable": "[Нужен перевод]",
+  "learnSkipListening": "[Нужен перевод]",
+  "learnSupported": "[Нужен перевод]",
+  "learnRecall": "[Нужен перевод]",
+  "learnTest": "[Нужен перевод]",
+  "learnJunction": "[Нужен перевод]",
+  "learnCombined": "[Нужен перевод]",
+  "learnLearned": "[Нужен перевод]"
 }

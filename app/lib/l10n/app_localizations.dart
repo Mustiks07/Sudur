@@ -1265,6 +1265,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read again'**
   String get exerciseReread;
+
+  /// No description provided for @learnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Learning'**
+  String get learnTitle;
+
+  /// No description provided for @learnListen.
+  ///
+  /// In en, this message translates to:
+  /// **'Listen to the reciter'**
+  String get learnListen;
+
+  /// No description provided for @learnListenUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'There are no reciter recordings in the app yet — their rights are not obtained yet'**
+  String get learnListenUnavailable;
+
+  /// No description provided for @learnSkipListening.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip listening'**
+  String get learnSkipListening;
+
+  /// No description provided for @learnSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Read with the text'**
+  String get learnSupported;
+
+  /// No description provided for @learnRecall.
+  ///
+  /// In en, this message translates to:
+  /// **'Try to recall'**
+  String get learnRecall;
+
+  /// No description provided for @learnTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Check yourself'**
+  String get learnTest;
+
+  /// No description provided for @learnJunction.
+  ///
+  /// In en, this message translates to:
+  /// **'Junction with the previous passage'**
+  String get learnJunction;
+
+  /// No description provided for @learnCombined.
+  ///
+  /// In en, this message translates to:
+  /// **'Both passages in a row'**
+  String get learnCombined;
+
+  /// No description provided for @learnLearned.
+  ///
+  /// In en, this message translates to:
+  /// **'Passage learned. We will repeat it tomorrow'**
+  String get learnLearned;
 }
 
 class _AppLocalizationsDelegate

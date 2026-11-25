@@ -245,6 +245,10 @@ final class ReadViewModel extends ChangeNotifier {
     (c) => _isMistake(c.kind) && c.state == CheckState.confirmed,
   );
 
+  /// Clean and with no hint: a step of learning or an exercise is passed.
+  bool get cleanWithoutHints =>
+      clean && !_hints.values.any((n) => n > 0) && _unlocked.isEmpty;
+
   /// Filter of the event list.
   ReviewFilter get reviewFilter => _reviewFilter;
   ReviewFilter _reviewFilter = ReviewFilter.all;

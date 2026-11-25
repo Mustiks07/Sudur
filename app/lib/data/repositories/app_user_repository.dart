@@ -55,6 +55,12 @@ abstract interface class AppUserRepository {
   /// new state of the step's plan unit, in one transaction (НФ-21, ПЛ-12).
   Future<Result<RecordedReading>> recordReading(ReadingResult result);
 
+  /// The learning plan of the passage of [stepId] (ЗН-01…04).
+  Future<Result<LearnPlan>> learnPlan(String stepId);
+
+  /// Remembers that learning of [unitId] reached [stepIndex] (ЗН-04).
+  Future<Result<void>> saveLearnProgress(String unitId, int stepIndex);
+
   /// Writes a self-check (СП-01…03): the session, the attempt marked
   /// “self-check” and the new unit state; never rated above «хорошо».
   Future<Result<void>> recordSelfCheck(SelfCheckResult result);
@@ -129,6 +135,7 @@ final class StorageAppUserRepository implements AppUserRepository {
   static const _letterKnowledgeKey = 'letterKnowledge';
   static const _nextCardIdKey = 'nextFsrsCardId';
   static const _courseEntrySkill = 'course-entry';
+  static const _learnProgressKey = 'learnProgress:';
 
   final AppStorageService _storageService;
   final AppFileService _files;
@@ -614,6 +621,77 @@ final class StorageAppUserRepository implements AppUserRepository {
       });
 
   @override
+  Future<Result<LearnPlan>> learnPlan(String stepId) => _guard(() async {
+    final canon = await _canon.load();
+    final storage = await _storageService.storage;
+    final profile = await _requiredProfile(storage);
+    final unitId = await _unitOfStep(storage, stepId);
+    if (unitId == null) throw const FormatException('The step has no passage.');
+    final units = _unwrap(await storage.units.listForProfile(profile.id));
+    final unit = units.firstWhere((u) => u.id == unitId);
+    final from = unit.fromWordIndex;
+    final to = unit.toWordIndex;
+    if (from == null || to == null) {
+      throw const FormatException('No words to learn.');
+    }
+    final first = canon.keyOf(from);
+    final last = canon.keyOf(to);
+    final repeats = _planner.learningRepeats;
+    final steps = <LearnStep>[
+      for (var i = 0; i < repeats.listen; i++)
+        LearnStep(kind: LearnStepKind.listen, from: first, to: last),
+      for (var i = 0; i < repeats.supported; i++)
+        LearnStep(kind: LearnStepKind.supported, from: first, to: last),
+      LearnStep(kind: LearnStepKind.recall, from: first, to: last),
+      LearnStep(kind: LearnStepKind.test, from: first, to: last),
+    ];
+    // ЗН-03: from the second passage of a surah on, the junction with the
+    // previous passage, then both in a row.
+    final previousStart = units
+        .where(
+          (u) =>
+              u.kind == UnitKind.passage &&
+              u.surah == unit.surah &&
+              u.toWordIndex == from - 1,
+        )
+        .firstOrNull
+        ?.fromWordIndex;
+    if (previousStart != null) {
+      final junction = _config.learnJunctionWords;
+      steps
+        ..add(
+          LearnStep(
+            kind: LearnStepKind.junction,
+            from: canon.keyOf(_maxInt(from - junction, previousStart)),
+            to: canon.keyOf(_minInt(from + junction - 1, to)),
+          ),
+        )
+        ..add(
+          LearnStep(
+            kind: LearnStepKind.combined,
+            from: canon.keyOf(previousStart),
+            to: last,
+          ),
+        );
+    }
+    final saved = await _settingInt(storage, '$_learnProgressKey$unitId', 0);
+    return LearnPlan(
+      unitId: unitId,
+      from: first,
+      to: last,
+      steps: steps,
+      startIndex: saved.clamp(0, steps.length - 1),
+    );
+  });
+
+  @override
+  Future<Result<void>> saveLearnProgress(String unitId, int stepIndex) =>
+      _guard(() async {
+        final storage = await _storageService.storage;
+        await _putSetting(storage, '$_learnProgressKey$unitId', stepIndex);
+      });
+
+  @override
   Future<Result<void>> recordSelfCheck(
     SelfCheckResult result,
   ) => _guard(() async {
@@ -904,10 +982,14 @@ final class StorageAppUserRepository implements AppUserRepository {
     AppUserProfile profile,
     String date,
   ) async {
-    final storedUnits = _unwrap(await storage.units.listForProfile(profile.id));
+    var storedUnits = _unwrap(await storage.units.listForProfile(profile.id));
     final canon = storedUnits.any((unit) => unit.fromWordIndex != null)
         ? await _canon.load()
         : null;
+    if (canon != null &&
+        await _addNextSurah(storage, canon, profile, storedUnits)) {
+      storedUnits = _unwrap(await storage.units.listForProfile(profile.id));
+    }
     final units = <PlanUnit>[];
     for (final unit in storedUnits) {
       final state = _unwrap(await storage.units.getState(unit.id));
@@ -971,6 +1053,51 @@ final class StorageAppUserRepository implements AppUserRepository {
     );
     await _saveToday(storage, data);
     return data;
+  }
+
+  /// ЗН-05, СТ-09: when every passage of the chosen start is learned, the
+  /// next surah is added — short surahs go from the end of the Quran to
+  /// its start (114 → 78); after Al-Fatiha they begin with 114.
+  Future<bool> _addNextSurah(
+    StorageService storage,
+    CanonIndex canon,
+    AppUserProfile profile,
+    List<UnitData> units,
+  ) async {
+    if (profile.path == AppLearningPath.learnReading) return false;
+    final own = [
+      for (final u in units)
+        if (u.kind == UnitKind.passage &&
+            u.origin == UnitOrigin.defaultOrigin &&
+            u.surah != null)
+          u,
+    ];
+    if (own.isEmpty) return false;
+    for (final unit in own) {
+      final queue = _unwrap(await storage.units.getState(unit.id))?.queue;
+      if (queue == null ||
+          queue == UnitQueue.notStarted ||
+          queue == UnitQueue.learning) {
+        return false;
+      }
+    }
+    final started = {...own.map((u) => u.surah).whereType<int>()};
+    final shorts = started.where((s) => s >= _config.lastShortSurah);
+    final next = shorts.contains(_config.firstShortSurah)
+        ? shorts.reduce((a, b) => a < b ? a : b) - 1
+        : _config.firstShortSurah;
+    if (next < _config.lastShortSurah || started.contains(next)) return false;
+    final added = await storage.transaction(() async {
+      await _ensurePassageUnits(
+        storage,
+        canon,
+        profile.id,
+        next,
+        UnitOrigin.defaultOrigin,
+      );
+    });
+    _unwrap(added);
+    return true;
   }
 
   /// The planner's view of a stored unit: its range in the canon, its FSRS
@@ -1517,6 +1644,9 @@ T _unwrap<T>(Result<T> result) => switch (result) {
 };
 
 const Object _keep = Object();
+
+int _maxInt(int a, int b) => a > b ? a : b;
+int _minInt(int a, int b) => a < b ? a : b;
 
 WordKey? _wordKeyOrNull(Object? value) => switch (value) {
   null => null,

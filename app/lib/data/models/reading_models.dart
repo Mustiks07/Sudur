@@ -216,3 +216,66 @@ final class SelfCheckResult {
   /// How long it took.
   final Duration duration;
 }
+
+/// Kinds of steps in learning a new passage (docs/tz ЗН-01, ЗН-03).
+enum LearnStepKind {
+  /// «Послушайте чтеца» — unavailable until reciter audio is licensed.
+  listen,
+
+  /// «Прочитайте по тексту».
+  supported,
+
+  /// «Попробуйте вспомнить»: repeats until clean without hints.
+  recall,
+
+  /// «Проверьте себя»: one clean reading learns the passage (ЗН-02).
+  test,
+
+  /// The junction with the previous passage (ЗН-03).
+  junction,
+
+  /// Both passages in a row (ЗН-03).
+  combined,
+}
+
+/// One step of learning, with its words.
+final class LearnStep {
+  /// Creates the step.
+  const LearnStep({required this.kind, required this.from, required this.to});
+
+  /// What to do.
+  final LearnStepKind kind;
+
+  /// First word.
+  final WordKey from;
+
+  /// Last word.
+  final WordKey to;
+}
+
+/// How a new passage is learned (13.6).
+final class LearnPlan {
+  /// Creates the plan.
+  LearnPlan({
+    required this.unitId,
+    required this.from,
+    required this.to,
+    required List<LearnStep> steps,
+    required this.startIndex,
+  }) : steps = List.unmodifiable(steps);
+
+  /// The plan unit of the passage.
+  final String unitId;
+
+  /// First word of the passage.
+  final WordKey from;
+
+  /// Last word of the passage.
+  final WordKey to;
+
+  /// Steps in order.
+  final List<LearnStep> steps;
+
+  /// Where an unfinished learning continues (ЗН-04).
+  final int startIndex;
+}

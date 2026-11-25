@@ -11,6 +11,8 @@ import 'package:sudur/data/repositories/reading_repository.dart';
 import 'package:sudur/data/services/prototype_session.dart';
 import 'package:sudur/ui/exercise/view_models/exercise_view_model.dart';
 import 'package:sudur/ui/exercise/views/exercise_screen.dart';
+import 'package:sudur/ui/learn/view_models/learn_view_model.dart';
+import 'package:sudur/ui/learn/views/learn_screen.dart';
 import 'package:sudur/ui/read/view_models/read_view_model.dart';
 import 'package:sudur/ui/read/views/read_screen.dart';
 import 'package:sudur/ui/reading/views/reading_screen.dart';
@@ -111,6 +113,21 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
       },
     ),
     GoRoute(
+      path: '/learn',
+      builder: (context, state) {
+        final stepId = state.uri.queryParameters['step'];
+        if (stepId == null) return const StepComingSoonScreen();
+        return ChangeNotifierProvider<LearnViewModel>(
+          create: (context) {
+            final viewModel = LearnViewModel(context.read<AppUserRepository>());
+            unawaited(viewModel.open(stepId));
+            return viewModel;
+          },
+          child: const LearnScreen(),
+        );
+      },
+    ),
+    GoRoute(
       path: '/soon',
       builder: (context, state) => const StepComingSoonScreen(),
     ),
@@ -123,6 +140,13 @@ String locationOfStep(TodayStepData step) {
   final from = step.from;
   final to = step.to;
   if (from == null || to == null) return '/soon';
+  // New material is learned step by step (13.6, ЗН-01).
+  if (!step.selfCheck &&
+      step.unitId != null &&
+      (step.reason == TodayStepReason.newMaterial ||
+          step.reason == TodayStepReason.yesterdayNew)) {
+    return Uri(path: '/learn', queryParameters: {'step': step.id}).toString();
+  }
   // Without the model or the free voice checks: self-check (13.2).
   return selfCheckLocation(
     from,
