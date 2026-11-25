@@ -167,5 +167,45 @@
         "type": "int"
       }
     }
+  },
+  "readPreparing": "Preparing…",
+  "readReady": "Start reading",
+  "readModeSupported": "With support",
+  "readModeRecall": "Try to recall",
+  "readModeTest": "Test myself",
+  "readStart": "Start",
+  "readHint": "Hint",
+  "readPause": "Pause",
+  "readResume": "Continue",
+  "readFinish": "Finish",
+  "readPaused": "Paused",
+  "readMicDenied": "Microphone access is needed",
+  "readWithoutMic": "Without microphone",
+  "readModelMissing": "The model is not downloaded",
+  "readDownload": "Download",
+  "readWithoutVoice": "Without voice",
+  "readDeviceTooSlow": "The phone cannot check in time. Let's continue without checking",
+  "readFailed": "Could not prepare reading",
+  "readUnlock": "Open without penalty",
+  "readStrictAgain": "Read this word again",
+  "readOfferHint": "Show a hint?",
+  "readChecksNotice": "Words are checked. Vowel marks and tajweed are not checked yet",
+  "readTitle": "Surah {surah}, ayahs {from}–{to}",
+  "readShowFirstWord": "First word visible",
+  "readStrict": "Strict mode",
+  "readTextView": "Temporary text view: there is no page layout for this place yet",
+  "readSaving": "Saving the result…",
+  "@readTitle": {
+    "placeholders": {
+      "surah": {
+        "type": "int"
+      },
+      "from": {
+        "type": "int"
+      },
+      "to": {
+        "type": "int"
+      }
+    }
   }
 }

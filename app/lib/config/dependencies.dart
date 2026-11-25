@@ -10,6 +10,7 @@ import 'package:sudur/config/e01_config.dart';
 import 'package:sudur/config/prototype_real_session.dart';
 import 'package:sudur/data/repositories/app_user_repository.dart';
 import 'package:sudur/data/repositories/prototype_repository.dart';
+import 'package:sudur/data/repositories/reading_repository.dart';
 import 'package:sudur/data/services/app_canon_service.dart';
 import 'package:sudur/data/services/app_file_service.dart';
 import 'package:sudur/data/services/app_planner_service.dart';
@@ -64,6 +65,9 @@ class AppDependencies extends StatelessWidget {
           dispose: (_, router) => router.dispose(),
         ),
         Provider<PrototypeRepository>.value(value: repository),
+        Provider<ReadingRepository>.value(
+          value: LocalReadingRepository(installer),
+        ),
         Provider<AppStorageService>(
           create: (_) => storage,
           dispose: (_, value) => unawaited(value.dispose()),

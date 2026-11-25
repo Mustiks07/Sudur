@@ -402,4 +402,90 @@ class AppLocalizationsRu extends AppLocalizations {
   String todaySummary(int count) {
     return 'Сделано шагов: $count';
   }
+
+  @override
+  String get readPreparing => 'Готовлю…';
+
+  @override
+  String get readReady => 'Начинайте читать';
+
+  @override
+  String get readModeSupported => 'С поддержкой';
+
+  @override
+  String get readModeRecall => 'Пробую вспомнить';
+
+  @override
+  String get readModeTest => 'Проверяю себя';
+
+  @override
+  String get readStart => 'Начать';
+
+  @override
+  String get readHint => 'Подсказка';
+
+  @override
+  String get readPause => 'Пауза';
+
+  @override
+  String get readResume => 'Продолжить';
+
+  @override
+  String get readFinish => 'Закончить';
+
+  @override
+  String get readPaused => 'Пауза';
+
+  @override
+  String get readMicDenied => 'Нужен доступ к микрофону';
+
+  @override
+  String get readWithoutMic => 'Без микрофона';
+
+  @override
+  String get readModelMissing => 'Модель не скачана';
+
+  @override
+  String get readDownload => 'Скачать';
+
+  @override
+  String get readWithoutVoice => 'Без голоса';
+
+  @override
+  String get readDeviceTooSlow =>
+      'Телефон не успевает проверять. Продолжим без проверки';
+
+  @override
+  String get readFailed => 'Не удалось подготовить чтение';
+
+  @override
+  String get readUnlock => 'Открыть без штрафа';
+
+  @override
+  String get readStrictAgain => 'Прочитайте это слово ещё раз';
+
+  @override
+  String get readOfferHint => 'Подсказать?';
+
+  @override
+  String get readChecksNotice =>
+      'Проверяются слова. Огласовки и таджвид пока не проверяются';
+
+  @override
+  String readTitle(int surah, int from, int to) {
+    return 'Сура $surah, аяты $from–$to';
+  }
+
+  @override
+  String get readShowFirstWord => 'Первое слово видно';
+
+  @override
+  String get readStrict => 'Строгий режим';
+
+  @override
+  String get readTextView =>
+      'Временный текстовый вид: разметки страниц для этого места пока нет';
+
+  @override
+  String get readSaving => 'Сохраняю результат…';
 }

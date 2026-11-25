@@ -827,6 +827,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Steps done: {count}'**
   String todaySummary(int count);
+
+  /// No description provided for @readPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing…'**
+  String get readPreparing;
+
+  /// No description provided for @readReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Start reading'**
+  String get readReady;
+
+  /// No description provided for @readModeSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'With support'**
+  String get readModeSupported;
+
+  /// No description provided for @readModeRecall.
+  ///
+  /// In en, this message translates to:
+  /// **'Try to recall'**
+  String get readModeRecall;
+
+  /// No description provided for @readModeTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Test myself'**
+  String get readModeTest;
+
+  /// No description provided for @readStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get readStart;
+
+  /// No description provided for @readHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Hint'**
+  String get readHint;
+
+  /// No description provided for @readPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get readPause;
+
+  /// No description provided for @readResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get readResume;
+
+  /// No description provided for @readFinish.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish'**
+  String get readFinish;
+
+  /// No description provided for @readPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get readPaused;
+
+  /// No description provided for @readMicDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone access is needed'**
+  String get readMicDenied;
+
+  /// No description provided for @readWithoutMic.
+  ///
+  /// In en, this message translates to:
+  /// **'Without microphone'**
+  String get readWithoutMic;
+
+  /// No description provided for @readModelMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The model is not downloaded'**
+  String get readModelMissing;
+
+  /// No description provided for @readDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get readDownload;
+
+  /// No description provided for @readWithoutVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Without voice'**
+  String get readWithoutVoice;
+
+  /// No description provided for @readDeviceTooSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'The phone cannot check in time. Let\'s continue without checking'**
+  String get readDeviceTooSlow;
+
+  /// No description provided for @readFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not prepare reading'**
+  String get readFailed;
+
+  /// No description provided for @readUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Open without penalty'**
+  String get readUnlock;
+
+  /// No description provided for @readStrictAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Read this word again'**
+  String get readStrictAgain;
+
+  /// No description provided for @readOfferHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a hint?'**
+  String get readOfferHint;
+
+  /// No description provided for @readChecksNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Words are checked. Vowel marks and tajweed are not checked yet'**
+  String get readChecksNotice;
+
+  /// No description provided for @readTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Surah {surah}, ayahs {from}–{to}'**
+  String readTitle(int surah, int from, int to);
+
+  /// No description provided for @readShowFirstWord.
+  ///
+  /// In en, this message translates to:
+  /// **'First word visible'**
+  String get readShowFirstWord;
+
+  /// No description provided for @readStrict.
+  ///
+  /// In en, this message translates to:
+  /// **'Strict mode'**
+  String get readStrict;
+
+  /// No description provided for @readTextView.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary text view: there is no page layout for this place yet'**
+  String get readTextView;
+
+  /// No description provided for @readSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving the result…'**
+  String get readSaving;
 }
 
 class _AppLocalizationsDelegate

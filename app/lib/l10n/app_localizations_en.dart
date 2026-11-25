@@ -396,4 +396,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String todaySummary(int count) {
     return 'Steps done: $count';
   }
+
+  @override
+  String get readPreparing => 'Preparing…';
+
+  @override
+  String get readReady => 'Start reading';
+
+  @override
+  String get readModeSupported => 'With support';
+
+  @override
+  String get readModeRecall => 'Try to recall';
+
+  @override
+  String get readModeTest => 'Test myself';
+
+  @override
+  String get readStart => 'Start';
+
+  @override
+  String get readHint => 'Hint';
+
+  @override
+  String get readPause => 'Pause';
+
+  @override
+  String get readResume => 'Continue';
+
+  @override
+  String get readFinish => 'Finish';
+
+  @override
+  String get readPaused => 'Paused';
+
+  @override
+  String get readMicDenied => 'Microphone access is needed';
+
+  @override
+  String get readWithoutMic => 'Without microphone';
+
+  @override
+  String get readModelMissing => 'The model is not downloaded';
+
+  @override
+  String get readDownload => 'Download';
+
+  @override
+  String get readWithoutVoice => 'Without voice';
+
+  @override
+  String get readDeviceTooSlow =>
+      'The phone cannot check in time. Let\'s continue without checking';
+
+  @override
+  String get readFailed => 'Could not prepare reading';
+
+  @override
+  String get readUnlock => 'Open without penalty';
+
+  @override
+  String get readStrictAgain => 'Read this word again';
+
+  @override
+  String get readOfferHint => 'Show a hint?';
+
+  @override
+  String get readChecksNotice =>
+      'Words are checked. Vowel marks and tajweed are not checked yet';
+
+  @override
+  String readTitle(int surah, int from, int to) {
+    return 'Surah $surah, ayahs $from–$to';
+  }
+
+  @override
+  String get readShowFirstWord => 'First word visible';
+
+  @override
+  String get readStrict => 'Strict mode';
+
+  @override
+  String get readTextView =>
+      'Temporary text view: there is no page layout for this place yet';
+
+  @override
+  String get readSaving => 'Saving the result…';
 }

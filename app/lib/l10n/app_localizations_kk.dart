@@ -394,4 +394,87 @@ class AppLocalizationsKk extends AppLocalizations {
   String todaySummary(int count) {
     return '[Нужен перевод] $count';
   }
+
+  @override
+  String get readPreparing => '[Нужен перевод]';
+
+  @override
+  String get readReady => '[Нужен перевод]';
+
+  @override
+  String get readModeSupported => '[Нужен перевод]';
+
+  @override
+  String get readModeRecall => '[Нужен перевод]';
+
+  @override
+  String get readModeTest => '[Нужен перевод]';
+
+  @override
+  String get readStart => '[Нужен перевод]';
+
+  @override
+  String get readHint => '[Нужен перевод]';
+
+  @override
+  String get readPause => '[Нужен перевод]';
+
+  @override
+  String get readResume => '[Нужен перевод]';
+
+  @override
+  String get readFinish => '[Нужен перевод]';
+
+  @override
+  String get readPaused => '[Нужен перевод]';
+
+  @override
+  String get readMicDenied => '[Нужен перевод]';
+
+  @override
+  String get readWithoutMic => '[Нужен перевод]';
+
+  @override
+  String get readModelMissing => '[Нужен перевод]';
+
+  @override
+  String get readDownload => '[Нужен перевод]';
+
+  @override
+  String get readWithoutVoice => '[Нужен перевод]';
+
+  @override
+  String get readDeviceTooSlow => '[Нужен перевод]';
+
+  @override
+  String get readFailed => '[Нужен перевод]';
+
+  @override
+  String get readUnlock => '[Нужен перевод]';
+
+  @override
+  String get readStrictAgain => '[Нужен перевод]';
+
+  @override
+  String get readOfferHint => '[Нужен перевод]';
+
+  @override
+  String get readChecksNotice => '[Нужен перевод]';
+
+  @override
+  String readTitle(int surah, int from, int to) {
+    return '[Нужен перевод] $surah $from $to';
+  }
+
+  @override
+  String get readShowFirstWord => '[Нужен перевод]';
+
+  @override
+  String get readStrict => '[Нужен перевод]';
+
+  @override
+  String get readTextView => '[Нужен перевод]';
+
+  @override
+  String get readSaving => '[Нужен перевод]';
 }

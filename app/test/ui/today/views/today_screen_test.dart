@@ -92,7 +92,7 @@ void _flowTests() {
           builder: (context, state) => const Scaffold(body: TodayScreen()),
         ),
         GoRoute(
-          path: '/prototype',
+          path: '/read',
           builder: (context, state) {
             opened = state.uri;
             return Scaffold(

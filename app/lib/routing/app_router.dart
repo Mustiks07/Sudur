@@ -1,7 +1,15 @@
+import 'dart:async';
+
 import 'package:contracts/contracts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:sudur/config/app_config.dart';
 import 'package:sudur/data/models/user_models.dart';
+import 'package:sudur/data/repositories/app_user_repository.dart';
+import 'package:sudur/data/repositories/reading_repository.dart';
+import 'package:sudur/data/services/prototype_session.dart';
+import 'package:sudur/ui/read/view_models/read_view_model.dart';
+import 'package:sudur/ui/read/views/read_screen.dart';
 import 'package:sudur/ui/reading/views/reading_screen.dart';
 import 'package:sudur/ui/start/views/root_screen.dart';
 import 'package:sudur/ui/today/views/step_coming_soon_screen.dart';
@@ -23,21 +31,45 @@ GoRouter createAppRouter(AppConfig config) => GoRouter(
       },
     ),
     GoRoute(
+      path: '/read',
+      builder: (context, state) {
+        final query = state.uri.queryParameters;
+        final from = _wordKey(query['from']);
+        final to = _wordKey(query['to']);
+        if (from == null || to == null || to.compareTo(from) < 0) {
+          return const StepComingSoonScreen();
+        }
+        return ChangeNotifierProvider<ReadViewModel>(
+          create: (context) {
+            final viewModel = ReadViewModel(
+              reading: context.read<ReadingRepository>(),
+              user: context.read<AppUserRepository>(),
+              sessionFactory: context.read<PrototypeReadingSessionFactory>(),
+            );
+            unawaited(
+              viewModel.open(from: from, to: to, stepId: query['step']),
+            );
+            return viewModel;
+          },
+          child: const ReadScreen(),
+        );
+      },
+    ),
+    GoRoute(
       path: '/soon',
       builder: (context, state) => const StepComingSoonScreen(),
     ),
   ],
 );
 
-/// Where a step of “Today” is read. Until the reading screen (Q7) exists,
-/// steps with words open the prototype with their range; others are not
-/// built yet.
+/// Where a step of “Today” is read: steps with words open the reading
+/// screen with their range; others (lessons) are not built yet.
 String locationOfStep(TodayStepData step) {
   final from = step.from;
   final to = step.to;
   if (from == null || to == null) return '/soon';
   return Uri(
-    path: '/prototype',
+    path: '/read',
     queryParameters: {'from': '$from', 'to': '$to', 'step': step.id},
   ).toString();
 }
