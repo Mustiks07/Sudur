@@ -16,6 +16,7 @@
 | `fixtures/content_p582_583.json` | Данные страниц 582–583 (сура 78, 79:1–15) из `tools/content_build`; см. [`fixtures/README.md`](fixtures/README.md) | P03 |
 | `fixtures/lessons_test_stage1.json` | Тестовый пакет уроков: по примеру каждого типа шага (УЧ-03). Только заглушки `TODO_CONTENT`, без настоящего содержания; см. [`fixtures/README.md`](fixtures/README.md) | K01 |
 | `fixtures/manifest/` | Тестовый подписанный манифест, тестовый пакет и тестовые ключи Ed25519 (`TEST-ONLY`) для `content` и `content_build`; см. [`fixtures/README.md`](fixtures/README.md) | O05 |
+| `fixtures/config/` | Тестовый подписанный файл параметров `config` (O11) | O11 |
 | `modelLetters`, `isModelOutput`, `FakeSpeechRecognizer.modelOutput`, `RecognitionScript(modelOutput: true)`, `SyntheticRecording(modelOutput: true)` | Распознанный текст **как выдаёт модель** (29 голых букв, ТЗ 12.3) и проверка, что поддельный распознаватель подаёт только такой текст. Канонический ключ с огласовками — `ArgumentError`. Подавайте тестам следования и проверки вывод модели, а не ключи | вывод модели |
 | `fixtures/models/normalizer.abdou.json` | `normalizer.json` моделей `Abdou/quran-asr` строго по ТЗ 12.3 (коды символов, без набора букв) | вывод модели |
 | `FakeSpeechRecognizer` | `SpeechRecognizer`, который проигрывает заранее подготовленные результаты (СЛ-07, ПО-12) | P06 |

@@ -1,0 +1,81 @@
+{
+  "configVersion": 1,
+  "version": "1.0.0",
+  "issuedAt": "2026-11-18T00:00:00.000Z",
+  "audio": {
+    "ringBufferSec": 30,
+    "preRollMs": 300,
+    "postRollMs": 300,
+    "segmentEndPauseMs": 300,
+    "maxSegmentMs": 15000,
+    "reviewSnippetPadMs": 3000,
+    "quietDbfs": -42,
+    "noisyDbfs": -35,
+    "clippingRatio": 0.01,
+    "signalHoldMs": 3000
+  },
+  "recognition": {
+    "asrThreads": 2,
+    "partialIntervalMs": 500,
+    "maxPartialWindowMs": 8000,
+    "deviceTestSmallMax": 0.3,
+    "deviceTestTinyMax": 0.6
+  },
+  "plan": {
+    "newShare": 0.2,
+    "recentShare": 0.3,
+    "oldShare": 0.5,
+    "hardSpotMaxShare": 0.25,
+    "recentDays": 30,
+    "recentLadderDays": [
+      1,
+      2,
+      4,
+      7
+    ],
+    "desiredRetention": 0.9,
+    "breakDays": 7,
+    "diagnosticSize": {
+      "min": 3,
+      "max": 5
+    },
+    "afterBreakNewFactor": 0.5,
+    "afterBreakDays": 7,
+    "defaultSecondsPerWord": 1.0,
+    "speedWindow": 10,
+    "debtLimitFactor": 1.0,
+    "passageMaxAyahs": 5,
+    "stepMultipliers": [
+      1.3,
+      3.0,
+      8.0
+    ],
+    "learnListenRepeats": 3,
+    "learnSupportedRepeats": 2,
+    "exerciseContextWords": 2,
+    "junctionWords": 2,
+    "junctionRepeats": 3,
+    "learnJunctionWords": 2,
+    "staleAfterDays": 7,
+    "staleRecallBelow": 0.7,
+    "confirmedLaterMinDays": 1
+  },
+  "other": {
+    "quizPassPercent": 80,
+    "skillReviewQuestions": 3,
+    "listenRepeatPauseFactor": 1.2,
+    "freeVoiceMinutesPerDay": 10,
+    "trialDays": 7,
+    "offlineGraceDays": 14,
+    "uploadQueueMaxMb": 200,
+    "uploadWifiOnly": true,
+    "opusBitrateKbps": 16,
+    "maxRemindersPerDay": 2,
+    "pageFontWindow": 3,
+    "manifestCheckHours": 24
+  },
+  "signature": {
+    "keyId": "test-main",
+    "ed25519": "idNQ0f/dkD5rUK+Dj3wlrsSLcXEnU0F+Y5/2Yzq44bB2l9nKKVy4iYTsvjF/rReANF7zX1CFolrrdoBOaovODw=="
+  }
+}

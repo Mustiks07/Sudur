@@ -3,8 +3,10 @@ import 'dart:convert';
 /// The canonical form of a JSON value that a manifest signature covers
 /// (docs/tz 12.3): object keys sorted, no whitespace.
 ///
-/// Only integers are allowed as numbers: a fractional number has no single
-/// spelling across languages, and the manifest needs none.
+/// Numbers are written as Dart writes them (`jsonEncode`): the shortest
+/// spelling that reads back to the same value. The signer
+/// (`tools/content_build`) is Dart too, so both sides agree; NaN and
+/// infinity are not JSON and are refused.
 ///
 /// Throws [FormatException] for a value that is not plain JSON.
 String canonicalJson(Object? value) {
@@ -31,8 +33,10 @@ String canonicalJson(Object? value) {
           write(e);
         }
         out.write(']');
+      case final double d when d.isFinite:
+        out.write(jsonEncode(d));
       case double():
-        throw FormatException('A manifest number must be an integer', v);
+        throw FormatException('Not a finite number', v);
       default:
         throw FormatException('Not a JSON value', v);
     }

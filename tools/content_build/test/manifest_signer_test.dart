@@ -221,7 +221,7 @@ void main() {
     }
   });
 
-  test('canonical JSON: sorted keys, no spaces, integers only', () {
+  test('canonical JSON: sorted keys, no spaces, finite numbers', () {
     expect(
       canonicalJson({
         'b': 1,
@@ -230,7 +230,7 @@ void main() {
       '{"a":[true,null],"b":1}',
     );
     expect(
-      () => canonicalJson({'a': 1.5}),
+      () => canonicalJson({'a': double.nan}),
       throwsA(isA<ManifestBuildException>()),
     );
   });

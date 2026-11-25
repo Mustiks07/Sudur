@@ -108,6 +108,61 @@ Future<Result<Manifest>> verifyManifest(
   Result<Manifest> fail(ManifestProblem p, String message) =>
       Result.error(ManifestException(p, message));
 
+  final Map<String, Object?> json;
+  final ManifestSignature signature;
+  switch (await verifySignedJson(source, keys)) {
+    case Ok(value: (final document, final sig)):
+      json = document;
+      signature = sig;
+    case Error(:final error):
+      return Result.error(error);
+  }
+
+  // Signed by a trusted key: now the content is read.
+  switch (json['manifestVersion']) {
+    case final int v when v == Manifest.supportedVersion:
+      break;
+    case final int v when v > Manifest.supportedVersion:
+      return fail(ManifestProblem.unsupportedVersion, 'version $v');
+    default:
+      return fail(ManifestProblem.malformed, 'manifestVersion');
+  }
+  final Manifest manifest;
+  try {
+    manifest = Manifest(
+      manifestVersion: Manifest.supportedVersion,
+      issuedAt: parseUtcTime(json['issuedAt'], 'issuedAt'),
+      packages: _packages(json['packages']),
+      signature: signature,
+    );
+  } on FormatException catch (e) {
+    return fail(ManifestProblem.malformed, e.message);
+  }
+  if (notBefore != null && manifest.issuedAt.isBefore(notBefore)) {
+    return fail(
+      ManifestProblem.outdated,
+      'issued ${manifest.issuedAt.toIso8601String()}, '
+      'already have ${notBefore.toIso8601String()}',
+    );
+  }
+  return Result.ok(manifest);
+}
+
+/// Checks the Ed25519 signature of a signed JSON document — the manifest
+/// or the `config` file (docs/tz 12.3: «подписан так же, как манифест») —
+/// and returns the document with its signature. The signature covers the
+/// canonical JSON without `signature`; nothing in the document is trusted
+/// before this check.
+Future<Result<(Map<String, Object?>, ManifestSignature)>> verifySignedJson(
+  String source,
+  TrustedKeys keys,
+) async {
+  Result<(Map<String, Object?>, ManifestSignature)> fail(
+    ManifestProblem p,
+    String message,
+  ) =>
+      Result.error(ManifestException(p, message));
+
   final Object? json;
   try {
     json = jsonDecode(source);
@@ -139,35 +194,7 @@ Future<Result<Manifest>> verifyManifest(
   if (!valid) {
     return fail(ManifestProblem.badSignature, 'key "${key.id}"');
   }
-
-  // Signed by a trusted key: now the content is read.
-  switch (json['manifestVersion']) {
-    case final int v when v == Manifest.supportedVersion:
-      break;
-    case final int v when v > Manifest.supportedVersion:
-      return fail(ManifestProblem.unsupportedVersion, 'version $v');
-    default:
-      return fail(ManifestProblem.malformed, 'manifestVersion');
-  }
-  final Manifest manifest;
-  try {
-    manifest = Manifest(
-      manifestVersion: Manifest.supportedVersion,
-      issuedAt: _issuedAt(json['issuedAt']),
-      packages: _packages(json['packages']),
-      signature: signature,
-    );
-  } on FormatException catch (e) {
-    return fail(ManifestProblem.malformed, e.message);
-  }
-  if (notBefore != null && manifest.issuedAt.isBefore(notBefore)) {
-    return fail(
-      ManifestProblem.outdated,
-      'issued ${manifest.issuedAt.toIso8601String()}, '
-      'already have ${notBefore.toIso8601String()}',
-    );
-  }
-  return Result.ok(manifest);
+  return Result.ok((json, signature));
 }
 
 ManifestSignature _signature(Object? json) {
@@ -186,13 +213,16 @@ ManifestSignature _signature(Object? json) {
   throw const FormatException('signature must have keyId and ed25519');
 }
 
-DateTime _issuedAt(Object? json) {
+/// Reads a UTC time like `2026-12-01T00:00:00Z` from [json].
+///
+/// Throws [FormatException] naming [field].
+DateTime parseUtcTime(Object? json, String field) {
   if (json is String) {
     final t = DateTime.tryParse(json);
     if (t != null && t.isUtc) return t;
   }
-  throw const FormatException(
-    'issuedAt must be a UTC time like 2026-12-01T00:00:00Z',
+  throw FormatException(
+    '$field must be a UTC time like 2026-12-01T00:00:00Z',
   );
 }
 

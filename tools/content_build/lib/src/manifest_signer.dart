@@ -40,14 +40,17 @@ final RegExp _id = RegExp(r'^[a-z0-9][a-z0-9._-]*$');
 const int _seedLength = 32;
 
 /// The canonical form of a JSON value that the signature covers: object
-/// keys sorted, no whitespace, integers only. The same rule as
-/// `canonicalJson` of `packages/content`.
+/// keys sorted, no whitespace, numbers as Dart writes them, NaN and
+/// infinity refused. The same rule as `canonicalJson` of
+/// `packages/content`.
 String canonicalJson(Object? value) {
   final out = StringBuffer();
   void write(Object? v) {
     switch (v) {
       case null || bool() || String() || int():
         out.write(jsonEncode(v));
+      case final double d when d.isFinite:
+        out.write(jsonEncode(d));
       case final Map<String, Object?> map:
         final keys = map.keys.toList()..sort();
         out.write('{');
@@ -173,8 +176,16 @@ final class SigningKey {
 Future<Map<String, Object?>> signManifest(
   Map<String, Object?> manifest,
   SigningKey key,
+) =>
+    signJson(manifest, key);
+
+/// Signs any JSON document the same way as the manifest — also the
+/// `config` file (docs/tz 12.3: «подписан так же, как манифест»).
+Future<Map<String, Object?>> signJson(
+  Map<String, Object?> document,
+  SigningKey key,
 ) async {
-  final unsigned = {...manifest}..remove('signature');
+  final unsigned = {...document}..remove('signature');
   final pair = await Ed25519().newKeyPairFromSeed(key._seed);
   final signature = await Ed25519().sign(
     utf8.encode(canonicalJson(unsigned)),
@@ -284,6 +295,36 @@ Future<String> createSigningKey({
     '${jsonEncode({'keyId': keyId, 'seed': base64.encode(seed)})}\n',
   );
   return await publicKeyOf(key);
+}
+
+/// Sections of the `config` file (docs/tz 12.4; the values themselves are
+/// checked by `packages/content`, which the app uses to read them).
+const List<String> configSections = ['audio', 'recognition', 'plan', 'other'];
+
+/// Builds an unsigned `config` document from [values] (sections only).
+Map<String, Object?> buildConfig(
+  Map<String, Object?> values, {
+  required String version,
+  required DateTime issuedAt,
+}) {
+  if (!issuedAt.isUtc) throw const ManifestBuildException('issuedAt not UTC');
+  if (!_version.hasMatch(version)) {
+    throw ManifestBuildException('config version "$version" must be x.y.z');
+  }
+  for (final MapEntry(:key, :value) in values.entries) {
+    if (!configSections.contains(key)) {
+      throw ManifestBuildException('unknown config section "$key"');
+    }
+    if (value is! Map<String, Object?>) {
+      throw ManifestBuildException('config section "$key" is not an object');
+    }
+  }
+  return {
+    'configVersion': 1,
+    'version': version,
+    'issuedAt': issuedAt.toIso8601String(),
+    ...values,
+  };
 }
 
 /// Writes a signed manifest as indented JSON (the signature covers the

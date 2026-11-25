@@ -207,8 +207,17 @@ void main() {
       );
     });
 
-    test('fractional numbers are refused', () {
-      expect(() => canonicalJson({'size': 1.5}), throwsFormatException);
+    test('fractional numbers as Dart writes them; NaN and infinity refused',
+        () {
+      expect(
+        canonicalJson({'a': 1.5, 'b': 3.0, 'c': 0.01}),
+        '{"a":1.5,"b":3.0,"c":0.01}',
+      );
+      expect(() => canonicalJson({'x': double.nan}), throwsFormatException);
+      expect(
+        () => canonicalJson({'x': double.infinity}),
+        throwsFormatException,
+      );
     });
   });
 
