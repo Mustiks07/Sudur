@@ -344,9 +344,6 @@ class AppLocalizationsKk extends AppLocalizations {
   String get showFirstWord => '[Нужен перевод]';
 
   @override
-  String get memorizationRepeats => '[Нужен перевод]';
-
-  @override
   String get save => '[Нужен перевод]';
 
   @override
@@ -782,4 +779,29 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get remindersNotYet => '[Нужен перевод]';
+
+  @override
+  String get listenRepeats => '[Нужен перевод]';
+
+  @override
+  String get supportedRepeats => '[Нужен перевод]';
+
+  @override
+  String get readOpenSettings => '[Нужен перевод]';
+
+  @override
+  String get reviewShare => '[Нужен перевод]';
+
+  @override
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  ) {
+    return '[Нужен перевод] $surah $from $to $independent $hints $errors $unverified';
+  }
 }

@@ -105,7 +105,6 @@
   "dailyTime": "[Нужен перевод]",
   "strictMode": "[Нужен перевод]",
   "showFirstWord": "[Нужен перевод]",
-  "memorizationRepeats": "[Нужен перевод]",
   "save": "[Нужен перевод]",
   "noModels": "[Нужен перевод]",
   "speechModel": "[Нужен перевод]",
@@ -240,5 +239,10 @@
   "reminderText": "[Нужен перевод]",
   "reminderAdd": "[Нужен перевод]",
   "remindersOff": "[Нужен перевод]",
-  "remindersNotYet": "[Нужен перевод]"
+  "remindersNotYet": "[Нужен перевод]",
+  "listenRepeats": "[Нужен перевод]",
+  "supportedRepeats": "[Нужен перевод]",
+  "readOpenSettings": "[Нужен перевод]",
+  "reviewShare": "[Нужен перевод]",
+  "reviewShareText": "[Нужен перевод] {surah} {from} {to} {independent} {hints} {errors} {unverified}"
 }

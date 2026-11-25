@@ -124,6 +124,21 @@ final class ManualPrototypeSession implements PrototypeReadingSession {
 
   void emitFailure(Exception error) => _failures.add(error);
 
+  /// Snippets the session keeps, by event id.
+  final Map<String, ReviewAudio> snippets = {};
+
+  /// Times the review was closed.
+  int reviewsClosed = 0;
+
+  @override
+  ReviewAudio? reviewSnippet(String eventId) => snippets[eventId];
+
+  @override
+  void closeReview() {
+    snippets.clear();
+    reviewsClosed++;
+  }
+
   @override
   Future<void> configureInput(PrototypeSessionInput input) async {
     this.input = input;

@@ -90,11 +90,11 @@ void main() {
         ),
       );
       expect(plan.kind, ExerciseKind.transition);
-      expect(plan.steps, hasLength(ExerciseParams.defaults.junctionRepeats));
+      expect(plan.steps, hasLength(PlannerParams.defaults.junctionRepeats));
       final junction = plan.steps.first;
       expect(junction.from.ayah, 4);
       expect(junction.to.ayah, 5);
-      expect(junction.to.word, ExerciseParams.defaults.junctionWords);
+      expect(junction.to.word, PlannerParams.defaults.junctionWords);
     },
   );
 

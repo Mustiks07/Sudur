@@ -28,8 +28,8 @@ MemoryState memoryStateFor(
   }
   final overdueDays = now.toUtc().difference(unit.due.toUtc()).inDays;
   final hasRatedReview = unit.card.lastReview != null;
-  if ((hasRatedReview && overdueDays > params.memoryOverdueDays) ||
-      (hasRatedReview && retrievability < params.memoryLowProbability)) {
+  if ((hasRatedReview && overdueDays > params.staleAfterDays) ||
+      (hasRatedReview && retrievability < params.staleRecallBelow)) {
     return MemoryState.longUnchecked;
   }
   final meaningfulHistory = unit.history.where((record) {
@@ -55,7 +55,7 @@ MemoryState memoryStateFor(
           clean[clean.length - params.memoryConfirmationAttempts].at,
         )
         .inDays;
-    if (interval >= params.memoryConfirmationIntervalDays) {
+    if (interval >= params.confirmedLaterMinDays) {
       return MemoryState.confirmedLater;
     }
   }

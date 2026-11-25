@@ -50,6 +50,9 @@ final class AppPlannerService {
   /// Current FSRS probability of remembering [unit].
   double retrievability(PlanUnit unit) => _engine.retrievability(unit);
 
+  /// Words on each side of the junction of two passages (ЗН-03).
+  int get learnJunctionWords => _params.learnJunctionWords;
+
   /// Builds a plan using the pure-Dart package and specification parameters.
   TodayPlan build(TodayPlanRequest request) => TodayPlanner(
     params: _params,

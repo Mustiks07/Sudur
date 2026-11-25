@@ -349,9 +349,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get showFirstWord => 'Показывать первое слово';
 
   @override
-  String get memorizationRepeats => 'Повторов при заучивании';
-
-  @override
   String get save => 'Сохранить';
 
   @override
@@ -799,4 +796,29 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get remindersNotYet =>
       'Напоминания будут приходить, когда в приложение добавят уведомления; время уже сохраняется';
+
+  @override
+  String get listenRepeats => 'Послушать чтеца';
+
+  @override
+  String get supportedRepeats => 'Прочитать по тексту';
+
+  @override
+  String get readOpenSettings => 'Открыть настройки';
+
+  @override
+  String get reviewShare => 'Поделиться итогом';
+
+  @override
+  String reviewShareText(
+    int surah,
+    int from,
+    int to,
+    int independent,
+    int hints,
+    int errors,
+    int unverified,
+  ) {
+    return 'Сура $surah, аяты $from–$to: самостоятельно $independent, с подсказками $hints, ошибок $errors, не удалось проверить $unverified.';
+  }
 }

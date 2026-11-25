@@ -45,13 +45,15 @@ final class MoreViewModel extends ChangeNotifier {
     required int dailyMinutes,
     required bool strictBehavior,
     required bool showFirstWord,
-    required int memorizationRepeats,
+    required int listenRepeats,
+    required int supportedRepeats,
   }) async {
     final result = await _repository.updateStudySettings(
       dailyMinutes: dailyMinutes,
       strictBehavior: strictBehavior,
       showFirstWord: showFirstWord,
-      memorizationRepeats: memorizationRepeats,
+      listenRepeats: listenRepeats,
+      supportedRepeats: supportedRepeats,
     );
     if (result case Ok(:final value)) settings = value;
     if (result case Error(:final error)) this.error = error.toString();
@@ -65,7 +67,8 @@ final class MoreViewModel extends ChangeNotifier {
       if (current != null) {
         settings = MoreSettingsData(
           profile: profile,
-          memorizationRepeats: current.memorizationRepeats,
+          listenRepeats: current.listenRepeats,
+          supportedRepeats: current.supportedRepeats,
         );
       }
     }

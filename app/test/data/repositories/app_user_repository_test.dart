@@ -515,6 +515,39 @@ void main() {
     expect(_value(await repository.learnPlan(step.id)).startIndex, 5);
   });
 
+  test('«Ещё»: listening and reading with the text are two settings that '
+      'the steps of a new passage follow', () async {
+    _value(
+      await repository.completeOnboarding(
+        draft(
+          path: AppLearningPath.memorize,
+          familiar: const {},
+          startPoint: AppStartPoint.firstSurah,
+        ),
+      ),
+    );
+    final defaults = _value(await repository.loadMoreSettings());
+    expect((defaults.listenRepeats, defaults.supportedRepeats), (3, 2));
+    _value(
+      await repository.updateStudySettings(
+        dailyMinutes: 10,
+        strictBehavior: false,
+        showFirstWord: true,
+        listenRepeats: 1,
+        supportedRepeats: 4,
+      ),
+    );
+    final stored = _value(await repository.loadMoreSettings());
+    expect((stored.listenRepeats, stored.supportedRepeats), (1, 4));
+    final today = _value(await repository.loadToday());
+    final step = today.steps.firstWhere((s) => s.unitId != null);
+    final kinds = _value(await repository.learnPlan(step.id)).steps
+        .map((s) => s.kind)
+        .toList();
+    expect(kinds.where((k) => k == LearnStepKind.listen), hasLength(1));
+    expect(kinds.where((k) => k == LearnStepKind.supported), hasLength(4));
+  });
+
   test(
     'ЗН-05: after the last short surah is learned, the next one comes',
     () async {
